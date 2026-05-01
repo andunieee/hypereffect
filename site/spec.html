@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hypereffect specification</title>
+<meta name="description" content="Normative specification of the hypereffect protocol, draft 0.1.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site"><div class="inner">
+  <a class="name" href="index.html">hypereffect</a>
+  <nav>
+    <a href="index.html">Overview</a>
+    <a href="concepts.html">Concepts</a>
+    <a href="guide.html">Guide</a>
+    <a href="components.html">Components</a>
+    <a href="spec.html" aria-current="page">Spec</a>
+  </nav>
+</div></header>
+
+<main>
+<h1>Specification</h1>
+<p class="meta">Draft 0.1 · October 2026 · Status: experimental, subject to change</p>
+
+<div class="toc">
+<ol>
+  <li><a href="#conventions">Conventions</a></li>
+  <li><a href="#terminology">Terminology</a></li>
+  <li><a href="#framing">Framing</a></li>
+  <li><a href="#session">Sessions</a></li>
+  <li><a href="#server-messages">Server messages</a></li>
+  <li><a href="#client-messages">Renderer messages</a></li>
+  <li><a href="#tree">The element tree</a></li>
+  <li><a href="#signals">Signals</a></li>
+  <li><a href="#expressions">Expressions</a></li>
+  <li><a href="#handlers">Handlers</a></li>
+  <li><a href="#transports">Transports</a></li>
+  <li><a href="#errors">Errors and compatibility</a></li>
+  <li><a href="#security">Security considerations</a></li>
+  <li><a href="#grammar">Appendix: grammar</a></li>
+</ol>
+</div>
+
+<h2 id="conventions"><span class="num">1</span>Conventions</h2>
+<p>The key words MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in capitals.</p>
+<p>JSON refers to RFC 8259. Merge patch refers to RFC 7386. CEL refers to the Common Expression Language as specified at <a href="https://github.com/google/cel-spec">github.com/google/cel-spec</a>.</p>
+<p>The components and their attributes are specified on the <a href="components.html">Components</a> page, which is part of this specification.</p>
+
+<h2 id="terminology"><span class="num">2</span>Terminology</h2>
+<dl>
+  <dt>Server</dt><dd>The process that produces element, remove and signal messages and receives actions. It owns application state.</dd>
+  <dt>Renderer</dt><dd>The process or library that displays elements and sends actions. It has no knowledge of the application.</dd>
+  <dt>Host</dt><dd>The application that embeds a renderer and provides it with a drawing surface and a transport.</dd>
+  <dt>Session</dt><dd>One connection between a renderer and a server, from the renderer's <code>hello</code> until the transport closes.</dd>
+  <dt>Element</dt><dd>A JSON object describing one instance of a component.</dd>
+  <dt>Signals</dt><dd>A single JSON object holding the values that expressions read and controls write.</dd>
+  <dt>Local signal</dt><dd>A member of the signals object, at any depth, whose key begins with <code>_</code> (U+005F).</dd>
+  <dt>Structural attribute</dt><dd><code>id</code>, <code>type</code>, <code>parent</code>, <code>before</code>, <code>bind</code>, and every handler attribute. Their values MUST be literal.</dd>
+</dl>
+
+<h2 id="framing"><span class="num">3</span>Framing</h2>
+<p>In both directions, the protocol is a sequence of lines encoded in UTF-8. Each line is one message, consisting of a <em>tag</em>, a single space (U+0020), and a JSON text, followed by a line feed (U+000A).</p>
+<pre>signal {"count":1}
+element {"id":"a","type":"text","text":"Hello"}</pre>
+<ol>
+  <li>The tag MUST consist only of lowercase ASCII letters.</li>
+  <li>The JSON text MUST be a JSON object and MUST NOT contain a line feed. Since JSON strings cannot contain unescaped control characters, any compact JSON serialization satisfies this.</li>
+  <li>A receiver MUST accept a carriage return (U+000D) immediately before the line feed and ignore it.</li>
+  <li>A receiver MUST ignore empty lines. Senders MAY send empty lines as keep-alives.</li>
+  <li>A receiver MUST support lines of at least 1 MiB. It MAY reject longer lines.</li>
+  <li>Messages MUST be processed in the order they are received.</li>
+</ol>
+
+<h2 id="session"><span class="num">4</span>Sessions</h2>
+<ol>
+  <li>When the transport opens, the renderer MUST send a <code>hello</code> message before any other message.</li>
+  <li>A session begins with an empty element tree and with signals equal to the <code>signals</code> member of the renderer's <code>hello</code>, or <code>{}</code> if absent.</li>
+  <li>The server SHOULD respond to <code>hello</code> by sending the messages that build the initial interface.</li>
+  <li>The server MAY send messages at any time during the session, whether or not they are a response to an action.</li>
+  <li>When the transport closes, the session ends. The renderer SHOULD continue to display the last state with all controls disabled, and SHOULD indicate that it is disconnected.</li>
+  <li>If the host opens a new transport, a new session begins. The renderer MUST discard the previous tree and signals no later than when it processes the first server message of the new session. It SHOULD keep displaying the previous state until then, to avoid an empty frame.</li>
+</ol>
+<p>Resuming a session across transports is not part of this specification. Servers that need it can identify the user in the <code>hello</code> signals, or through the transport, and rebuild the interface.</p>
+
+<h2 id="server-messages"><span class="num">5</span>Server messages</h2>
+
+<h3 id="msg-element"><span class="num">5.1</span><code>element</code></h3>
+<p>The JSON object is an element. It MUST have an <code>id</code> member (a non-empty string) and a <code>type</code> member (a component name). Processing is described in <a href="#tree">section 7</a>.</p>
+<pre>element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Inbox"}</pre>
+
+<h3 id="msg-remove"><span class="num">5.2</span><code>remove</code></h3>
+<p>The JSON object MUST have an <code>id</code> member. The renderer removes the element with that id and all its descendants. If no element has that id, the message has no effect.</p>
+<pre>remove {"id":"row-17"}</pre>
+
+<h3 id="msg-signal"><span class="num">5.3</span><code>signal</code></h3>
+<p>The JSON object is a merge patch. The renderer applies it to the signals as described in <a href="#signals">section 8</a>.</p>
+<pre>signal {"unread":4,"draft":null}</pre>
+
+<h2 id="client-messages"><span class="num">6</span>Renderer messages</h2>
+
+<h3 id="msg-hello"><span class="num">6.1</span><code>hello</code></h3>
+<table>
+  <thead><tr><th>Member</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>version</code></td><td>string</td><td>Required. The protocol version the renderer implements. For this draft, <code>"0.1"</code>.</td></tr>
+    <tr><td><code>renderer</code></td><td>string</td><td>Optional. Name and version of the renderer, for diagnostics only. Servers MUST NOT change behaviour based on it.</td></tr>
+    <tr><td><code>locale</code></td><td>string</td><td>Optional. A BCP 47 language tag for the user's preferred language.</td></tr>
+    <tr><td><code>size</code></td><td>string</td><td>Optional. A coarse description of the available surface: <code>"compact"</code>, <code>"regular"</code> or <code>"wide"</code>.</td></tr>
+    <tr><td><code>signals</code></td><td>object</td><td>Optional. Initial signals supplied by the host. Local signals in it are retained by the renderer and not sent.</td></tr>
+  </tbody>
+</table>
+<pre>hello {"version":"0.1","renderer":"he-gtk/0.3","locale":"en-GB","size":"regular","signals":{"device":"kitchen"}}</pre>
+<p>The <code>signals</code> sent in <code>hello</code> MUST have local signals removed, as for actions.</p>
+
+<h3 id="msg-action"><span class="num">6.2</span><code>action</code></h3>
+<table>
+  <thead><tr><th>Member</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>name</code></td><td>string</td><td>Required. The <code>action</code> value of the handler.</td></tr>
+    <tr><td><code>source</code></td><td>string</td><td>Required. The id of the element whose handler ran.</td></tr>
+    <tr><td><code>event</code></td><td>string</td><td>Required. <code>"press"</code>, <code>"change"</code>, <code>"submit"</code> or <code>"dismiss"</code>.</td></tr>
+    <tr><td><code>payload</code></td><td>any</td><td>Present if and only if the handler has a <code>payload</code>; copied verbatim.</td></tr>
+    <tr><td><code>signals</code></td><td>object</td><td>Required. The signals at the time of sending, with all local signals removed.</td></tr>
+  </tbody>
+</table>
+<pre>action {"name":"archive","source":"archive-7","event":"press","payload":{"contact":7},"signals":{"filter":"all"}}</pre>
+<p>Removing local signals means: for every object in the signals, at any depth, omit each member whose key begins with <code>_</code>. Arrays are copied as they are; objects inside arrays are filtered in the same way.</p>
+
+<h2 id="tree"><span class="num">7</span>The element tree</h2>
+<p>The renderer maintains a tree of elements. The root is implicit, has no id, and lays out its children as a <code>column</code> with default attributes. Dialogs are kept at the root but displayed as overlays (see <a href="components.html#dialog">dialog</a>).</p>
+
+<h3><span class="num">7.1</span>Validation</h3>
+<p>An <code>element</code> message is rejected (ignored, with a diagnostic, see <a href="#errors">section 12</a>) if any of the following hold:</p>
+<ol>
+  <li><code>id</code> is missing, not a string, or empty.</li>
+  <li><code>type</code> is not a known component name.</li>
+  <li><code>parent</code> is present and no element with that id exists.</li>
+  <li>The parent, or the root if <code>parent</code> is absent, does not accept children of this type under the <a href="components.html#nesting">nesting rules</a>.</li>
+  <li><code>parent</code> is the element's own id or the id of one of its descendants.</li>
+  <li>A structural attribute is a CEL expression, or has the wrong JSON type.</li>
+</ol>
+<p>Consequently a server MUST send a parent before its children.</p>
+
+<h3><span class="num">7.2</span>Insertion</h3>
+<p>If no element with the given id exists, the element is added as a child of its parent (or the root). If <code>before</code> names a current child of that parent, it is inserted immediately before that child; otherwise it is appended as the last child.</p>
+
+<h3><span class="num">7.3</span>Replacement</h3>
+<p>If an element with the given id exists, the new element replaces it:</p>
+<ol>
+  <li>All attributes are replaced. Attributes absent from the new element take their defaults. Replacement is not a merge.</li>
+  <li>If <code>type</code> is unchanged, the element keeps its children and the renderer SHOULD preserve widget state that is not described by attributes: keyboard focus, text selection and cursor, scroll position, and expanded or collapsed state.</li>
+  <li>If <code>type</code> changed, all descendants are removed and widget state is discarded.</li>
+  <li>If <code>parent</code> differs from the current parent, the element and its descendants move to the new parent, positioned according to <code>before</code> as in 7.2.</li>
+  <li>If <code>parent</code> is unchanged and <code>before</code> names another current child of that parent, the element moves to immediately before it. Otherwise its position is unchanged.</li>
+</ol>
+
+<h3><span class="num">7.4</span>Removal</h3>
+<p>Removing an element removes its descendants. Ids of removed elements may be reused by later messages; a reused id creates a new element.</p>
+
+<h3><span class="num">7.5</span>Ids</h3>
+<p>Ids are opaque strings compared by code point. They are unique across the whole tree, not per parent. Ids are not shown to the user, except as the fallback label of a <code>tab</code>.</p>
+
+<h2 id="signals"><span class="num">8</span>Signals</h2>
+<ol>
+  <li>The signals object is a JSON object. A <code>signal</code> message is applied to it using the MergePatch algorithm of RFC 7386, section 2: members whose patch value is <code>null</code> are removed, object values are merged recursively, and any other value replaces the target value.</li>
+  <li>Arrays are values: a patch replaces an array entirely. There is no way to patch an element of an array.</li>
+  <li>Writes made by the renderer itself — from <code>bind</code>, from a handler's <code>patch</code>, or from setting an indicator — are also applied as merge patches.</li>
+  <li>After applying a patch, the renderer MUST re-evaluate every expression whose result may have changed, and update the display accordingly. It MAY coalesce updates: it SHOULD process all messages that are available before redrawing.</li>
+  <li>The server MAY write local signals. The renderer MUST NOT send them.</li>
+</ol>
+
+<h3><span class="num">8.1</span>Signal paths and binding</h3>
+<p>A signal path is a non-empty sequence of segments separated by <code>.</code>, each matching <code>[A-Za-z_][A-Za-z0-9_]*</code>. The path <code>a.b.c</code> denotes <code>signals["a"]["b"]["c"]</code>.</p>
+<p>A control with <code>bind</code> displays the value at its path, converted as its component describes. If the value is missing or has the wrong type, the control shows its empty state. When the user changes the control, the renderer writes the new value by applying the patch <code>{"a":{"b":{"c":<var>value</var>}}}</code>. This creates intermediate objects as needed and replaces any non-object value in the way.</p>
+<p>When the bound value is changed by a <code>signal</code> message, the control MUST show the new value, even if it has focus.</p>
+
+<h2 id="expressions"><span class="num">9</span>Expressions</h2>
+<p>An attribute value that is a JSON object with exactly one member, named <code>cel</code>, whose value is a string, is an expression. Any other value is literal. Expressions are permitted in every non-structural attribute and as leaf values of a handler's <code>patch</code>.</p>
+
+<h3><span class="num">9.1</span>Environment</h3>
+<ol>
+  <li>The environment declares one variable, <code>signals</code>, of type <code>dyn</code>, bound to the current signals.</li>
+  <li>The CEL standard definitions are available. Renderers SHOULD also provide the <code>strings</code> extension functions defined by cel-go (<code>lowerAscii</code>, <code>upperAscii</code>, <code>trim</code>, <code>join</code>, <code>split</code>, <code>replace</code>, <code>format</code> and others). Servers that use extensions SHOULD be prepared for renderers that do not support them.</li>
+  <li>Renderers MUST NOT provide functions with side effects or functions that read state other than their arguments.</li>
+</ol>
+
+<h3><span class="num">9.2</span>JSON to CEL</h3>
+<table>
+  <thead><tr><th>JSON</th><th>CEL</th></tr></thead>
+  <tbody>
+    <tr><td>null</td><td><code>null_type</code></td></tr>
+    <tr><td>true, false</td><td><code>bool</code></td></tr>
+    <tr><td>number with no fraction or exponent, in the range of int64</td><td><code>int</code></td></tr>
+    <tr><td>any other number</td><td><code>double</code></td></tr>
+    <tr><td>string</td><td><code>string</code></td></tr>
+    <tr><td>array</td><td><code>list(dyn)</code></td></tr>
+    <tr><td>object</td><td><code>map(string, dyn)</code></td></tr>
+  </tbody>
+</table>
+<p>CEL does not mix <code>int</code> and <code>double</code> in arithmetic. A signal that may hold either should be converted with <code>double()</code> before arithmetic.</p>
+
+<h3><span class="num">9.3</span>CEL to attribute</h3>
+<p>The result of an expression is checked against the attribute's type:</p>
+<ul>
+  <li><strong>string</strong> and <strong>enum</strong> attributes require a <code>string</code>. No implicit conversion is performed; use <code>string()</code>.</li>
+  <li><strong>bool</strong> attributes require a <code>bool</code>.</li>
+  <li><strong>number</strong> attributes accept <code>int</code>, <code>uint</code> or <code>double</code>. Attributes documented as "number or null" also accept <code>null</code>.</li>
+  <li><strong>list</strong> attributes require a list whose items satisfy the item type.</li>
+</ul>
+<p>For a handler's <code>patch</code>, the result is converted to JSON: numbers to numbers, maps with string keys to objects, lists to arrays. A result with no JSON representation (bytes, timestamp, duration, type values) is an error.</p>
+
+<h3><span class="num">9.4</span>Failure</h3>
+<p>If an expression fails to parse, fails to evaluate (for example because a signal is missing), or produces a value of the wrong type, the attribute takes its default value. In a handler's <code>patch</code>, the member is omitted from the patch. The renderer SHOULD report the failure as a diagnostic and MUST NOT report it to the user.</p>
+<p>Renderers MAY limit the cost of evaluation using CEL's cost tracking, and treat an expression exceeding the limit as failed. The limit SHOULD be large enough for expressions of a few hundred characters over signals of a few hundred kilobytes.</p>
+
+<h2 id="handlers"><span class="num">10</span>Handlers</h2>
+<p>A handler is a JSON object with at least one of <code>patch</code> (an object) and <code>action</code> (a non-empty string). With <code>action</code> it MAY also have <code>payload</code> (any JSON value) and <code>indicator</code> (a signal path whose first segment begins with <code>_</code>). Handlers with none of <code>patch</code> or <code>action</code>, or with an invalid <code>indicator</code>, are invalid; an element with an invalid handler is rejected.</p>
+<p>When the user triggers a handler, the renderer MUST perform these steps in order:</p>
+<ol>
+  <li>If the element or any ancestor is disabled or not visible, stop.</li>
+  <li>If the handler has <code>patch</code>, evaluate its expressions against the current signals and apply the resulting merge patch.</li>
+  <li>If the handler has <code>action</code> and the transport is not open, stop.</li>
+  <li>If the handler has <code>indicator</code>, write <code>true</code> at that path.</li>
+  <li>If the handler has <code>action</code>, send an <code>action</code> message.</li>
+</ol>
+<p>The renderer MUST NOT clear an indicator itself. The server is expected to clear it, usually in the same batch as its response.</p>
+<p>The renderer MUST NOT change the display in anticipation of the server's response, beyond the effects of the patch and indicator. Servers SHOULD respond to every action with at least the indicator reset, if one was set.</p>
+
+<h2 id="transports"><span class="num">11</span>Transports</h2>
+<p>A transport carries lines in both directions, reliably and in order. Which transport is used, how a session is authenticated, and how the renderer finds the server are decided by the host application. This section defines mappings for common transports so that independent implementations interoperate.</p>
+<dl>
+  <dt>Byte streams</dt>
+  <dd>Unix domain sockets, TCP, TLS, standard input and output of a child process, QUIC or iroh bidirectional streams: lines are written directly to the stream in both directions.</dd>
+  <dt>WebSocket</dt>
+  <dd>Each text frame contains one or more complete lines. A line MUST NOT span frames. The final line feed in a frame MAY be omitted. Binary frames are not used.</dd>
+  <dt>HTTP with Server-Sent Events</dt>
+  <dd>Server to renderer: a <code>text/event-stream</code> response in which each SSE event has its <code>event</code> field set to the tag and a single <code>data</code> field containing the JSON. Renderer to server: each message is sent as the body of an HTTP POST, as a single line. The URLs, and how the POST is associated with the stream, are application-defined. Because the <code>hello</code> is sent by POST, servers SHOULD accept <code>hello</code> data in the request that opens the stream (for example as a query parameter or header) and treat that as the <code>hello</code>.</dd>
+  <dt>In-process</dt>
+  <dd>A host that runs server and renderer in the same process MAY pass messages as values without serializing them, provided the semantics are identical.</dd>
+</dl>
+
+<h2 id="errors"><span class="num">12</span>Errors and compatibility</h2>
+<ol>
+  <li>A renderer MUST NOT terminate the session because of an invalid message. It ignores the message and, if it has a diagnostic channel (a log, a developer console), reports it there.</li>
+  <li>A line that does not match the grammar, or whose JSON is not an object, is ignored.</li>
+  <li>A message with an unknown tag is ignored. This allows later versions to add messages.</li>
+  <li>Unknown attributes on an element are ignored. Unknown members in <code>hello</code> and <code>action</code> are ignored by the server.</li>
+  <li>An unknown enumeration value is treated as the attribute's default.</li>
+  <li>An element with an unknown <code>type</code> is rejected as in 7.1. A renderer MAY display a placeholder in its place in development builds.</li>
+  <li>Versions follow the form <var>major</var>.<var>minor</var>. A server that does not support the renderer's major version SHOULD send a single <code>notice</code> element explaining this, with variant <code>failure</code>, and then close the session.</li>
+</ol>
+<p>There is no error message from server to renderer or from renderer to server. Application errors are shown to the user with ordinary elements, such as a <code>notice</code>.</p>
+
+<h2 id="security"><span class="num">13</span>Security considerations</h2>
+<ul>
+  <li><strong>The renderer trusts the server for content, not for execution.</strong> A server can show anything within the component set, including misleading text. It cannot run code on the renderer: CEL has no side effects, and there is no scripting. Hosts that connect renderers to servers they do not control should present the surface in a way that makes its origin clear, for example within a frame labelled with the server's name.</li>
+  <li><strong>The server MUST NOT trust renderer messages.</strong> Action names, payloads, source ids and signals are all controlled by whoever operates the renderer. They are user input and must be validated as such. In particular, a payload containing an id does not prove the user was shown a control with that payload.</li>
+  <li><strong>Local signals are not secret.</strong> They are excluded from actions to reduce traffic and to mark renderer-only state, not to protect anything. The server wrote or could have written them.</li>
+  <li><strong>Images.</strong> Fetching an <code>image</code> URL discloses the user's network address and timing to that URL's host. Renderers SHOULD let the host restrict which schemes and hosts may be fetched.</li>
+  <li><strong>Resource use.</strong> A server can send many elements or large signals. Renderers MAY limit the number of elements, the depth of the tree, the size of signals and the cost of expressions, treating messages that would exceed the limits as invalid.</li>
+  <li><strong>Transport security</strong> is the responsibility of the transport. Over networks, servers and renderers SHOULD use an encrypted transport.</li>
+</ul>
+
+<h2 id="grammar"><span class="num">14</span>Appendix: grammar</h2>
+<p>In ABNF (RFC 5234), over Unicode code points:</p>
+<pre>stream  = *( line / empty )
+line    = tag SP json [CR] LF
+empty   = [CR] LF
+tag     = 1*%x61-7A                 ; a-z
+json    = &lt;a JSON object per RFC 8259, containing no LF&gt;</pre>
+<p>Tags defined in this version:</p>
+<table>
+  <thead><tr><th>Tag</th><th>Direction</th><th>Section</th></tr></thead>
+  <tbody>
+    <tr><td><code>element</code></td><td>server → renderer</td><td><a href="#msg-element">5.1</a></td></tr>
+    <tr><td><code>remove</code></td><td>server → renderer</td><td><a href="#msg-remove">5.2</a></td></tr>
+    <tr><td><code>signal</code></td><td>server → renderer</td><td><a href="#msg-signal">5.3</a></td></tr>
+    <tr><td><code>hello</code></td><td>renderer → server</td><td><a href="#msg-hello">6.1</a></td></tr>
+    <tr><td><code>action</code></td><td>renderer → server</td><td><a href="#msg-action">6.2</a></td></tr>
+  </tbody>
+</table>
+</main>
+
+<footer class="site"><div class="inner">hypereffect — draft 0.1</div></footer>
+</body>
+</html>

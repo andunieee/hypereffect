@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hypereffect concepts</title>
+<meta name="description" content="The ideas behind hypereffect: hypermedia, elements and signals, CEL expressions and server-guided interaction.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site"><div class="inner">
+  <a class="name" href="index.html">hypereffect</a>
+  <nav>
+    <a href="index.html">Overview</a>
+    <a href="concepts.html" aria-current="page">Concepts</a>
+    <a href="guide.html">Guide</a>
+    <a href="components.html">Components</a>
+    <a href="spec.html">Spec</a>
+  </nav>
+</div></header>
+
+<main>
+<h1>Concepts</h1>
+<p class="lede">hypereffect combines a few existing ideas. This page explains each one and how the protocol uses it.</p>
+
+<div class="toc">
+<ol>
+  <li><a href="#hypermedia">Hypermedia</a></li>
+  <li><a href="#controls">Hypermedia controls</a></li>
+  <li><a href="#hateoas">The server as the engine of state</a></li>
+  <li><a href="#elements-signals">Elements and signals</a></li>
+  <li><a href="#cel">Expressions</a></li>
+  <li><a href="#variants">Variants instead of styles</a></li>
+  <li><a href="#honesty">Indicators, not optimism</a></li>
+  <li><a href="#comparison">Differences from the web</a></li>
+</ol>
+</div>
+
+<h2 id="hypermedia">Hypermedia</h2>
+<p><a href="https://hypermedia.systems/part/hypermedia-concepts/">Hypermedia Systems</a> describes a hypermedia system as four parts: a hypermedia format, a network protocol that carries it, a server that produces it, and a client that interprets it. On the web these are HTML, HTTP, a web server, and a browser.</p>
+<p>hypereffect fills the same four slots with different parts:</p>
+<table>
+  <thead><tr><th>Part</th><th>Web</th><th>hypereffect</th></tr></thead>
+  <tbody>
+    <tr><td>Format</td><td>HTML</td><td>Element and signal messages (JSON, one per line)</td></tr>
+    <tr><td>Protocol</td><td>HTTP</td><td>Any ordered byte stream; the application chooses</td></tr>
+    <tr><td>Server</td><td>Web server</td><td>Any process that writes messages and reads actions</td></tr>
+    <tr><td>Client</td><td>Browser</td><td>A <em>renderer</em>: a library or program that draws the components natively</td></tr>
+  </tbody>
+</table>
+<p>The important property, as with a browser, is that the client is generic. A renderer that can show one hypereffect application can show all of them. It does not need to be updated when an application changes, because everything it needs to display and operate the interface arrives in the messages. The book calls this property <em>self-describing messages</em>.</p>
+
+<h2 id="controls">Hypermedia controls</h2>
+<p>A hypermedia control is an element that describes an interaction with the server. In HTML the canonical controls are the anchor and the form. Each control answers three questions: what triggers it, what request it makes, and where the result goes.</p>
+<p>In hypereffect, a control is any component with an event attribute such as <code>onPress</code> or <code>onSubmit</code>:</p>
+<pre>element {"id":"archive","type":"button","parent":"row-7","label":"Archive",
+         "onPress":{"action":"archive","payload":{"contact":7}}}</pre>
+<ul>
+  <li><strong>Trigger</strong> — the user presses the button.</li>
+  <li><strong>Request</strong> — an <code>action</code> message named <code>archive</code>, carrying the payload, the id of the button, and the current non-local signals.</li>
+  <li><strong>Target</strong> — whatever the server decides to patch in response. There is no fixed target; the result is zero or more <code>element</code>, <code>remove</code> and <code>signal</code> messages on the same stream.</li>
+</ul>
+<p>The last point is a deliberate difference from HTML. A link replaces the page and a form replaces the page; htmx and Datastar let the response target a part of the page. In hypereffect the response is not tied to the request at all. This is the separation Datastar recommends under the name CQRS: actions are commands, and the stream of patches from the server is the single read path.</p>
+
+<h2 id="hateoas">The server as the engine of state</h2>
+<p>HATEOAS — Hypermedia As The Engine Of Application State — means the representation the server sends encodes which operations are available right now. If a contact is archived, the server sends an <em>Unarchive</em> button instead of an <em>Archive</em> button; the client contains no rule about when each is valid.</p>
+<p>hypereffect applies this directly. A renderer has no concept of a contact, an order or a user. It only sees buttons, inputs and text. Which buttons exist, and which actions they send, is decided by the server for each state. Adding a feature to an application means changing the server only.</p>
+<p>This is also why the protocol has no client-side scripting. The renderer can evaluate expressions to decide what to show, and it can apply small local patches to signals (for example to open a dialog), but it cannot run application logic.</p>
+
+<h2 id="elements-signals">Elements and signals</h2>
+<p>The two primitives come from <a href="https://data-star.dev/guide/the_tao_of_datastar">Datastar</a>, which describes its approach as patching elements and patching signals from the backend.</p>
+
+<h3>Elements</h3>
+<p>An element is a JSON object with an <code>id</code>, a <code>type</code> naming one of the built-in components, and the attributes that component accepts. Elements that live inside a container name it with <code>parent</code>. The renderer keeps all elements in a tree indexed by id.</p>
+<p>Sending an <code>element</code> message with an id the renderer already has replaces that element's attributes. Its children are kept, and so is local widget state: keyboard focus, scroll position, the text cursor in an input. This is the equivalent of Datastar's morphing. As with morphing, the recommended approach is to resend whole elements freely rather than compute minimal differences on the server.</p>
+
+<h3>Signals</h3>
+<p>Signals are a single JSON object shared between the server and the renderer. The server changes it with <code>signal</code> messages, which are applied as <a href="https://www.rfc-editor.org/rfc/rfc7386">JSON Merge Patch</a>: objects merge recursively, other values replace, and <code>null</code> deletes a key.</p>
+<pre>signal {"user":{"name":"Ada","unread":3}}
+signal {"user":{"unread":4}}          <span class="c"># name is kept</span>
+signal {"user":{"unread":null}}       <span class="c"># unread is deleted</span></pre>
+<p>Input components write to signals through <code>bind</code>. When an action is sent, the renderer includes the signals, so the server sees what the user typed. Keys beginning with an underscore are <em>local</em>: they are never sent. They are for state that only matters to the renderer, such as which tab is selected or whether a dialog is open.</p>
+
+<h3>When to use which</h3>
+<p>Use elements for structure: what is on the screen. Use signals for values that change while the structure stays the same: a counter, a status, a validation message, whether a section is visible. Datastar's advice applies here too: keep signals few, and keep most state on the server. A signal is not a database.</p>
+
+<h2 id="cel">Expressions</h2>
+<p>Attributes can be static JSON values or expressions in the <a href="https://cel.dev/">Common Expression Language</a>. An expression is written as an object with a single <code>cel</code> key:</p>
+<pre>"text":    {"cel":"signals.user.name + ' (' + string(signals.user.unread) + ')'"}
+"visible": {"cel":"signals.user.unread > 0"}
+"variant": {"cel":"signals.saved ? 'success' : 'failure'"}</pre>
+<p>CEL was chosen because its properties match what a renderer needs from an expression language running code from a server:</p>
+<ul>
+  <li>It has no side effects. Evaluating an expression cannot change signals, send messages or touch the host.</li>
+  <li>It is not Turing-complete, and evaluation time is bounded by the size of the expression and its input.</li>
+  <li>It has independent implementations in Go, Java, C++, Rust, JavaScript, Python and others, so renderers on different platforms can agree on results.</li>
+  <li>It is small enough to learn from a page of examples.</li>
+</ul>
+<p>When a signal changes, the renderer re-evaluates the expressions that read it and updates the affected widgets. The server never has to resend an element for a value that is computed from signals.</p>
+
+<h2 id="variants">Variants instead of styles</h2>
+<p>Components have no colour, font, size, padding or border attributes. Each component has a small set of named variants instead: a <code>text</code> can be <code>h1</code>, <code>h2</code>, <code>h3</code>, <code>body</code>, <code>caption</code> or <code>code</code>; a <code>notice</code> can be <code>info</code>, <code>success</code>, <code>warning</code> or <code>failure</code>.</p>
+<p>This keeps the protocol portable. A terminal renderer might show a <code>failure</code> notice in red with a cross; a screen reader renderer announces it as an alert; a watch renderer might vibrate. Each is correct. It also means an application looks native wherever it is embedded, and that the host application's theme, contrast settings and accessibility settings apply without the server knowing about them.</p>
+<p>Layout is similarly abstract. Containers have gaps of <code>none</code>, <code>small</code>, <code>medium</code> or <code>large</code>, and alignment keywords. The renderer maps these to whatever spacing its platform uses.</p>
+
+<h2 id="honesty">Indicators, not optimism</h2>
+<p>Because the server is the source of truth, a renderer should not pretend an action succeeded before the server says so. The protocol supports this through <em>indicators</em>: an event handler can name a local signal that the renderer sets to <code>true</code> when it sends the action.</p>
+<pre>"onPress":{"action":"save","indicator":"_saving"}</pre>
+<p>The server clears it when it has finished, typically in the same batch as the result:</p>
+<pre>signal {"_saving":false,"status":"Saved"}</pre>
+<p>Elements can use the indicator to disable a button or show a progress component. Local signals are not sent to the server, but the server may still write them.</p>
+
+<h2 id="comparison">Differences from the web</h2>
+<p>hypereffect is a hypermedia in the sense of Hypermedia Systems, but it is narrower than the web in several ways, and it is useful to be explicit about them.</p>
+<ul>
+  <li><strong>No URLs or resources.</strong> Actions are names sent over an existing session, not requests to addressable resources. This makes hypereffect closer to a session protocol than to REST. Applications that want addressable screens can put a path in a signal or an action payload.</li>
+  <li><strong>One connection, one screen.</strong> A session corresponds to one rendered surface. There is no history or back button in the protocol; if an application wants one, the server implements it.</li>
+  <li><strong>No extension mechanism for components.</strong> HTML allows custom elements and scripts. hypereffect does not, by design, so that every renderer can display every application.</li>
+  <li><strong>No styling.</strong> See above.</li>
+</ul>
+</main>
+
+<footer class="site"><div class="inner">hypereffect — draft 0.1</div></footer>
+</body>
+</html>

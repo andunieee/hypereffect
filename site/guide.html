@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hypereffect guide</title>
+<meta name="description" content="Worked examples of hypereffect sessions, and notes on writing servers and renderers.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site"><div class="inner">
+  <a class="name" href="index.html">hypereffect</a>
+  <nav>
+    <a href="index.html">Overview</a>
+    <a href="concepts.html">Concepts</a>
+    <a href="guide.html" aria-current="page">Guide</a>
+    <a href="components.html">Components</a>
+    <a href="spec.html">Spec</a>
+  </nav>
+</div></header>
+
+<main>
+<h1>Guide</h1>
+<p class="lede">Worked examples, from a counter to a form with validation, followed by notes on writing a server and a renderer. Lines from the renderer are marked with <code>&lt;</code> in comments; everything else is from the server.</p>
+
+<div class="toc">
+<ol>
+  <li><a href="#counter">A counter</a></li>
+  <li><a href="#form">A form with validation</a></li>
+  <li><a href="#list">A list that changes</a></li>
+  <li><a href="#local">Local state: tabs and dialogs</a></li>
+  <li><a href="#server">Writing a server</a></li>
+  <li><a href="#renderer">Writing a renderer</a></li>
+  <li><a href="#embedding">Embedding a renderer</a></li>
+  <li><a href="#pitfalls">Common mistakes</a></li>
+</ol>
+</div>
+
+<h2 id="counter">A counter</h2>
+<p>The renderer opens the transport and introduces itself. The server builds the screen.</p>
+<pre><span class="c"># &lt; renderer</span>
+hello {"version":"0.1","locale":"en"}
+
+signal {"count":0}
+element {"id":"main","type":"column","gap":"medium","align":"start"}
+element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Counter"}
+element {"id":"value","type":"text","parent":"main","text":{"cel":"'Count: ' + string(signals.count)"}}
+element {"id":"buttons","type":"row","parent":"main"}
+element {"id":"dec","type":"button","parent":"buttons","label":"−","onPress":{"action":"add","payload":-1}}
+element {"id":"inc","type":"button","parent":"buttons","label":"+","variant":"primary","onPress":{"action":"add","payload":1}}
+element {"id":"zero","type":"badge","parent":"main","text":"zero","visible":{"cel":"signals.count == 0"}}</pre>
+<p>The user presses <em>+</em>:</p>
+<pre><span class="c"># &lt; renderer</span>
+action {"name":"add","source":"inc","event":"press","payload":1,"signals":{"count":0}}
+
+signal {"count":1}</pre>
+<p>One signal message updates the label and hides the badge. The server did not need to know which elements depend on <code>count</code>.</p>
+<p>The counter's value could live entirely in the signal, with the server reading <code>signals.count</code> from the action. Usually it is better for the server to keep its own copy and treat the signal as a display value: what the renderer sends is user input, and should not be trusted to be the value the server last sent.</p>
+
+<h2 id="form">A form with validation</h2>
+<p>Signals are initialised first, so that expressions never refer to missing keys.</p>
+<pre>signal {"login":{"user":"","pass":""},"error":"","_busy":false}
+element {"id":"login","type":"card","title":"Sign in"}
+element {"id":"user","type":"input","parent":"login","label":"Username","bind":"login.user"}
+element {"id":"pass","type":"input","parent":"login","label":"Password","variant":"password",
+         "bind":"login.pass","onSubmit":{"action":"login","indicator":"_busy"}}
+element {"id":"err","type":"notice","parent":"login","variant":"failure",
+         "text":{"cel":"signals.error"},"visible":{"cel":"signals.error != ''"}}
+element {"id":"go","type":"button","parent":"login","variant":"primary",
+         "label":{"cel":"signals._busy ? 'Signing in…' : 'Sign in'"},
+         "disabled":{"cel":"signals._busy || signals.login.user == ''"},
+         "onPress":{"action":"login","indicator":"_busy"}}</pre>
+<p class="note">Elements are shown across several lines here for readability. On the wire each is one line.</p>
+<p>The user types and presses the button. Typing changes <code>login.user</code> and <code>login.pass</code> locally; nothing is sent until the action. When it is sent, the renderer first sets <code>_busy</code>, which disables the button and changes its label.</p>
+<pre><span class="c"># &lt; renderer</span>
+action {"name":"login","source":"go","event":"press","signals":{"login":{"user":"ada","pass":"hunter2"},"error":""}}</pre>
+<p><code>_busy</code> is not in the action: it is local. If the password is wrong, the server clears the indicator, sets the error, and empties the password field in one message:</p>
+<pre>signal {"_busy":false,"error":"Wrong username or password.","login":{"pass":""}}</pre>
+<p>If it is right, the server removes the card, clears the form signals, and sends the next screen:</p>
+<pre>remove {"id":"login"}
+signal {"_busy":false,"login":null,"error":null}
+element {"id":"home","type":"column"}
+element {"id":"hello","type":"text","parent":"home","variant":"h2","text":"Welcome back, Ada"}</pre>
+<p>Notice that the renderer never decided whether the login succeeded. It showed that something was pending, and then showed what the server sent.</p>
+
+<h2 id="list">A list that changes</h2>
+<p>Lists are built from ordinary elements whose parent is the list. Each item gets an id the server can address later.</p>
+<pre>signal {"new":"","done":{"t1":false,"t2":true},"_adding":false}
+element {"id":"todos","type":"column"}
+element {"id":"new","type":"input","parent":"todos","placeholder":"New task","bind":"new",
+         "onSubmit":{"action":"add","indicator":"_adding"}}
+element {"id":"items","type":"list","parent":"todos","empty":"Nothing to do."}
+element {"id":"t1","type":"row","parent":"items","justify":"between"}
+element {"id":"t1-check","type":"checkbox","parent":"t1","label":"Buy milk","bind":"done.t1",
+         "onChange":{"action":"toggle","payload":"t1"}}
+element {"id":"t1-del","type":"button","parent":"t1","label":"Delete","variant":"plain",
+         "onPress":{"action":"delete","payload":"t1"}}
+element {"id":"t2","type":"row","parent":"items","justify":"between"}
+<span class="c"># … same shape for t2</span></pre>
+<p>Adding an item at the top uses <code>before</code>:</p>
+<pre><span class="c"># &lt; renderer</span>
+action {"name":"add","source":"new","event":"submit","signals":{"new":"Call the bank","done":{"t1":false,"t2":true}}}
+
+element {"id":"t3","type":"row","parent":"items","before":"t1","justify":"between"}
+element {"id":"t3-check","type":"checkbox","parent":"t3","label":"Call the bank","bind":"done.t3",
+         "onChange":{"action":"toggle","payload":"t3"}}
+element {"id":"t3-del","type":"button","parent":"t3","label":"Delete","variant":"plain",
+         "onPress":{"action":"delete","payload":"t3"}}
+signal {"new":"","done":{"t3":false},"_adding":false}</pre>
+<p>Deleting removes the row and its children in one message, and removes the signal it was bound to:</p>
+<pre>remove {"id":"t1"}
+signal {"done":{"t1":null}}</pre>
+<p>Reordering is a re-send of the moved element with a new <code>before</code>. Its children come with it.</p>
+
+<h2 id="local">Local state: tabs and dialogs</h2>
+<p>Some interactions do not concern the server: switching tabs, opening a confirmation. Handlers can apply a <code>patch</code> to local signals without sending anything.</p>
+<pre>signal {"_tab":"general","_confirm":false,"_resetting":false}
+element {"id":"settings","type":"tabs","bind":"_tab"}
+element {"id":"general","type":"tab","parent":"settings","label":"General"}
+element {"id":"advanced","type":"tab","parent":"settings","label":"Advanced"}
+element {"id":"reset","type":"button","parent":"advanced","variant":"failure","label":"Reset device…",
+         "disabled":{"cel":"signals._resetting"},"onPress":{"patch":{"_confirm":true}}}
+
+element {"id":"confirm","type":"dialog","title":"Reset device?",
+         "open":{"cel":"signals._confirm"},"onDismiss":{"patch":{"_confirm":false}}}
+element {"id":"confirm-text","type":"text","parent":"confirm","text":"All settings will be lost."}
+element {"id":"confirm-row","type":"row","parent":"confirm","justify":"end"}
+element {"id":"confirm-no","type":"button","parent":"confirm-row","label":"Cancel",
+         "onPress":{"patch":{"_confirm":false}}}
+element {"id":"confirm-yes","type":"button","parent":"confirm-row","variant":"failure","label":"Reset",
+         "onPress":{"patch":{"_confirm":false},"action":"reset","indicator":"_resetting"}}</pre>
+<p>Pressing <em>Reset device…</em> opens the dialog with no round trip. Pressing <em>Reset</em> closes it, marks the reset as pending, and sends the action. The server clears <code>_resetting</code> when the reset is done.</p>
+<p>Patch values can be expressions, which allows a toggle:</p>
+<pre>"onPress":{"patch":{"_expanded":{"cel":"!signals._expanded"}}}</pre>
+<p>Use local patches for presentation only. If the server would need to know about a change to behave correctly, send an action.</p>
+
+<h2 id="server">Writing a server</h2>
+<p>A server reads lines, parses the tag and the JSON, and writes lines. The smallest useful server needs no library. This one speaks over standard input and output, so a host can run it as a child process:</p>
+<pre>import json, sys
+
+def send(tag, obj):
+    sys.stdout.write(tag + " " + json.dumps(obj, separators=(",", ":")) + "\n")
+    sys.stdout.flush()
+
+count = 0
+
+def render():
+    send("signal", {"count": count})
+    send("element", {"id": "main", "type": "column"})
+    send("element", {"id": "value", "type": "text", "parent": "main",
+                     "text": {"cel": "'Count: ' + string(signals.count)"}})
+    send("element", {"id": "inc", "type": "button", "parent": "main",
+                     "label": "+", "onPress": {"action": "add", "payload": 1}})
+
+for line in sys.stdin:
+    line = line.rstrip("\r\n")
+    if not line:
+        continue
+    tag, _, body = line.partition(" ")
+    msg = json.loads(body)
+    if tag == "hello":
+        render()
+    elif tag == "action" and msg.get("name") == "add":
+        step = msg.get("payload")
+        if isinstance(step, int) and step in (-1, 1):
+            count += step
+        send("signal", {"count": count})</pre>
+
+<h3>Structure</h3>
+<p>Most servers end up with the same shape:</p>
+<ul>
+  <li><strong>Per-session state</strong> on the server, created on <code>hello</code> and discarded when the transport closes.</li>
+  <li><strong>Render functions</strong> that turn state into a list of messages for one part of the screen. Re-sending a whole section after a change is fine: elements with unchanged types keep their widget state, so there is no visible cost beyond bytes.</li>
+  <li><strong>Action handlers</strong> that validate the action, update state, and call the render functions for the parts that changed — or send a single signal when only a value changed.</li>
+</ul>
+<p>Because messages are not tied to actions, a server can also push updates from elsewhere: a timer, a database notification, another user's edit. For collaborative applications, one stream per session that receives every change, and actions that only write, is a simple and robust arrangement.</p>
+
+<h3>Ids</h3>
+<p>Derive ids from the data, such as <code>order-1182</code> or <code>order-1182-status</code>. Then the server can always address an element without remembering what it sent, and a full re-render produces the same ids, so the renderer replaces rather than recreates.</p>
+
+<h2 id="renderer">Writing a renderer</h2>
+<p>A renderer has five parts. None is large.</p>
+<ol>
+  <li><strong>A line reader</strong> that splits input on line feeds, splits each line at the first space, and parses the JSON.</li>
+  <li><strong>An element store</strong>: a map from id to element and a parent/children index. It implements insertion, replacement, moving and removal as in <a href="spec.html#tree">section 7</a> of the spec.</li>
+  <li><strong>A signal store</strong> implementing merge patch. This is about twenty lines in most languages.</li>
+  <li><strong>A CEL evaluator.</strong> Use an existing implementation: cel-go, cel-java, cel-cpp, cel-rust, cel-python or one of the JavaScript ports. Compile each expression once, when the element arrives, and keep the compiled program with the element.</li>
+  <li><strong>Widget bindings</strong> that create a native widget for each component, set its properties from evaluated attributes, write back to signals for <code>bind</code>, and run handlers.</li>
+</ol>
+
+<h3>Re-evaluation</h3>
+<p>The simplest correct strategy is to re-evaluate every expression after each batch of messages and update the widgets whose values changed. CEL evaluation is fast and a typical screen has tens of expressions, so this is usually sufficient. If it is not, record which top-level signal keys each expression references — available from the parsed CEL syntax tree — and re-evaluate only expressions that reference a changed key.</p>
+
+<h3>Mapping components</h3>
+<p>Each component should become the platform's ordinary widget for that purpose: a GTK <code>Gtk.Switch</code> for a <code>checkbox</code> with variant <code>switch</code>, a SwiftUI <code>Picker</code> for a <code>select</code>, a row of bracketed labels in a terminal for <code>tabs</code>. Variants map to the platform's existing semantic styles where it has them — destructive button styles for <code>failure</code>, heading text styles for <code>h1</code> to <code>h3</code>. The aim is that a user of the platform does not notice the interface was described by a remote server.</p>
+
+<h3>Testing</h3>
+<p>Because the protocol is text, a renderer can be tested by feeding it a file of lines and comparing the resulting tree and signals against an expected state. A shared set of such files is the most useful thing independent implementations can agree on.</p>
+
+<h2 id="embedding">Embedding a renderer</h2>
+<p>A renderer library should not own the transport or the window. A small interface is enough; in pseudocode:</p>
+<pre>renderer = Renderer(surface)                  <span class="c"># a widget or region owned by the host</span>
+renderer.on_output(line => transport.write(line))
+transport.on_line(line => renderer.input(line))
+transport.on_close(() => renderer.disconnected())
+renderer.start(signals = {"device": "kitchen"}) <span class="c"># sends hello</span></pre>
+<p>With this split the same renderer runs over a WebSocket in one application, a child process's stdio in another, and an iroh stream in a third. The host also controls policy: which image hosts may be fetched, resource limits, and where diagnostics go.</p>
+
+<h2 id="pitfalls">Common mistakes</h2>
+<dl>
+  <dt>Expressions over missing signals</dt>
+  <dd>An expression that reads a missing key fails, and the attribute takes its default. For <code>visible</code> and <code>open</code> the default is <code>true</code>, so a failed expression shows the element. Initialise signals before sending elements that read them, or use <code>has()</code>.</dd>
+  <dt>Mixing int and double</dt>
+  <dd><code>1</code> in JSON is an <code>int</code> in CEL and <code>1.5</code> is a <code>double</code>, and CEL does not add them together. If a signal can hold either, write <code>double(signals.x) * 2.0</code>.</dd>
+  <dt>Sending children before parents</dt>
+  <dd>An element whose parent does not exist yet is rejected. Send containers first.</dd>
+  <dt>Forgetting to clear indicators</dt>
+  <dd>The renderer never clears an indicator. Clear it in every response path, including errors.</dd>
+  <dt>Trusting the action</dt>
+  <dd>Payloads and signals come from the renderer. Check them as you would any form submission.</dd>
+  <dt>Using signals as a data store</dt>
+  <dd>Signals are sent with every action. Put values there that the interface reads or the user edits, not whole datasets.</dd>
+</dl>
+</main>
+
+<footer class="site"><div class="inner">hypereffect — draft 0.1</div></footer>
+</body>
+</html>

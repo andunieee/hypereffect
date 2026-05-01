@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hypereffect</title>
+<meta name="description" content="hypereffect: a small hypermedia protocol for server-driven UI in simple apps, rendered natively on any platform.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site"><div class="inner">
+  <a class="name" href="index.html">hypereffect</a>
+  <nav>
+    <a href="index.html" aria-current="page">Overview</a>
+    <a href="concepts.html">Concepts</a>
+    <a href="guide.html">Guide</a>
+    <a href="components.html">Components</a>
+    <a href="spec.html">Spec</a>
+  </nav>
+</div></header>
+
+<main>
+<h1>hypereffect</h1>
+<p class="lede">A small hypermedia protocol for the user interfaces of simple applications. The server describes the screen as a set of components and a set of values; a client renders them with whatever native toolkit it has. HTML, CSS and JavaScript are not required anywhere.</p>
+
+<p class="meta">Draft 0.1 · October 2026</p>
+
+<h2>What it is</h2>
+<p>hypereffect is a line-oriented stream of JSON messages between a server and a <em>renderer</em>. The server sends three kinds of message:</p>
+<ul>
+  <li><code>element</code> — create an element, or replace the one with the same <code>id</code>.</li>
+  <li><code>remove</code> — remove an element and everything inside it.</li>
+  <li><code>signal</code> — patch the shared signal object using JSON Merge Patch (RFC 7386).</li>
+</ul>
+<p>The renderer sends back <code>action</code> messages when the user presses a button, submits a field or changes a value that has an action attached. That is the whole loop.</p>
+
+<pre><span class="c"># server → renderer</span>
+signal {"count":0}
+element {"id":"main","type":"column","gap":"medium"}
+element {"id":"label","type":"text","parent":"main","text":{"cel":"'Count: ' + string(signals.count)"}}
+element {"id":"inc","type":"button","parent":"main","label":"Add one","onPress":{"action":"increment"}}
+
+<span class="c"># renderer → server, when the button is pressed</span>
+action {"name":"increment","source":"inc","event":"press","signals":{"count":0}}
+
+<span class="c"># server → renderer</span>
+signal {"count":1}</pre>
+
+<p>The label updates because its <code>text</code> is a <a href="https://cel.dev/">CEL</a> expression over the signals. No element was re-sent.</p>
+
+<h2>Properties</h2>
+<dl>
+  <dt>A fixed component set</dt>
+  <dd>Eighteen components — <code>column</code>, <code>row</code>, <code>text</code>, <code>button</code>, <code>input</code>, <code>select</code>, <code>dialog</code> and so on. Renderers implement each one with native widgets. There is no way to define new components from the server.</dd>
+  <dt>Variants, not styles</dt>
+  <dd>Components carry semantic variants such as <code>h1</code>, <code>caption</code>, <code>success</code> or <code>failure</code>. There are no colours, sizes, fonts or margins in the protocol. Each renderer decides how a <code>failure</code> notice looks on its platform.</dd>
+  <dt>Two primitives: elements and signals</dt>
+  <dd>Borrowed from <a href="https://data-star.dev/guide/the_tao_of_datastar">Datastar</a>. Elements describe structure; signals hold values. Either can be patched by the server at any time.</dd>
+  <dt>Expressions in CEL</dt>
+  <dd>Any presentational attribute can be a CEL expression evaluated against the signals. CEL is side-effect free and not Turing-complete, so renderers can evaluate untrusted expressions safely and cheaply.</dd>
+  <dt>Server-guided interaction</dt>
+  <dd>The application state lives on the server. The renderer knows nothing about the application; it only knows the components, how to evaluate CEL, and how to send an action.</dd>
+  <dt>Transport-agnostic</dt>
+  <dd>The protocol is newline-delimited text. It can run over WebSockets, HTTP with Server-Sent Events, a Unix socket, stdio, iroh, or anything else that carries ordered bytes.</dd>
+  <dt>Embeddable</dt>
+  <dd>A renderer is a library that draws into a region its host gives it. A game can show a settings panel, a terminal program can show a form, a desktop app can host a plugin UI — each from a server it does not otherwise understand.</dd>
+</dl>
+
+<h2>What it is for</h2>
+<p>Settings screens, admin panels, forms, dashboards with a few numbers, device control panels, plugin UIs, chat-driven tools, internal utilities. Applications whose interface is mostly text, inputs, buttons and lists, and whose logic already lives on a server or in a separate process.</p>
+
+<h2>What it is not for</h2>
+<ul>
+  <li>Applications that need custom visual design or brand-specific appearance.</li>
+  <li>Rich offline behaviour. Without a connection the renderer can only show what it already has.</li>
+  <li>Animation-heavy or canvas-heavy interfaces, games, editors.</li>
+  <li>Replacing the web. If HTML is available and suitable, HTML is a more capable hypermedia.</li>
+</ul>
+
+<h2>Where to go next</h2>
+<ul>
+  <li><a href="concepts.html">Concepts</a> — the ideas behind the design: hypermedia, elements and signals, and why the server is in charge.</li>
+  <li><a href="guide.html">Guide</a> — worked examples and notes on writing servers and renderers.</li>
+  <li><a href="components.html">Components</a> — every component and its attributes.</li>
+  <li><a href="spec.html">Specification</a> — the normative description of the protocol.</li>
+</ul>
+</main>
+
+<footer class="site"><div class="inner">hypereffect</footer>
+</body>
+</html>
