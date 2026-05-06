@@ -18,4 +18,4 @@ Pages:
 - `concepts.html` — hypermedia, elements and signals, CEL, variants
 - `guide.html` — worked examples, writing servers and renderers
 - `components.html` — component reference
-- `spec.html` — normative specification (draft 0.1)
+- `spec.html` — normative specification

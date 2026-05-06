@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hypereffect specification</title>
-<meta name="description" content="Normative specification of the hypereffect protocol, draft 0.1.">
+<meta name="description" content="Normative specification of the hypereffect protocol.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,7 +21,6 @@
 
 <main>
 <h1>Specification</h1>
-<p class="meta">Draft 0.1 · October 2026 · Status: experimental, subject to change</p>
 
 <div class="toc">
 <ol>
@@ -103,14 +102,10 @@ element {"id":"a","type":"text","text":"Hello"}</pre>
 <table>
   <thead><tr><th>Member</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
-    <tr><td><code>version</code></td><td>string</td><td>Required. The protocol version the renderer implements. For this draft, <code>"0.1"</code>.</td></tr>
-    <tr><td><code>renderer</code></td><td>string</td><td>Optional. Name and version of the renderer, for diagnostics only. Servers MUST NOT change behaviour based on it.</td></tr>
-    <tr><td><code>locale</code></td><td>string</td><td>Optional. A BCP 47 language tag for the user's preferred language.</td></tr>
-    <tr><td><code>size</code></td><td>string</td><td>Optional. A coarse description of the available surface: <code>"compact"</code>, <code>"regular"</code> or <code>"wide"</code>.</td></tr>
     <tr><td><code>signals</code></td><td>object</td><td>Optional. Initial signals supplied by the host. Local signals in it are retained by the renderer and not sent.</td></tr>
   </tbody>
 </table>
-<pre>hello {"version":"0.1","renderer":"he-gtk/0.3","locale":"en-GB","size":"regular","signals":{"device":"kitchen"}}</pre>
+<pre>hello {"signals":{"device":"kitchen"}}</pre>
 <p>The <code>signals</code> sent in <code>hello</code> MUST have local signals removed, as for actions.</p>
 
 <h3 id="msg-action"><span class="num">6.2</span><code>action</code></h3>
@@ -118,13 +113,11 @@ element {"id":"a","type":"text","text":"Hello"}</pre>
   <thead><tr><th>Member</th><th>Type</th><th>Description</th></tr></thead>
   <tbody>
     <tr><td><code>name</code></td><td>string</td><td>Required. The <code>action</code> value of the handler.</td></tr>
-    <tr><td><code>source</code></td><td>string</td><td>Required. The id of the element whose handler ran.</td></tr>
-    <tr><td><code>event</code></td><td>string</td><td>Required. <code>"press"</code>, <code>"change"</code>, <code>"submit"</code> or <code>"dismiss"</code>.</td></tr>
     <tr><td><code>payload</code></td><td>any</td><td>Present if and only if the handler has a <code>payload</code>; copied verbatim.</td></tr>
     <tr><td><code>signals</code></td><td>object</td><td>Required. The signals at the time of sending, with all local signals removed.</td></tr>
   </tbody>
 </table>
-<pre>action {"name":"archive","source":"archive-7","event":"press","payload":{"contact":7},"signals":{"filter":"all"}}</pre>
+<pre>action {"name":"archive","payload":{"contact":7},"signals":{"filter":"all"}}</pre>
 <p>Removing local signals means: for every object in the signals, at any depth, omit each member whose key begins with <code>_</code>. Arrays are copied as they are; objects inside arrays are filtered in the same way.</p>
 
 <h2 id="tree"><span class="num">7</span>The element tree</h2>
@@ -244,18 +237,17 @@ element {"id":"a","type":"text","text":"Hello"}</pre>
 <ol>
   <li>A renderer MUST NOT terminate the session because of an invalid message. It ignores the message and, if it has a diagnostic channel (a log, a developer console), reports it there.</li>
   <li>A line that does not match the grammar, or whose JSON is not an object, is ignored.</li>
-  <li>A message with an unknown tag is ignored. This allows later versions to add messages.</li>
+  <li>A message with an unknown tag is ignored. This allows messages to be added without breaking existing implementations.</li>
   <li>Unknown attributes on an element are ignored. Unknown members in <code>hello</code> and <code>action</code> are ignored by the server.</li>
   <li>An unknown enumeration value is treated as the attribute's default.</li>
   <li>An element with an unknown <code>type</code> is rejected as in 7.1. A renderer MAY display a placeholder in its place in development builds.</li>
-  <li>Versions follow the form <var>major</var>.<var>minor</var>. A server that does not support the renderer's major version SHOULD send a single <code>notice</code> element explaining this, with variant <code>failure</code>, and then close the session.</li>
 </ol>
 <p>There is no error message from server to renderer or from renderer to server. Application errors are shown to the user with ordinary elements, such as a <code>notice</code>.</p>
 
 <h2 id="security"><span class="num">13</span>Security considerations</h2>
 <ul>
   <li><strong>The renderer trusts the server for content, not for execution.</strong> A server can show anything within the component set, including misleading text. It cannot run code on the renderer: CEL has no side effects, and there is no scripting. Hosts that connect renderers to servers they do not control should present the surface in a way that makes its origin clear, for example within a frame labelled with the server's name.</li>
-  <li><strong>The server MUST NOT trust renderer messages.</strong> Action names, payloads, source ids and signals are all controlled by whoever operates the renderer. They are user input and must be validated as such. In particular, a payload containing an id does not prove the user was shown a control with that payload.</li>
+  <li><strong>The server MUST NOT trust renderer messages.</strong> Action names, payloads and signals are all controlled by whoever operates the renderer. They are user input and must be validated as such. In particular, a payload containing an id does not prove the user was shown a control with that payload.</li>
   <li><strong>Local signals are not secret.</strong> They are excluded from actions to reduce traffic and to mark renderer-only state, not to protect anything. The server wrote or could have written them.</li>
   <li><strong>Images.</strong> Fetching an <code>image</code> URL discloses the user's network address and timing to that URL's host. Renderers SHOULD let the host restrict which schemes and hosts may be fetched.</li>
   <li><strong>Resource use.</strong> A server can send many elements or large signals. Renderers MAY limit the number of elements, the depth of the tree, the size of signals and the cost of expressions, treating messages that would exceed the limits as invalid.</li>
@@ -269,7 +261,7 @@ line    = tag SP json [CR] LF
 empty   = [CR] LF
 tag     = 1*%x61-7A                 ; a-z
 json    = &lt;a JSON object per RFC 8259, containing no LF&gt;</pre>
-<p>Tags defined in this version:</p>
+<p>Tags defined by this specification:</p>
 <table>
   <thead><tr><th>Tag</th><th>Direction</th><th>Section</th></tr></thead>
   <tbody>
@@ -282,6 +274,6 @@ json    = &lt;a JSON object per RFC 8259, containing no LF&gt;</pre>
 </table>
 </main>
 
-<footer class="site"><div class="inner">hypereffect — draft 0.1</div></footer>
+<footer class="site"><div class="inner">hypereffect</div></footer>
 </body>
 </html>

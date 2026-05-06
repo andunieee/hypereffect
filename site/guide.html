@@ -39,7 +39,7 @@
 <h2 id="counter">A counter</h2>
 <p>The renderer opens the transport and introduces itself. The server builds the screen.</p>
 <pre><span class="c"># &lt; renderer</span>
-hello {"version":"0.1","locale":"en"}
+hello {}
 
 signal {"count":0}
 element {"id":"main","type":"column","gap":"medium","align":"start"}
@@ -51,7 +51,7 @@ element {"id":"inc","type":"button","parent":"buttons","label":"+","variant":"pr
 element {"id":"zero","type":"badge","parent":"main","text":"zero","visible":{"cel":"signals.count == 0"}}</pre>
 <p>The user presses <em>+</em>:</p>
 <pre><span class="c"># &lt; renderer</span>
-action {"name":"add","source":"inc","event":"press","payload":1,"signals":{"count":0}}
+action {"name":"add","payload":1,"signals":{"count":0}}
 
 signal {"count":1}</pre>
 <p>One signal message updates the label and hides the badge. The server did not need to know which elements depend on <code>count</code>.</p>
@@ -73,7 +73,7 @@ element {"id":"go","type":"button","parent":"login","variant":"primary",
 <p class="note">Elements are shown across several lines here for readability. On the wire each is one line.</p>
 <p>The user types and presses the button. Typing changes <code>login.user</code> and <code>login.pass</code> locally; nothing is sent until the action. When it is sent, the renderer first sets <code>_busy</code>, which disables the button and changes its label.</p>
 <pre><span class="c"># &lt; renderer</span>
-action {"name":"login","source":"go","event":"press","signals":{"login":{"user":"ada","pass":"hunter2"},"error":""}}</pre>
+action {"name":"login","signals":{"login":{"user":"ada","pass":"hunter2"},"error":""}}</pre>
 <p><code>_busy</code> is not in the action: it is local. If the password is wrong, the server clears the indicator, sets the error, and empties the password field in one message:</p>
 <pre>signal {"_busy":false,"error":"Wrong username or password.","login":{"pass":""}}</pre>
 <p>If it is right, the server removes the card, clears the form signals, and sends the next screen:</p>
@@ -99,7 +99,7 @@ element {"id":"t2","type":"row","parent":"items","justify":"between"}
 <span class="c"># … same shape for t2</span></pre>
 <p>Adding an item at the top uses <code>before</code>:</p>
 <pre><span class="c"># &lt; renderer</span>
-action {"name":"add","source":"new","event":"submit","signals":{"new":"Call the bank","done":{"t1":false,"t2":true}}}
+action {"name":"add","signals":{"new":"Call the bank","done":{"t1":false,"t2":true}}}
 
 element {"id":"t3","type":"row","parent":"items","before":"t1","justify":"between"}
 element {"id":"t3-check","type":"checkbox","parent":"t3","label":"Call the bank","bind":"done.t3",
@@ -223,6 +223,6 @@ renderer.start(signals = {"device": "kitchen"}) <span class="c"># sends hello</s
 </dl>
 </main>
 
-<footer class="site"><div class="inner">hypereffect — draft 0.1</div></footer>
+<footer class="site"><div class="inner">hypereffect</div></footer>
 </body>
 </html>
