@@ -3,7 +3,7 @@ name: Deploy site to GitHub Pages
 on:
   push:
     branches: [master]
-    paths: [site/**, .github/workflows/deploy-pages.yml]
+    paths: [site/**, js/**, rust/**, scripts/**, .github/workflows/deploy-pages.yml]
   workflow_dispatch:
 
 permissions:
@@ -24,6 +24,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Build demo
+        run: ./scripts/build-demo.sh
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

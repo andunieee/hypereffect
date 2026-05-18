@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+members = ["hypereffect", "demos/*"]
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

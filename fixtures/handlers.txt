@@ -1,0 +1,42 @@
+# Handlers (spec section 10).
+!start {}
+< hello {"signals":{}}
+signal {"_open":false,"count":1}
+element {"id":"col","type":"column"}
+element {"id":"toggle","type":"button","parent":"col","onPress":{"patch":{"_open":{"cel":"!signals._open"}}}}
+!trigger toggle onPress
+=signals {"_open":true,"count":1}
+!trigger toggle onPress
+=signals {"_open":false,"count":1}
+# A patch with nested objects, a literal, and a failing expression (omitted).
+element {"id":"p","type":"button","parent":"col","onPress":{"patch":{"a":{"b":{"cel":"signals.count + 1"},"c":[1]},"d":{"cel":"signals.nope"}},"action":"go","payload":{"k":[1,2]}}}
+!trigger p onPress
+< action {"name":"go","payload":{"k":[1,2]},"signals":{"count":1,"a":{"b":2,"c":[1]}}}
+# Hidden ancestors stop handlers; so do disabled controls.
+element {"id":"col","type":"column","visible":false}
+!trigger p onPress
+element {"id":"col","type":"column"}
+element {"id":"p","type":"button","parent":"col","disabled":true,"onPress":{"action":"go"}}
+!trigger p onPress
+# Events a component does not have are ignored.
+element {"id":"t","type":"text","onPress":{"action":"go"}}
+!trigger t onPress
+# Checkbox onChange after a write.
+element {"id":"cb","type":"checkbox","parent":"col","bind":"agree","label":"Agree","onChange":{"action":"agree","indicator":"_saving"}}
+!write agree true
+!trigger cb onChange
+< action {"name":"agree","signals":{"count":1,"a":{"b":2,"c":[1]},"agree":true}}
+=signals {"_open":false,"count":1,"a":{"b":2,"c":[1]},"agree":true,"_saving":true}
+# After the transport closes, patches still apply but actions are not sent
+# and indicators are not set.
+!close
+element {"id":"both","type":"button","parent":"col","onPress":{"patch":{"_n":1},"action":"x","indicator":"_x"}}
+!trigger both onPress
+=signals {"_open":false,"count":1,"a":{"b":2,"c":[1]},"agree":true,"_saving":true,"_n":1}
+# A new session keeps the old tree until the first server message.
+!start {"fresh":true}
+< hello {"signals":{"fresh":true}}
+=children - ["col","t"]
+signal {"x":1}
+=children - []
+=signals {"fresh":true,"x":1}

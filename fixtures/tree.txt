@@ -1,0 +1,78 @@
+# Insertion, replacement, moves and removal (spec section 7).
+!start {}
+< hello {"signals":{}}
+element {"id":"a","type":"column"}
+element {"id":"b","type":"column"}
+element {"id":"x","type":"text","parent":"a","text":"x"}
+element {"id":"y","type":"text","parent":"a","text":"y"}
+element {"id":"z","type":"text","parent":"a","before":"x","text":"z"}
+=children a ["z","x","y"]
+# Replacement is not a merge: absent attributes take their defaults.
+element {"id":"x","type":"text","parent":"a","variant":"h2"}
+=attrs x {"text":"","variant":"h2"}
+=children a ["z","x","y"]
+# Moving within a parent with before.
+element {"id":"y","type":"text","parent":"a","before":"z","text":"y"}
+=children a ["y","z","x"]
+# before naming the element itself, or a missing id, keeps the position.
+element {"id":"y","type":"text","parent":"a","before":"y"}
+element {"id":"y","type":"text","parent":"a","before":"nope"}
+=children a ["y","z","x"]
+# Moving to another parent, with children.
+element {"id":"x2","type":"text","parent":"b","text":"x2"}
+element {"id":"a","type":"column","parent":"b","before":"x2"}
+=children - ["b"]
+=children b ["a","x2"]
+=children a ["y","z","x"]
+# Same type keeps children; a new type drops them.
+element {"id":"a","type":"column","parent":"b","gap":"large"}
+=children a ["y","z","x"]
+element {"id":"a","type":"row","parent":"b"}
+=children a []
+=absent y
+=absent x
+# Ids of removed elements can be reused.
+element {"id":"x","type":"badge","parent":"a","text":"new"}
+=attrs x {"text":"new","variant":"neutral"}
+# Removing removes descendants; removing a missing id does nothing.
+remove {"id":"b"}
+remove {"id":"b"}
+=children - []
+=absent a
+=absent x
+# Rejected elements.
+element {"id":"c","type":"card"}
+element {"id":"","type":"text"}
+element {"id":"q","type":"marquee"}
+element {"id":"q","type":"text","parent":"missing"}
+element {"id":"q","type":"tab"}
+element {"id":"q","type":"tab","parent":"c"}
+element {"id":"q","type":"dialog","parent":"c"}
+element {"id":"q","type":"text","parent":{"cel":"'c'"}}
+element {"id":"q","type":"input","bind":"not a path"}
+element {"id":"q","type":"button","onPress":{}}
+element {"id":"q","type":"button","onPress":{"action":"go","indicator":"busy"}}
+element {"id":"q","type":"button","onPress":{"patch":{"_x":1},"indicator":"_busy"}}
+element {"id":"q","type":"button","onPress":{"action":""}}
+element {"id":"q","type":"text","parent":"c","before":7}
+=absent q
+=children - ["c"]
+# An element cannot be moved inside itself.
+element {"id":"d","type":"column","parent":"c"}
+element {"id":"c","type":"card","parent":"d"}
+=children - ["c"]
+=children c ["d"]
+# Tabs accept only tabs; tab labels default to the id.
+element {"id":"tabs","type":"tabs","bind":"_tab"}
+element {"id":"general","type":"tab","parent":"tabs"}
+element {"id":"t","type":"text","parent":"tabs"}
+=children tabs ["general"]
+=attrs general {"label":"general","gap":"medium"}
+=attrs tabs {"bind":"_tab","onChange":null}
+# A dialog at the root.
+element {"id":"dlg","type":"dialog","title":"Hi"}
+=attrs dlg {"open":true,"title":"Hi","onDismiss":null}
+=children - ["c","tabs","dlg"]
+# Unknown tags and bad lines are ignored.
+frobnicate {"id":"c"}
+=children - ["c","tabs","dlg"]

@@ -1,0 +1,11 @@
+{
+  "name": "hypereffect",
+  "version": "0.1.0",
+  "description": "Renderer core for the hypereffect protocol: framing, signals, CEL evaluation and the element tree, without any drawing.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": { ".": "./src/index.js" },
+  "files": ["src"],
+  "scripts": { "test": "node --test" },
+  "license": "MIT"
+}

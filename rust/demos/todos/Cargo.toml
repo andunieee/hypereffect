@@ -1,0 +1,16 @@
+[package]
+name = "demo-todos"
+version = "0.1.0"
+publish = false
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name = "todos"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+hypereffect = { path = "../../hypereffect" }
+
+[dev-dependencies]
+hypereffect = { path = "../../hypereffect", features = ["client"] }

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hypereffect demo</title>
+<meta name="description" content="hypereffect servers written in Rust, compiled to WebAssembly and rendered in the browser by the JavaScript renderer library.">
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="demo.css">
+<script type="module" src="main.js"></script>
+</head>
+<body>
+<header class="site"><div class="inner">
+  <a class="name" href="../index.html">hypereffect</a>
+  <nav>
+    <a href="../index.html">Overview</a>
+    <a href="../concepts.html">Concepts</a>
+    <a href="../guide.html">Guide</a>
+    <a href="../components.html">Components</a>
+    <a href="../spec.html">Spec</a>
+    <a href="./" aria-current="page">Demo</a>
+  </nav>
+</div></header>
+
+<main class="demo-page">
+<h1>Demo</h1>
+<p class="lede">Three small applications, written in Rust with the <code>hypereffect</code> crate and compiled to WebAssembly, run here as servers. A renderer built on the JavaScript library draws them with HTML. Everything that passes between the two is shown under <em>Wire</em>.</p>
+
+<div class="demo-bar">
+  <div class="demo-picker" id="picker" role="group" aria-label="Application"></div>
+  <label class="demo-latency">Latency
+    <select id="latency">
+      <option value="0">none</option>
+      <option value="150">150 ms</option>
+      <option value="600" selected>600 ms</option>
+      <option value="1500">1.5 s</option>
+    </select>
+  </label>
+  <button type="button" class="demo-connect" id="connect">Disconnect</button>
+  <a id="source" href="#">Server source</a>
+</div>
+
+<div class="demo-grid">
+  <section class="demo-app" aria-label="Rendered application">
+    <div id="surface"></div>
+  </section>
+  <aside class="demo-inspector" aria-label="Protocol">
+    <div class="demo-panel-head">
+      <h2>Wire</h2>
+      <button type="button" class="demo-small" id="clear-log">Clear</button>
+    </div>
+    <p class="meta"><span class="arrow-key up">→</span> renderer to server &nbsp; <span class="arrow-key down">←</span> server to renderer</p>
+    <div id="log" class="demo-log" role="log" aria-live="off"></div>
+    <div class="demo-panel-head"><h2>Signals</h2></div>
+    <pre id="signals" class="demo-signals"></pre>
+  </aside>
+</div>
+
+<h2>How it works</h2>
+<p>Each application is an implementation of the <code>App</code> trait from the Rust crate: a <code>hello</code> method that builds the interface, an <code>action</code> method that handles what the user did, and, for the timer, a <code>tick</code> method that lets the server push updates on its own. The <code>wasm_app!</code> macro exports it from a module that imports nothing; this page writes the renderer's lines into the module's memory and reads its output back, so the module is the server end of a byte-stream transport.</p>
+<p>The renderer side is the <code>Session</code> class from the JavaScript library. It parses lines, keeps the element tree and the signals, evaluates the CEL expressions with its own interpreter, runs handlers and reports which elements changed. A few hundred lines of page code then map each component to HTML: a <code>button</code> to a <code>&lt;button&gt;</code>, a <code>dialog</code> to a <code>&lt;dialog&gt;</code>, a segmented <code>select</code> to a row of toggle buttons.</p>
+<p>Things to try:</p>
+<ul>
+  <li>Change a step size or a task filter. Bound controls write signals locally, and expressions update without contacting the server. The filter is a local signal (<code>_filter</code>), so it is never sent.</li>
+  <li>With latency on, add a task. The button shows <em>Adding…</em> because the action set the <code>_adding</code> indicator, which the server clears in its response.</li>
+  <li>Press <em>Clear completed…</em>. The dialog opens through a local patch; only <em>Delete</em> sends an action.</li>
+  <li>Start the timer. The server sends <code>signal</code> messages on its own, about once a second.</li>
+  <li>Press <em>Disconnect</em>. The last state stays on screen with all controls disabled.</li>
+</ul>
+</main>
+
+<footer class="site"><div class="inner">hypereffect</div></footer>
+</body>
+</html>

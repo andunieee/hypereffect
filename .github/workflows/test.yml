@@ -1,0 +1,33 @@
+name: Test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: clippy
+      - name: Test
+        run: cargo test --manifest-path rust/Cargo.toml --all-features
+      - name: Clippy
+        run: cargo clippy --manifest-path rust/Cargo.toml --all-features --all-targets -- -D warnings
+      - name: Build demos to wasm
+        run: ./scripts/build-demo.sh
+
+  js:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test
+        run: node --test
+        working-directory: js
