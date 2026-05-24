@@ -6,6 +6,9 @@
 <title>hypereffect components</title>
 <meta name="description" content="Reference for the eighteen built-in hypereffect components and their attributes.">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="demo/widgets.css">
+<script type="module" src="components.js"></script>
+<script src="site.js" defer></script>
 </head>
 <body>
 <header class="site"><div class="inner">
@@ -20,125 +23,192 @@
   </nav>
 </div></header>
 
-<main>
+<main class="doc">
+<div class="doc-head">
 <h1>Components</h1>
 <p class="lede">hypereffect defines eighteen components. Renderers implement all of them. Servers cannot add more.</p>
-
-<div class="toc">
-<ol>
-  <li><a href="#common">Common attributes</a></li>
-  <li><a href="#values">Value types</a></li>
-  <li><a href="#containers">Containers</a>: <a href="#column">column</a>, <a href="#row">row</a>, <a href="#card">card</a>, <a href="#list">list</a>, <a href="#tabs">tabs</a>, <a href="#tab">tab</a>, <a href="#dialog">dialog</a></li>
-  <li><a href="#content">Content</a>: <a href="#text">text</a>, <a href="#notice">notice</a>, <a href="#badge">badge</a>, <a href="#image">image</a>, <a href="#divider">divider</a>, <a href="#progress">progress</a></li>
-  <li><a href="#controls">Controls</a>: <a href="#button">button</a>, <a href="#input">input</a>, <a href="#checkbox">checkbox</a>, <a href="#select">select</a>, <a href="#slider">slider</a></li>
-  <li><a href="#nesting">Nesting rules</a></li>
-</ol>
 </div>
 
-<h2 id="common">Common attributes</h2>
-<p>Every element has these attributes. The first four are <em>structural</em> and must be literal values; they cannot be CEL expressions.</p>
-<table>
-  <thead><tr><th>Attribute</th><th>Type</th><th>Description</th></tr></thead>
-  <tbody>
-    <tr><td><code>id</code></td><td>string</td><td>Required. Unique within the session.</td></tr>
-    <tr><td><code>type</code></td><td>string</td><td>Required. One of the component names on this page.</td></tr>
-    <tr><td><code>parent</code></td><td>string</td><td>Id of the containing element. Omitted means the element is at the root. See <a href="#nesting">nesting rules</a>.</td></tr>
-    <tr><td><code>before</code></td><td>string</td><td>Id of a sibling to insert before. Omitted means append as the last child (for new elements) or keep the current position (for updates).</td></tr>
-    <tr><td><code>visible</code></td><td>bool</td><td>Default <code>true</code>. When false the element and its descendants are not shown and take no space.</td></tr>
-  </tbody>
-</table>
+<nav class="toc" aria-label="Contents">
+<p class="toc-title">On this page</p>
+<ol>
+  <li><a href="#containers">Containers</a>
+    <ol>
+      <li><a href="#column">column</a></li>
+      <li><a href="#row">row</a></li>
+      <li><a href="#card">card</a></li>
+      <li><a href="#list">list</a></li>
+      <li><a href="#tabs">tabs</a></li>
+      <li><a href="#tab">tab</a></li>
+      <li><a href="#dialog">dialog</a></li>
+    </ol>
+  </li>
+  <li><a href="#content">Content</a>
+    <ol>
+      <li><a href="#text">text</a></li>
+      <li><a href="#notice">notice</a></li>
+      <li><a href="#badge">badge</a></li>
+      <li><a href="#image">image</a></li>
+      <li><a href="#divider">divider</a></li>
+      <li><a href="#progress">progress</a></li>
+    </ol>
+  </li>
+  <li><a href="#controls">Controls</a>
+    <ol>
+      <li><a href="#button">button</a></li>
+      <li><a href="#input">input</a></li>
+      <li><a href="#checkbox">checkbox</a></li>
+      <li><a href="#select">select</a></li>
+      <li><a href="#slider">slider</a></li>
+    </ol>
+  </li>
+  <li><a href="#nesting">Nesting rules</a></li>
+</ol>
+</nav>
 
-<h2 id="values">Value types</h2>
-<dl>
-  <dt>Expressions</dt>
-  <dd>Any non-structural attribute may be given as <code>{"cel":"…"}</code> instead of a literal. The expression is evaluated against <code>signals</code> and must produce a value of the attribute's type. On error, the attribute takes its default.</dd>
-  <dt>Signal paths</dt>
-  <dd>The <code>bind</code> attribute is a dot-separated path into the signals, such as <code>"form.email"</code>. Each segment matches <code>[A-Za-z_][A-Za-z0-9_]*</code>. A path whose first segment begins with <code>_</code> is local. Paths are structural and must be literal.</dd>
-  <dt>Handlers</dt>
-  <dd>Event attributes (<code>onPress</code>, <code>onChange</code>, <code>onSubmit</code>, <code>onDismiss</code>) take a handler object with at least one of:
-    <ul>
-      <li><code>patch</code> — a merge patch applied to the signals locally. Leaf values may be CEL expressions, evaluated before the patch is applied.</li>
-      <li><code>action</code> — the name of an action to send to the server. May be accompanied by <code>payload</code> (any JSON, literal) and <code>indicator</code> (a local signal path set to <code>true</code> when the action is sent).</li>
-    </ul>
-    If both are present, the patch is applied first and the action carries the patched signals. Handlers are structural.</dd>
-  <dt>Enumerations</dt>
-  <dd><code>gap</code>: <code>none</code> · <code>small</code> · <code>medium</code> · <code>large</code>.<br>
-      <code>align</code> (cross axis): <code>start</code> · <code>center</code> · <code>end</code> · <code>stretch</code>.<br>
-      <code>justify</code> (main axis): <code>start</code> · <code>center</code> · <code>end</code> · <code>between</code>.<br>
-      An unknown enumeration value is treated as the default.</dd>
-</dl>
-
+<article class="prose">
 <h2 id="containers">Containers</h2>
 
 <h3 id="column">column</h3>
 <p>Arranges children vertically. The root of the session behaves as a column with default attributes.</p>
+<div class="sample" data-component="column">
+<pre class="sample-src">element {"id":"col","type":"column"}
+element {"id":"a","type":"text","parent":"col","text":"Lorem ipsum"}
+element {"id":"b","type":"text","parent":"col","text":"Dolor sit amet"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>gap</code></td><td>enum</td><td><code>medium</code></td><td></td></tr>
-    <tr><td><code>align</code></td><td>enum</td><td><code>stretch</code></td><td>Horizontal alignment of children.</td></tr>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"column"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
+    <tr><td><code>gap</code></td><td><a href="guide.html#enums">enum</a></td><td><code>medium</code></td><td></td></tr>
+    <tr><td><code>align</code></td><td><a href="guide.html#enums">enum</a></td><td><code>stretch</code></td><td>Horizontal alignment of children.</td></tr>
   </tbody>
 </table>
 
 <h3 id="row">row</h3>
 <p>Arranges children horizontally. Renderers on narrow surfaces may wrap a row even when <code>wrap</code> is false, rather than overflow.</p>
+<div class="sample" data-component="row">
+<pre class="sample-src">element {"id":"row","type":"row"}
+element {"id":"a","type":"text","parent":"row","text":"Lorem ipsum"}
+element {"id":"b","type":"text","parent":"row","text":"Dolor sit amet"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>gap</code></td><td>enum</td><td><code>small</code></td><td></td></tr>
-    <tr><td><code>align</code></td><td>enum</td><td><code>center</code></td><td>Vertical alignment of children.</td></tr>
-    <tr><td><code>justify</code></td><td>enum</td><td><code>start</code></td><td></td></tr>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"row"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
+    <tr><td><code>gap</code></td><td><a href="guide.html#enums">enum</a></td><td><code>small</code></td><td></td></tr>
+    <tr><td><code>align</code></td><td><a href="guide.html#enums">enum</a></td><td><code>center</code></td><td>Vertical alignment of children.</td></tr>
+    <tr><td><code>justify</code></td><td><a href="guide.html#enums">enum</a></td><td><code>start</code></td><td></td></tr>
     <tr><td><code>wrap</code></td><td>bool</td><td><code>false</code></td><td></td></tr>
   </tbody>
 </table>
 
 <h3 id="card">card</h3>
 <p>A visually grouped region, laid out as a column. Typically drawn with a border or a distinct background.</p>
+<div class="sample" data-component="card">
+<pre class="sample-src">element {"id":"card","type":"card","title":"Lorem ipsum"}
+element {"id":"a","type":"text","parent":"card","text":"Lorem ipsum"}
+element {"id":"b","type":"text","parent":"card","text":"Dolor sit amet"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"card"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
     <tr><td><code>title</code></td><td>string</td><td>none</td><td>Shown as a heading for the group.</td></tr>
-    <tr><td><code>gap</code></td><td>enum</td><td><code>medium</code></td><td></td></tr>
+    <tr><td><code>gap</code></td><td><a href="guide.html#enums">enum</a></td><td><code>medium</code></td><td></td></tr>
   </tbody>
 </table>
 
 <h3 id="list">list</h3>
 <p>A vertical sequence of items with separators. Each child is one item. Renderers may virtualise long lists.</p>
+<div class="sample" data-component="list">
+<pre class="sample-src">element {"id":"list","type":"list"}
+element {"id":"a","type":"text","parent":"list","text":"Lorem ipsum"}
+element {"id":"b","type":"text","parent":"list","text":"Dolor sit amet"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"list"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
     <tr><td><code>empty</code></td><td>string</td><td>none</td><td>Text shown when the list has no visible children.</td></tr>
   </tbody>
 </table>
 
 <h3 id="tabs">tabs</h3>
 <p>Shows one of its <code>tab</code> children at a time, with a control to switch between them. Switching is local and does not contact the server unless <code>onChange</code> has an action.</p>
+<div class="sample" data-component="tabs">
+<pre class="sample-src">element {"id":"tabs","type":"tabs"}
+element {"id":"a","type":"tab","parent":"tabs","label":"Lorem"}
+element {"id":"b","type":"tab","parent":"tabs","label":"Ipsum"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>bind</code></td><td>path</td><td>none</td><td>Signal holding the id of the selected tab. If missing or not the id of a visible child, the first visible tab is shown. Without <code>bind</code> the selection is renderer state.</td></tr>
-    <tr><td><code>onChange</code></td><td>handler</td><td>none</td><td>Runs after the selection changes.</td></tr>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"tabs"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
+    <tr><td><code>bind</code></td><td><a href="guide.html#paths">path</a></td><td>none</td><td>Signal holding the id of the selected tab. If missing or not the id of a visible child, the first visible tab is shown. Without <code>bind</code> the selection is renderer state.</td></tr>
+    <tr><td><code>onChange</code></td><td><a href="guide.html#handlers">handler</a></td><td>none</td><td>Runs after the selection changes.</td></tr>
   </tbody>
 </table>
 
 <h3 id="tab">tab</h3>
 <p>One page of a <code>tabs</code> element, laid out as a column. Its parent must be a <code>tabs</code>.</p>
+<div class="sample" data-component="tab">
+<pre class="sample-src">element {"id":"tabs","type":"tabs"}
+element {"id":"tab","type":"tab","parent":"tabs","label":"Lorem"}
+element {"id":"a","type":"text","parent":"tab","text":"Lorem ipsum"}
+element {"id":"b","type":"text","parent":"tab","text":"Dolor sit amet"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"tab"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>—</td><td>Required. Must be a <code>tabs</code>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
     <tr><td><code>label</code></td><td>string</td><td>the id</td><td>Shown in the tab control.</td></tr>
-    <tr><td><code>gap</code></td><td>enum</td><td><code>medium</code></td><td></td></tr>
+    <tr><td><code>gap</code></td><td><a href="guide.html#enums">enum</a></td><td><code>medium</code></td><td></td></tr>
   </tbody>
 </table>
 
 <h3 id="dialog">dialog</h3>
 <p>A modal surface shown above the rest of the interface, laid out as a column. A dialog cannot have a parent. While any dialog is open, the renderer should prevent interaction with elements outside it. If several are open, the most recently opened is on top.</p>
+<div class="sample" data-component="dialog">
+<pre class="sample-src">element {"id":"dialog","type":"dialog","title":"Lorem ipsum"}
+element {"id":"a","type":"text","parent":"dialog","text":"Lorem ipsum"}
+element {"id":"b","type":"text","parent":"dialog","text":"Dolor sit amet"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"dialog"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>—</td><td>Not allowed: a dialog is always at the root.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
     <tr><td><code>open</code></td><td>bool</td><td><code>true</code></td><td></td></tr>
     <tr><td><code>title</code></td><td>string</td><td>none</td><td></td></tr>
-    <tr><td><code>onDismiss</code></td><td>handler</td><td>none</td><td>Runs when the user asks to close the dialog (Escape, back gesture, close button). If absent, the dialog cannot be dismissed by the user. The renderer does not close the dialog itself; the handler must change whatever <code>open</code> depends on, or the server must.</td></tr>
+    <tr><td><code>onDismiss</code></td><td><a href="guide.html#handlers">handler</a></td><td>none</td><td>Runs when the user asks to close the dialog (Escape, back gesture, close button). If absent, the dialog cannot be dismissed by the user. The renderer does not close the dialog itself; the handler must change whatever <code>open</code> depends on, or the server must.</td></tr>
   </tbody>
 </table>
 <pre>element {"id":"confirm","type":"dialog","title":"Delete project?",
@@ -148,85 +218,155 @@
 <h2 id="content">Content</h2>
 
 <h3 id="text">text</h3>
+<div class="sample" data-component="text">
+<pre class="sample-src">element {"id":"text","type":"text","text":"Lorem ipsum dolor sit amet"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"text"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
     <tr><td><code>text</code></td><td>string</td><td><code>""</code></td><td>Plain text. Line breaks are preserved. No markup.</td></tr>
-    <tr><td><code>variant</code></td><td>enum</td><td><code>body</code></td><td><code>h1</code> · <code>h2</code> · <code>h3</code> · <code>body</code> · <code>caption</code> · <code>code</code></td></tr>
+    <tr><td><code>variant</code></td><td><a href="guide.html#enums">enum</a></td><td><code>body</code></td><td><code>h1</code> · <code>h2</code> · <code>h3</code> · <code>body</code> · <code>caption</code> · <code>code</code></td></tr>
   </tbody>
 </table>
 <p>Heading variants should be exposed as headings to assistive technology. <code>code</code> is monospaced where the platform allows. <code>caption</code> is secondary, lower-emphasis text.</p>
 
 <h3 id="notice">notice</h3>
 <p>A message that draws attention: a confirmation, a warning, an error.</p>
+<div class="sample" data-component="notice">
+<pre class="sample-src">element {"id":"notice","type":"notice","title":"Lorem ipsum","text":"Dolor sit amet"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"notice"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
     <tr><td><code>title</code></td><td>string</td><td>none</td><td></td></tr>
     <tr><td><code>text</code></td><td>string</td><td><code>""</code></td><td></td></tr>
-    <tr><td><code>variant</code></td><td>enum</td><td><code>info</code></td><td><code>info</code> · <code>success</code> · <code>warning</code> · <code>failure</code></td></tr>
+    <tr><td><code>variant</code></td><td><a href="guide.html#enums">enum</a></td><td><code>info</code></td><td><code>info</code> · <code>success</code> · <code>warning</code> · <code>failure</code></td></tr>
   </tbody>
 </table>
 <p>Renderers should announce a <code>warning</code> or <code>failure</code> notice to assistive technology when it appears or its text changes.</p>
 
 <h3 id="badge">badge</h3>
 <p>A short status label, usually shown inline in a row.</p>
+<div class="sample" data-component="badge">
+<pre class="sample-src">element {"id":"badge","type":"badge","text":"lorem"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"badge"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
     <tr><td><code>text</code></td><td>string</td><td><code>""</code></td><td></td></tr>
-    <tr><td><code>variant</code></td><td>enum</td><td><code>neutral</code></td><td><code>neutral</code> · <code>info</code> · <code>success</code> · <code>warning</code> · <code>failure</code></td></tr>
+    <tr><td><code>variant</code></td><td><a href="guide.html#enums">enum</a></td><td><code>neutral</code></td><td><code>neutral</code> · <code>info</code> · <code>success</code> · <code>warning</code> · <code>failure</code></td></tr>
   </tbody>
 </table>
 
 <h3 id="image">image</h3>
+<div class="sample" data-component="image">
+<pre class="sample-src">element {"id":"image","type":"image","variant":"avatar","alt":"Lorem","src":"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%236a46e0'/%3E%3Ccircle cx='32' cy='25' r='12' fill='%23fff'/%3E%3Crect x='12' y='42' width='40' height='26' rx='13' fill='%23fff'/%3E%3C/svg%3E"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"image"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
     <tr><td><code>src</code></td><td>string</td><td><code>""</code></td><td>A URI. Which schemes are fetched is up to the renderer and its host; <code>data:</code> should be supported.</td></tr>
     <tr><td><code>alt</code></td><td>string</td><td><code>""</code></td><td>Shown or announced when the image cannot be displayed. Renderers that cannot show images (a terminal) show the alt text.</td></tr>
-    <tr><td><code>variant</code></td><td>enum</td><td><code>inline</code></td><td><code>inline</code> · <code>thumbnail</code> · <code>avatar</code> · <code>full</code></td></tr>
+    <tr><td><code>variant</code></td><td><a href="guide.html#enums">enum</a></td><td><code>inline</code></td><td><code>inline</code> · <code>thumbnail</code> · <code>avatar</code> · <code>full</code></td></tr>
   </tbody>
 </table>
 
 <h3 id="divider">divider</h3>
-<p>A separator line along the main axis of its parent. No attributes beyond the common ones.</p>
-
-<h3 id="progress">progress</h3>
+<p>A separator line along the main axis of its parent.</p>
+<div class="sample" data-component="divider">
+<pre class="sample-src">element {"id":"divider","type":"divider"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"divider"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="progress">progress</h3>
+<div class="sample" data-component="progress">
+<pre class="sample-src">element {"id":"progress","type":"progress","label":"Lorem ipsum","value":0.6}</pre>
+</div>
+<table>
+  <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"progress"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
     <tr><td><code>value</code></td><td>number or null</td><td><code>null</code></td><td>Between 0 and 1. Null means indeterminate. Values outside the range are clamped.</td></tr>
     <tr><td><code>label</code></td><td>string</td><td>none</td><td></td></tr>
-    <tr><td><code>variant</code></td><td>enum</td><td><code>bar</code></td><td><code>bar</code> · <code>spinner</code></td></tr>
+    <tr><td><code>variant</code></td><td><a href="guide.html#enums">enum</a></td><td><code>bar</code></td><td><code>bar</code> · <code>spinner</code></td></tr>
   </tbody>
 </table>
 
 <h2 id="controls">Controls</h2>
-<p>Controls accept a <code>disabled</code> attribute (bool, default <code>false</code>). A disabled control is shown but cannot be operated and does not run handlers.</p>
 
 <h3 id="button">button</h3>
+<div class="sample" data-component="button">
+<pre class="sample-src">element {"id":"button","type":"button","label":"Lorem","onPress":{"action":"lorem"}}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"button"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
+    <tr class="common"><td><code>disabled</code></td><td>bool</td><td><code>false</code></td><td>Shown but cannot be operated, and does not run handlers.</td></tr>
     <tr><td><code>label</code></td><td>string</td><td><code>""</code></td><td></td></tr>
-    <tr><td><code>variant</code></td><td>enum</td><td><code>secondary</code></td><td><code>primary</code> · <code>secondary</code> · <code>plain</code> · <code>success</code> · <code>failure</code>. Use <code>failure</code> for destructive actions.</td></tr>
-    <tr><td><code>onPress</code></td><td>handler</td><td>none</td><td></td></tr>
+    <tr><td><code>variant</code></td><td><a href="guide.html#enums">enum</a></td><td><code>secondary</code></td><td><code>primary</code> · <code>secondary</code> · <code>plain</code> · <code>success</code> · <code>failure</code>. Use <code>failure</code> for destructive actions.</td></tr>
+    <tr><td><code>onPress</code></td><td><a href="guide.html#handlers">handler</a></td><td>none</td><td></td></tr>
   </tbody>
 </table>
 
 <h3 id="input">input</h3>
 <p>A text field. The value is stored in the bound signal: a string, or a number for the <code>number</code> variant (null when the field is empty or does not parse).</p>
+<div class="sample" data-component="input">
+<pre class="sample-src">element {"id":"input","type":"input","label":"Lorem","placeholder":"Ipsum"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>bind</code></td><td>path</td><td>none</td><td>Without <code>bind</code> the field's value is not observable.</td></tr>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"input"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
+    <tr class="common"><td><code>disabled</code></td><td>bool</td><td><code>false</code></td><td>Shown but cannot be operated, and does not run handlers.</td></tr>
+    <tr><td><code>bind</code></td><td><a href="guide.html#paths">path</a></td><td>none</td><td>Without <code>bind</code> the field's value is not observable.</td></tr>
     <tr><td><code>label</code></td><td>string</td><td>none</td><td></td></tr>
     <tr><td><code>placeholder</code></td><td>string</td><td>none</td><td></td></tr>
     <tr><td><code>error</code></td><td>string</td><td><code>""</code></td><td>A validation message. A non-empty value marks the field invalid.</td></tr>
-    <tr><td><code>variant</code></td><td>enum</td><td><code>text</code></td><td><code>text</code> · <code>multiline</code> · <code>password</code> · <code>number</code> · <code>email</code></td></tr>
-    <tr><td><code>onChange</code></td><td>handler</td><td>none</td><td>Runs when the user has finished an edit: on losing focus, or after a short idle period chosen by the renderer. Not on every keystroke.</td></tr>
-    <tr><td><code>onSubmit</code></td><td>handler</td><td>none</td><td>Runs when the user confirms (Enter in a single-line field). Not available for <code>multiline</code>.</td></tr>
+    <tr><td><code>variant</code></td><td><a href="guide.html#enums">enum</a></td><td><code>text</code></td><td><code>text</code> · <code>multiline</code> · <code>password</code> · <code>number</code> · <code>email</code></td></tr>
+    <tr><td><code>onChange</code></td><td><a href="guide.html#handlers">handler</a></td><td>none</td><td>Runs when the user has finished an edit: on losing focus, or after a short idle period chosen by the renderer. Not on every keystroke.</td></tr>
+    <tr><td><code>onSubmit</code></td><td><a href="guide.html#handlers">handler</a></td><td>none</td><td>Runs when the user confirms (Enter in a single-line field). Not available for <code>multiline</code>.</td></tr>
   </tbody>
 </table>
 <pre>element {"id":"email","type":"input","parent":"form","label":"Email","variant":"email",
@@ -234,40 +374,67 @@
 
 <h3 id="checkbox">checkbox</h3>
 <p>A boolean control. The bound signal is <code>true</code> or <code>false</code>.</p>
+<div class="sample" data-component="checkbox">
+<pre class="sample-src">element {"id":"checkbox","type":"checkbox","label":"Lorem ipsum"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>bind</code></td><td>path</td><td>none</td><td></td></tr>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"checkbox"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
+    <tr class="common"><td><code>disabled</code></td><td>bool</td><td><code>false</code></td><td>Shown but cannot be operated, and does not run handlers.</td></tr>
+    <tr><td><code>bind</code></td><td><a href="guide.html#paths">path</a></td><td>none</td><td></td></tr>
     <tr><td><code>label</code></td><td>string</td><td><code>""</code></td><td></td></tr>
-    <tr><td><code>variant</code></td><td>enum</td><td><code>checkbox</code></td><td><code>checkbox</code> · <code>switch</code></td></tr>
-    <tr><td><code>onChange</code></td><td>handler</td><td>none</td><td>Runs after each change.</td></tr>
+    <tr><td><code>variant</code></td><td><a href="guide.html#enums">enum</a></td><td><code>checkbox</code></td><td><code>checkbox</code> · <code>switch</code></td></tr>
+    <tr><td><code>onChange</code></td><td><a href="guide.html#handlers">handler</a></td><td>none</td><td>Runs after each change.</td></tr>
   </tbody>
 </table>
 
 <h3 id="select">select</h3>
 <p>A choice of one value from a list. The bound signal holds the <code>value</code> of the selected option, or null.</p>
+<div class="sample" data-component="select">
+<pre class="sample-src">element {"id":"select","type":"select","label":"Lorem","options":[{"value":"a","label":"Ipsum"},{"value":"b","label":"Dolor"}]}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>bind</code></td><td>path</td><td>none</td><td></td></tr>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"select"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
+    <tr class="common"><td><code>disabled</code></td><td>bool</td><td><code>false</code></td><td>Shown but cannot be operated, and does not run handlers.</td></tr>
+    <tr><td><code>bind</code></td><td><a href="guide.html#paths">path</a></td><td>none</td><td></td></tr>
     <tr><td><code>label</code></td><td>string</td><td>none</td><td></td></tr>
     <tr><td><code>options</code></td><td>list</td><td><code>[]</code></td><td>Objects with <code>value</code> (string) and <code>label</code> (string). Can be an expression, e.g. derived from a signal.</td></tr>
-    <tr><td><code>variant</code></td><td>enum</td><td><code>dropdown</code></td><td><code>dropdown</code> · <code>radio</code> · <code>segmented</code></td></tr>
-    <tr><td><code>onChange</code></td><td>handler</td><td>none</td><td>Runs after each change.</td></tr>
+    <tr><td><code>variant</code></td><td><a href="guide.html#enums">enum</a></td><td><code>dropdown</code></td><td><code>dropdown</code> · <code>radio</code> · <code>segmented</code></td></tr>
+    <tr><td><code>onChange</code></td><td><a href="guide.html#handlers">handler</a></td><td>none</td><td>Runs after each change.</td></tr>
   </tbody>
 </table>
 
 <h3 id="slider">slider</h3>
 <p>A number within a range. The bound signal holds the number.</p>
+<div class="sample" data-component="slider">
+<pre class="sample-src">element {"id":"slider","type":"slider","label":"Lorem"}</pre>
+</div>
 <table>
   <thead><tr><th>Attribute</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
   <tbody>
-    <tr><td><code>bind</code></td><td>path</td><td>none</td><td></td></tr>
+    <tr class="common"><td><code>id</code></td><td>string</td><td>—</td><td>Required. Unique within the session. Literal.</td></tr>
+    <tr class="common"><td><code>type</code></td><td>string</td><td>—</td><td>Required. Always <code>"slider"</code>.</td></tr>
+    <tr class="common"><td><code>parent</code></td><td>string</td><td>root</td><td>Id of the containing element. Literal. See <a href="#nesting">nesting rules</a>.</td></tr>
+    <tr class="common"><td><code>before</code></td><td>string</td><td>last</td><td>Id of a sibling to insert before. Omitted means append (new elements) or keep the current position (updates). Literal.</td></tr>
+    <tr class="common"><td><code>visible</code></td><td>bool</td><td><code>true</code></td><td>When false the element and its descendants are not shown and take no space.</td></tr>
+    <tr class="common"><td><code>disabled</code></td><td>bool</td><td><code>false</code></td><td>Shown but cannot be operated, and does not run handlers.</td></tr>
+    <tr><td><code>bind</code></td><td><a href="guide.html#paths">path</a></td><td>none</td><td></td></tr>
     <tr><td><code>label</code></td><td>string</td><td>none</td><td></td></tr>
     <tr><td><code>min</code></td><td>number</td><td><code>0</code></td><td></td></tr>
     <tr><td><code>max</code></td><td>number</td><td><code>100</code></td><td></td></tr>
     <tr><td><code>step</code></td><td>number</td><td><code>1</code></td><td></td></tr>
-    <tr><td><code>onChange</code></td><td>handler</td><td>none</td><td>Runs when the user releases the slider, not continuously while dragging.</td></tr>
+    <tr><td><code>onChange</code></td><td><a href="guide.html#handlers">handler</a></td><td>none</td><td>Runs when the user releases the slider, not continuously while dragging.</td></tr>
   </tbody>
 </table>
 
@@ -283,6 +450,7 @@
   </tbody>
 </table>
 <p>An element without a parent is placed at the root, except a <code>tab</code>, which is rejected. There is no limit on nesting depth in the protocol, though renderers may impose one.</p>
+</article>
 </main>
 
 <footer class="site"><div class="inner">hypereffect</div></footer>

@@ -6,6 +6,7 @@
 <title>hypereffect specification</title>
 <meta name="description" content="Normative specification of the hypereffect protocol.">
 <link rel="stylesheet" href="style.css">
+<script src="site.js" defer></script>
 </head>
 <body>
 <header class="site"><div class="inner">
@@ -20,10 +21,13 @@
   </nav>
 </div></header>
 
-<main>
+<main class="doc">
+<div class="doc-head">
 <h1>Specification</h1>
+</div>
 
-<div class="toc">
+<nav class="toc" aria-label="Contents">
+<p class="toc-title">On this page</p>
 <ol>
   <li><a href="#conventions">Conventions</a></li>
   <li><a href="#terminology">Terminology</a></li>
@@ -40,8 +44,9 @@
   <li><a href="#security">Security considerations</a></li>
   <li><a href="#grammar">Appendix: grammar</a></li>
 </ol>
-</div>
+</nav>
 
+<article class="prose">
 <h2 id="conventions"><span class="num">1</span>Conventions</h2>
 <p>The key words MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in capitals.</p>
 <p>JSON refers to RFC 8259. Merge patch refers to RFC 7386. CEL refers to the Common Expression Language as specified at <a href="https://github.com/google/cel-spec">github.com/google/cel-spec</a>.</p>
@@ -273,6 +278,7 @@ json    = &lt;a JSON object per RFC 8259, containing no LF&gt;</pre>
     <tr><td><code>action</code></td><td>renderer → server</td><td><a href="#msg-action">6.2</a></td></tr>
   </tbody>
 </table>
+</article>
 </main>
 
 <footer class="site"><div class="inner">hypereffect</div></footer>

@@ -6,6 +6,7 @@
 <title>hypereffect</title>
 <meta name="description" content="hypereffect: a small hypermedia protocol for server-driven UI in simple apps, rendered natively on any platform.">
 <link rel="stylesheet" href="style.css">
+<script src="site.js" defer></script>
 </head>
 <body>
 <header class="site"><div class="inner">
@@ -20,79 +21,84 @@
   </nav>
 </div></header>
 
-<main>
-<h1>hypereffect</h1>
-<p class="lede">A small hypermedia protocol for the user interfaces of simple applications. The server describes the screen as a set of components and a set of values; a client renders them with whatever native toolkit it has. HTML, CSS and JavaScript are not required anywhere.</p>
+<main class="home">
+<section class="hero">
+  <p class="eyebrow">Server-driven UI, rendered natively</p>
+  <h1>hypereffect</h1>
+  <p class="lede">A simple protocol for describing <strong class="k k-accent">server-guided</strong>, <strong class="k k-signal">reactive</strong> interfaces that can be <strong class="k k-element">rendered anywhere</strong>.</p>
+</section>
 
-<h2>What it is</h2>
-<p>hypereffect is a line-oriented stream of JSON messages between a server and a <em>renderer</em>. The server sends three kinds of message:</p>
-<ul>
-  <li><code>element</code> — create an element, or replace the one with the same <code>id</code>.</li>
-  <li><code>remove</code> — remove an element and everything inside it.</li>
-  <li><code>signal</code> — patch the shared signal object using JSON Merge Patch (RFC 7386).</li>
-</ul>
-<p>The renderer sends back <code>action</code> messages when the user presses a button, submits a field or changes a value that has an action attached. That is the whole loop.</p>
+<section class="session" aria-label="A session, step by step">
+<ol class="steps">
+  <li class="step t-hello">
+    <div class="step-text">
+      <p>A client, the <em>renderer</em>, starts the session by sending <strong class="k k-hello">hello</strong>. It knows nothing about the application yet.</p>
+    </div>
+    <div class="step-code"><span class="dir">renderer → server</span>
+<pre>hello {}</pre></div>
+  </li>
 
-<pre><span class="c"># server → renderer</span>
-signal {"count":0}
-element {"id":"main","type":"column","gap":"medium"}
-element {"id":"label","type":"text","parent":"main","text":{"cel":"'Count: ' + string(signals.count)"}}
-element {"id":"inc","type":"button","parent":"main","label":"Add one","onPress":{"action":"increment"}}
+  <li class="step t-element">
+    <div class="step-text">
+      <p>The server answers with the state, as <a class="k k-signal" href="https://data-star.dev/">signals</a>, and a few <strong class="k k-element">elements</strong>. The renderer draws them with its own native widgets, in its own style.</p>
+      <p>There is a <strong class="k k-element">fixed set of eighteen components</strong>, and they carry <strong class="k k-element">semantic variants, not styles</strong>: <code>h2</code> or <code>primary</code>, never a colour or a margin.</p>
+    </div>
+    <div class="step-code"><span class="dir">server → renderer</span>
+<pre>signal {"count":0,"_help":false}
+element {"id":"main","type":"column"}
+element {"id":"label","type":"text","parent":"main","variant":"h2","text":{"cel":"'Count: ' + string(signals.count)"}}
+element {"id":"inc","type":"button","parent":"main","variant":"primary","label":"Add one","onPress":{"action":"increment"}}</pre></div>
+  </li>
 
-<span class="c"># renderer → server, when the button is pressed</span>
-action {"name":"increment","signals":{"count":0}}
+  <li class="step t-signal">
+    <div class="step-text">
+      <p>Elements declare up front the <strong class="k k-accent">few interactions they support</strong>. When the user acts, a handler can do only two things:</p>
+      <ul>
+        <li><strong class="k k-signal">change the state locally</strong>, and every attribute that depends on it is recomputed: pressing <em>Help</em> sets <code>_help</code>, and the hint appears;</li>
+        <li><strong class="k k-action">fire an action</strong>, like <code>increment</code> above.</li>
+      </ul>
+    </div>
+    <div class="step-code"><span class="dir">server → renderer</span>
+<pre>element {"id":"help","type":"button","parent":"main","variant":"plain","label":"Help","onPress":{"patch":{"_help":true}}}
+element {"id":"hint","type":"text","parent":"main","variant":"caption","text":"Press Add one to count.","visible":{"cel":"signals._help"}}</pre></div>
+  </li>
 
-<span class="c"># server → renderer</span>
-signal {"count":1}</pre>
+  <li class="step t-action">
+    <div class="step-text">
+      <p><strong class="k k-action">Actions</strong> are sent to the server, with the current signals. Local signals, whose names start with <code>_</code>, stay on the client.</p>
+    </div>
+    <div class="step-code"><span class="dir">renderer → server</span>
+<pre>action {"name":"increment","signals":{"count":0}}</pre></div>
+  </li>
 
-<p>The label updates because its <code>text</code> is a <a href="https://cel.dev/">CEL</a> expression over the signals. No element was re-sent.</p>
+  <li class="step t-remove">
+    <div class="step-text">
+      <p>The server decides what happens next. It can send <strong class="k k-element">new elements</strong>, <strong class="k k-element">replace</strong> or <strong class="k k-remove">remove</strong> existing ones, or send <strong class="k k-signal">signal updates</strong> that are merged into the client's state, which may change the interface again.</p>
+      <p>Here the label now reads <em>Count: 1</em> without being re-sent: its text is an expression in <a class="k k-accent" href="https://cel.dev/">Common Expression Language</a>, which is safe, side-effect free and recomputed when the signals it reads change.</p>
+    </div>
+    <div class="step-code"><span class="dir">server → renderer</span>
+<pre>signal {"count":1}
+element {"id":"inc","type":"button","parent":"main","variant":"primary","label":"Add another","onPress":{"action":"increment"}}
+remove {"id":"help"}</pre></div>
+  </li>
+</ol>
 
-<h2>Properties</h2>
-<dl>
-  <dt>A fixed component set</dt>
-  <dd>Eighteen components — <code>column</code>, <code>row</code>, <code>text</code>, <code>button</code>, <code>input</code>, <code>select</code>, <code>dialog</code> and so on. Renderers implement each one with native widgets. There is no way to define new components from the server.</dd>
-  <dt>Variants, not styles</dt>
-  <dd>Components carry semantic variants such as <code>h1</code>, <code>caption</code>, <code>success</code> or <code>failure</code>. There are no colours, sizes, fonts or margins in the protocol. Each renderer decides how a <code>failure</code> notice looks on its platform.</dd>
-  <dt>Two primitives: elements and signals</dt>
-  <dd>Borrowed from <a href="https://data-star.dev/guide/the_tao_of_datastar">Datastar</a>. Elements describe structure; signals hold values. Either can be patched by the server at any time.</dd>
-  <dt>Expressions in CEL</dt>
-  <dd>Any presentational attribute can be a CEL expression evaluated against the signals. CEL is side-effect free and not Turing-complete, so renderers can evaluate untrusted expressions safely and cheaply.</dd>
-  <dt>Server-guided interaction</dt>
-  <dd>The application state lives on the server. The renderer knows nothing about the application; it only knows the components, how to evaluate CEL, and how to send an action.</dd>
-  <dt>Transport-agnostic</dt>
-  <dd>The protocol is newline-delimited text. It can run over WebSockets, HTTP with Server-Sent Events, a Unix socket, stdio, iroh, or anything else that carries ordered bytes.</dd>
-  <dt>Embeddable</dt>
-  <dd>A renderer is a library that draws into a region its host gives it. A game can show a settings panel, a terminal program can show a form, a desktop app can host a plugin UI — each from a server it does not otherwise understand.</dd>
-</dl>
+<div class="cards two outcomes">
+  <div class="card c1"><h3>Embeddable anywhere</h3><p>The components and interactions are few on purpose, so any app can render them inside itself: a game, a terminal program, a chat with an agent. The messages are lines of JSON over any transport that carries ordered bytes.</p></div>
+  <div class="card c3"><h3>No client logic</h3><p>Because the server guides everything, an interface can do a lot without a complex client or custom code: no JavaScript, and nothing to update in the renderer when the app changes.</p></div>
+</div>
+</section>
 
-<h2 id="use-cases">Use cases</h2>
-<p>hypereffect suits applications whose interface is mostly text, inputs, buttons and lists, and whose logic already lives on a server or in a separate process: settings screens, admin panels, forms, dashboards with a few numbers, internal utilities. Some situations where it is particularly useful:</p>
-<dl>
-  <dt>Sandboxed modules</dt>
-  <dd>A WebAssembly module running in a sandbox has no screen of its own. It can write hypereffect lines to its host, and the host's shell renders them and passes actions back. The module talks to the user without linking a UI toolkit or being given access to a window, and the shell keeps control of what is drawn.</dd>
-  <dt>Interfaces generated by agents</dt>
-  <dd>A hosted LLM agent can produce an interface on the fly — a form to collect the details it needs, a list of options to choose from, a summary with buttons to confirm — and have users interact with it from inside other applications. The component set is small and the format is plain JSON, which models generate reliably, and because there is no scripting the client can display whatever the agent sends without running untrusted code.</dd>
-  <dt>Simple services without a custom UI</dt>
-  <dd>Many useful services do one straightforward thing and do not need a designed interface. Such a service can just speak hypereffect at a URL. Users then reach it from a dedicated hypereffect browser on desktop, mobile or in a terminal, or from inside an LLM agent's interface, and it looks native in each.</dd>
-  <dt>Control panels for hardware</dt>
-  <dd>A custom hardware device — a sensor, a lab instrument, a home appliance — can serve its own control panel over a socket, a serial line or the network. The device needs only to write lines of JSON, not to host a web stack, and any renderer can operate it.</dd>
-</dl>
-
-<h2>What it is not for</h2>
-<ul>
-  <li>Applications that need custom visual design or brand-specific appearance.</li>
-  <li>Rich offline behaviour. Without a connection the renderer can only show what it already has.</li>
-  <li>Animation-heavy or canvas-heavy interfaces, games, editors.</li>
-  <li>Replacing the web. If HTML is available and suitable, HTML is a more capable hypermedia.</li>
-</ul>
-
-<h2>Where to go next</h2>
-<ul>
-  <li><a href="concepts.html">Concepts</a> — the ideas behind the design: hypermedia, elements and signals, and why the server is in charge.</li>
-  <li><a href="guide.html">Guide</a> — worked examples and notes on writing servers and renderers.</li>
-  <li><a href="components.html">Components</a> — every component and its attributes.</li>
-  <li><a href="spec.html">Specification</a> — the normative description of the protocol.</li>
-</ul>
+<section class="band" id="use-cases">
+  <h2>Use cases</h2>
+  <p>Interfaces that are mostly text, inputs, buttons and lists, with the logic on a server or in another process.</p>
+  <div class="cards two">
+    <div class="card c2"><h3>Sandboxed modules</h3><p>A WebAssembly module with no screen writes hypereffect lines, and its host renders them.</p></div>
+    <div class="card c3"><h3>Interfaces generated by agents</h3><p>An LLM agent builds forms and choices on the fly, as plain JSON with no code to run.</p></div>
+    <div class="card c4"><h3>Simple services without a custom UI</h3><p>A service speaks hypereffect at a URL and looks native in any hypereffect client.</p></div>
+    <div class="card c5"><h3>Control panels for hardware</h3><p>A device serves its own control panel over a socket or serial line, with no web stack.</p></div>
+  </div>
+</section>
 </main>
 
 <footer class="site"><div class="inner">hypereffect</div></footer>

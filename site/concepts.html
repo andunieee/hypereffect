@@ -6,6 +6,7 @@
 <title>hypereffect concepts</title>
 <meta name="description" content="The ideas behind hypereffect: hypermedia, elements and signals, CEL expressions and server-guided interaction.">
 <link rel="stylesheet" href="style.css">
+<script src="site.js" defer></script>
 </head>
 <body>
 <header class="site"><div class="inner">
@@ -20,11 +21,14 @@
   </nav>
 </div></header>
 
-<main>
+<main class="doc">
+<div class="doc-head">
 <h1>Concepts</h1>
 <p class="lede">hypereffect combines a few existing ideas. This page explains each one and how the protocol uses it.</p>
+</div>
 
-<div class="toc">
+<nav class="toc" aria-label="Contents">
+<p class="toc-title">On this page</p>
 <ol>
   <li><a href="#hypermedia">Hypermedia</a></li>
   <li><a href="#controls">Hypermedia controls</a></li>
@@ -35,8 +39,9 @@
   <li><a href="#honesty">Indicators, not optimism</a></li>
   <li><a href="#comparison">Differences from the web</a></li>
 </ol>
-</div>
+</nav>
 
+<article class="prose">
 <h2 id="hypermedia">Hypermedia</h2>
 <p><a href="https://hypermedia.systems/part/hypermedia-concepts/">Hypermedia Systems</a> describes a hypermedia system as four parts: a hypermedia format, a network protocol that carries it, a server that produces it, and a client that interprets it. On the web these are HTML, HTTP, a web server, and a browser.</p>
 <p>hypereffect fills the same four slots with different parts:</p>
@@ -119,6 +124,7 @@ signal {"user":{"unread":null}}       <span class="c"># unread is deleted</span>
   <li><strong>No extension mechanism for components.</strong> HTML allows custom elements and scripts. hypereffect does not, by design, so that every renderer can display every application.</li>
   <li><strong>No styling.</strong> See above.</li>
 </ul>
+</article>
 </main>
 
 <footer class="site"><div class="inner">hypereffect</div></footer>

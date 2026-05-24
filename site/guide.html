@@ -6,6 +6,7 @@
 <title>hypereffect guide</title>
 <meta name="description" content="Worked examples of hypereffect sessions, and notes on writing servers and renderers.">
 <link rel="stylesheet" href="style.css">
+<script src="site.js" defer></script>
 </head>
 <body>
 <header class="site"><div class="inner">
@@ -20,23 +21,28 @@
   </nav>
 </div></header>
 
-<main>
+<main class="doc">
+<div class="doc-head">
 <h1>Guide</h1>
-<p class="lede">Worked examples, from a counter to a form with validation, followed by notes on writing a server and a renderer. Lines from the renderer are marked with <code>&lt;</code> in comments; everything else is from the server.</p>
+<p class="lede">Worked examples, from a counter to a form with validation, followed by the forms attribute values take and notes on writing a server and a renderer. Lines from the renderer are marked with <code>&lt;</code> in comments; everything else is from the server.</p>
+</div>
 
-<div class="toc">
+<nav class="toc" aria-label="Contents">
+<p class="toc-title">On this page</p>
 <ol>
   <li><a href="#counter">A counter</a></li>
   <li><a href="#form">A form with validation</a></li>
   <li><a href="#list">A list that changes</a></li>
   <li><a href="#local">Local state: tabs and dialogs</a></li>
+  <li><a href="#values">Attribute values</a></li>
   <li><a href="#server">Writing a server</a></li>
   <li><a href="#renderer">Writing a renderer</a></li>
   <li><a href="#embedding">Embedding a renderer</a></li>
   <li><a href="#pitfalls">Common mistakes</a></li>
 </ol>
-</div>
+</nav>
 
+<article class="prose">
 <h2 id="counter">A counter</h2>
 <p>The renderer opens the transport and introduces itself. The server builds the screen.</p>
 <pre><span class="c"># &lt; renderer</span>
@@ -135,6 +141,27 @@ element {"id":"confirm-yes","type":"button","parent":"confirm-row","variant":"fa
 <pre>"onPress":{"patch":{"_expanded":{"cel":"!signals._expanded"}}}</pre>
 <p>Use local patches for presentation only. If the server would need to know about a change to behave correctly, send an action.</p>
 
+<h2 id="values">Attribute values</h2>
+<p>The <a href="components.html">component attributes</a> take literal JSON values or one of the forms below. <code>id</code>, <code>type</code>, <code>parent</code>, <code>before</code>, <code>bind</code> and handlers are <em>structural</em>: they must be literal and cannot be CEL expressions.</p>
+<dl>
+  <dt id="expressions">Expressions</dt>
+  <dd>Any non-structural attribute may be given as <code>{"cel":"…"}</code> instead of a literal. The expression is evaluated against <code>signals</code> and must produce a value of the attribute's type. On error, the attribute takes its default.</dd>
+  <dt id="paths">Signal paths</dt>
+  <dd>The <code>bind</code> attribute is a dot-separated path into the signals, such as <code>"form.email"</code>. Each segment matches <code>[A-Za-z_][A-Za-z0-9_]*</code>. A path whose first segment begins with <code>_</code> is local. Paths are structural and must be literal.</dd>
+  <dt id="handlers">Handlers</dt>
+  <dd>Event attributes (<code>onPress</code>, <code>onChange</code>, <code>onSubmit</code>, <code>onDismiss</code>) take a handler object with at least one of:
+    <ul>
+      <li><code>patch</code> — a merge patch applied to the signals locally. Leaf values may be CEL expressions, evaluated before the patch is applied.</li>
+      <li><code>action</code> — the name of an action to send to the server. May be accompanied by <code>payload</code> (any JSON, literal) and <code>indicator</code> (a local signal path set to <code>true</code> when the action is sent).</li>
+    </ul>
+    If both are present, the patch is applied first and the action carries the patched signals. Handlers are structural.</dd>
+  <dt id="enums">Enumerations</dt>
+  <dd><code>gap</code>: <code>none</code> · <code>small</code> · <code>medium</code> · <code>large</code>.<br>
+      <code>align</code> (cross axis): <code>start</code> · <code>center</code> · <code>end</code> · <code>stretch</code>.<br>
+      <code>justify</code> (main axis): <code>start</code> · <code>center</code> · <code>end</code> · <code>between</code>.<br>
+      An unknown enumeration value is treated as the default.</dd>
+</dl>
+
 <h2 id="server">Writing a server</h2>
 <p>A server reads lines, parses the tag and the JSON, and writes lines. The smallest useful server needs no library. This one speaks over standard input and output, so a host can run it as a child process:</p>
 <pre>import json, sys
@@ -222,6 +249,7 @@ renderer.start(signals = {"device": "kitchen"}) <span class="c"># sends hello</s
   <dt>Using signals as a data store</dt>
   <dd>Signals are sent with every action. Put values there that the interface reads or the user edits, not whole datasets.</dd>
 </dl>
+</article>
 </main>
 
 <footer class="site"><div class="inner">hypereffect</div></footer>

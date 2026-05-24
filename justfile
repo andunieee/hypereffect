@@ -1,3 +1,6 @@
+host-site:
+    python -m http.server -d site 9090
+
 build-demo:
     #!/bin/env bash
     # Builds the demo servers to WebAssembly and copies them, with the JavaScript
