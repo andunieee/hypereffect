@@ -13,9 +13,8 @@
   <a class="name" href="index.html">hypereffect</a>
   <nav>
     <a href="index.html" aria-current="page">Overview</a>
-    <a href="concepts.html">Concepts</a>
-    <a href="guide.html">Guide</a>
     <a href="components.html">Components</a>
+    <a href="expressions.html">Expressions</a>
     <a href="spec.html">Spec</a>
     <a href="demo/">Demo</a>
   </nav>
@@ -46,7 +45,7 @@
     <div class="step-code"><span class="dir">server → renderer</span>
 <pre>signal {"count":0,"_help":false}
 element {"id":"main","type":"column"}
-element {"id":"label","type":"text","parent":"main","variant":"h2","text":{"cel":"'Count: ' + string(signals.count)"}}
+element {"id":"label","type":"text","parent":"main","variant":"h2","text":{"cel":"'Count: ' + string(s.count)"}}
 element {"id":"inc","type":"button","parent":"main","variant":"primary","label":"Add one","onPress":{"action":"increment"}}</pre></div>
   </li>
 
@@ -60,7 +59,7 @@ element {"id":"inc","type":"button","parent":"main","variant":"primary","label":
     </div>
     <div class="step-code"><span class="dir">server → renderer</span>
 <pre>element {"id":"help","type":"button","parent":"main","variant":"plain","label":"Help","onPress":{"patch":{"_help":true}}}
-element {"id":"hint","type":"text","parent":"main","variant":"caption","text":"Press Add one to count.","visible":{"cel":"signals._help"}}</pre></div>
+element {"id":"hint","type":"text","parent":"main","variant":"caption","text":"Press Add one to count.","visible":{"cel":"s._help"}}</pre></div>
   </li>
 
   <li class="step t-action">
@@ -87,6 +86,19 @@ remove {"id":"help"}</pre></div>
   <div class="card c1"><h3>Embeddable anywhere</h3><p>The components and interactions are few on purpose, so any app can render them inside itself: a game, a terminal program, a chat with an agent. The messages are lines of JSON over any transport that carries ordered bytes.</p></div>
   <div class="card c3"><h3>No client logic</h3><p>Because the server guides everything, an interface can do a lot without a complex client or custom code: no JavaScript, and nothing to update in the renderer when the app changes.</p></div>
 </div>
+</section>
+
+<section class="band" id="hypermedia">
+  <h2>A hypermedia system</h2>
+  <p>hypereffect follows the ideas of <a href="https://hypermedia.systems/">Hypermedia Systems</a>, outside the browser.</p>
+  <ul class="points">
+    <li><strong>The same four parts as the web.</strong> A format (lines of JSON instead of HTML), a protocol (any ordered byte stream instead of HTTP), a server, and a generic client (a <em>renderer</em> instead of a browser).</li>
+    <li><strong>Self-describing messages.</strong> Everything needed to show and operate the interface arrives in the messages, so one renderer displays every application and never changes when an application does.</li>
+    <li><strong>Hypermedia controls.</strong> Like links and forms, components with an <code>onPress</code> or <code>onSubmit</code> say what triggers them and which action they send.</li>
+    <li><strong>Responses are not tied to requests.</strong> An action is a command; the server answers with any number of patches on the same stream, which is the only way the interface changes.</li>
+    <li><strong>The server is the engine of state.</strong> It decides which controls exist in each state. A renderer knows buttons and inputs, never contacts or orders, so features are added on the server only, with no client scripting.</li>
+    <li><strong>Narrower than the web.</strong> No URLs or history: a session is one surface, and actions are names sent over it. No custom components or styles, so that every renderer can show every application.</li>
+  </ul>
 </section>
 
 <section class="band" id="use-cases">

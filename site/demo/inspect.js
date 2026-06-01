@@ -121,7 +121,7 @@ function element(root, b, e, s) {
       const t = spec[k]?.type;
       if (t === 'handler' && isObj(v)) return row(k, ...describeHandler(v));
       if (t === 'path') {
-        return row(k, 'Two-way bound to ', h('code', { class: 'chip signal' }, `signals.${v}`),
+        return row(k, 'Two-way bound to ', h('code', { class: 'chip signal' }, `s.${v}`),
           h('span', { class: 'now' }, `now ${brief(s.value(v))}`));
       }
       if (isCel(v)) {

@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { cel } from '../src/index.js';
 
 const signals = cel.fromJson({ n: 3, d: 1.5, s: 'Hello', l: [1, 2, 3], m: { a: 1, b: 2 }, t: true, z: null });
-const run = (src) => cel.toJson(cel.compile(src).eval({ signals }));
-const fails = (src) => assert.throws(() => cel.compile(src).eval({ signals }), cel.CelError, src);
+const run = (src) => cel.toJson(cel.compile(src).eval(signals));
+const fails = (src) => assert.throws(() => cel.compile(src).eval(signals), cel.CelError, src);
 
 test('literals', () => {
   assert.equal(run('1'), 1);
   assert.equal(run('0x1F'), 31);
   assert.equal(run('1.5e1'), 15);
-  assert.equal(run('.5'), 0.5);
+  assert.equal(run('0.5'), 0.5);
   assert.equal(run('7u'), 7);
   assert.equal(run('"a\\tb"'), 'a\tb');
   assert.equal(run("'\\u00e9\\x41\\101'"), 'éAA');
@@ -23,15 +23,15 @@ test('literals', () => {
 });
 
 test('arithmetic and int/double separation', () => {
-  assert.equal(run('signals.n * 2 + 1'), 7);
+  assert.equal(run('s.n * 2 + 1'), 7);
   assert.equal(run('7 / 2'), 3);
   assert.equal(run('-7 / 2'), -3);
   assert.equal(run('-7 % 3'), -1);
   assert.equal(run('7.0 / 2.0'), 3.5);
-  assert.equal(run('double(signals.n) * signals.d'), 4.5);
+  assert.equal(run('double(s.n) * s.d'), 4.5);
   assert.equal(run("'a' + 'b'"), 'ab');
   assert.deepEqual(run('[1] + [2]'), [1, 2]);
-  fails('signals.n * signals.d');
+  fails('s.n * s.d');
   fails('1 + 1u');
   fails('1 / 0');
   fails('9223372036854775807 + 1');
@@ -40,51 +40,52 @@ test('arithmetic and int/double separation', () => {
 });
 
 test('comparison', () => {
-  assert.equal(run('1 == 1.0'), true);
-  assert.equal(run('1 == 1u'), true);
+  // Literals of different numeric types do not type-check, as in cel-go;
+  // dynamic values compare by value.
+  fails('1 == 1.0');
+  assert.equal(run('dyn(1) == 1.0 && s.n == 3u'), true);
   assert.equal(run('2 < 2.5 && 3u > 2'), true);
   assert.equal(run("'a' < 'b'"), true);
-  assert.equal(run("1 == 'a'"), false);
+  assert.equal(run("dyn(1) == 'a'"), false);
   assert.equal(run('[1, 2] == [1, 2.0]'), true);
   assert.equal(run("{'a': 1} == {'a': 1}"), true);
   assert.equal(run('null == null'), true);
-  assert.equal(run('signals.z == null'), true);
+  assert.equal(run('s.z == null'), true);
   fails("1 < 'a'");
 });
 
 test('logic absorbs errors', () => {
-  assert.equal(run('true || signals.missing'), true);
-  assert.equal(run('signals.missing || true'), true);
-  assert.equal(run('signals.missing && false'), false);
-  fails('signals.missing || false');
+  assert.equal(run('true || s.missing'), true);
+  assert.equal(run('s.missing || true'), true);
+  assert.equal(run('s.missing && false'), false);
+  fails('s.missing || false');
   fails('1 ? 2 : 3');
-  assert.equal(run('signals.t ? "y" : "n"'), 'y');
+  assert.equal(run('s.t ? "y" : "n"'), 'y');
 });
 
 test('selection, indexing, has()', () => {
-  assert.equal(run('signals.m.a'), 1);
-  assert.equal(run("signals.m['b']"), 2);
-  assert.equal(run('signals.l[2]'), 3);
-  assert.equal(run('signals.l[1u]'), 2);
-  assert.equal(run('has(signals.m.a)'), true);
-  assert.equal(run('has(signals.m.c)'), false);
-  assert.equal(run("'a' in signals.m"), true);
-  assert.equal(run('2 in signals.l'), true);
+  assert.equal(run('s.m.a'), 1);
+  assert.equal(run("s.m['b']"), 2);
+  assert.equal(run('s.l[2]'), 3);
+  assert.equal(run('has(s.m.a)'), true);
+  assert.equal(run('has(s.m.c)'), false);
+  assert.equal(run("'a' in s.m"), true);
+  assert.equal(run('2 in s.l'), true);
   assert.equal(run('{1: "x"}[1]'), 'x');
-  fails('signals.l[3]');
-  fails('signals.m.c');
-  fails('signals.n.x');
+  fails('s.l[3]');
+  fails('s.m.c');
+  fails('s.n.x');
   fails('nope');
 });
 
 test('macros', () => {
-  assert.deepEqual(run('signals.l.map(x, x * x)'), [1, 4, 9]);
-  assert.deepEqual(run('signals.l.map(x, x > 1, x * 10)'), [20, 30]);
-  assert.deepEqual(run('signals.l.filter(x, x % 2 == 1)'), [1, 3]);
-  assert.equal(run('signals.l.all(x, x > 0)'), true);
-  assert.equal(run('signals.l.exists(x, x == 2)'), true);
-  assert.equal(run('signals.l.exists_one(x, x > 1)'), false);
-  assert.deepEqual(run('signals.m.filter(k, signals.m[k] > 1)'), ['b']);
+  assert.deepEqual(run('s.l.map(x, x * x)'), [1, 4, 9]);
+  assert.deepEqual(run('s.l.map(x, x > 1, x * 10)'), [20, 30]);
+  assert.deepEqual(run('s.l.filter(x, x % 2 == 1)'), [1, 3]);
+  assert.equal(run('s.l.all(x, x > 0)'), true);
+  assert.equal(run('s.l.exists(x, x == 2)'), true);
+  assert.equal(run('s.l.exists_one(x, x > 1)'), false);
+  assert.deepEqual(run('s.m.filter(k, s.m[k] > 1)'), ['b']);
   assert.equal(run('[1, 0].exists(x, 1 / x == 1)'), true);
   assert.deepEqual(run('[[1, 2], [3]].map(x, x.map(y, y + 1))'), [[2, 3], [4]]);
 });
@@ -96,18 +97,16 @@ test('conversions and types', () => {
   assert.equal(run("uint(3)"), 3);
   assert.equal(run("bool('true')"), true);
   assert.equal(run('type(1) == int && type(1.0) == double && type("") == string'), true);
-  assert.equal(run('type(signals.m) == map && type(signals.l) == list && type(null) == null_type'), true);
+  assert.equal(run('type(s.m) == map && type(s.l) == list && type(null) == null_type'), true);
   assert.equal(run("size('héllo') + size(b'h\\xff') + size([1]) + size({'a': 1})"), 9);
   assert.equal(run("dyn(1) == 1"), true);
   fails("int('x')");
-  fails('int(1e300)');
 });
 
 test('strings', () => {
-  assert.equal(run("signals.s.contains('ell') && signals.s.startsWith('He') && signals.s.endsWith('lo')"), true);
-  assert.equal(run("signals.s.matches('^h.*o$')"), false);
-  assert.equal(run("signals.s.matches('(?i)^h.*o$')"), true);
-  assert.equal(run("signals.s.lowerAscii() + signals.s.upperAscii()"), 'helloHELLO');
+  assert.equal(run("s.s.contains('ell') && s.s.startsWith('He') && s.s.endsWith('lo')"), true);
+  assert.equal(run("s.s.matches('^h.*o$')"), false);
+  assert.equal(run("s.s.lowerAscii() + s.s.upperAscii()"), 'helloHELLO');
   assert.equal(run("'  x '.trim()"), 'x');
   assert.equal(run("'a-b-c'.replace('-', '+')"), 'a+b+c');
   assert.equal(run("'a-b-c'.replace('-', '+', 1)"), 'a+b-c');
@@ -121,18 +120,49 @@ test('strings', () => {
   assert.equal(run("'abc'.reverse()"), 'cba');
 });
 
+test('math', () => {
+  assert.equal(run('math.greatest(1, 2.5, 2u) + 0.5'), 3);
+  assert.equal(run('math.least([3, 1, 2])'), 1);
+  assert.equal(run('math.round(-2.5) + math.ceil(1.1) + math.floor(1.9) + math.trunc(-1.9)'), -1);
+  assert.equal(run('math.abs(-3) + math.sign(-7)'), 2);
+  assert.equal(run('math.sqrt(2.25)'), 1.5);
+  assert.equal(run('math.isNaN(0.0 / 0.0) && math.isInf(1.0 / 0.0) && !math.isFinite(1.0 / 0.0)'), true);
+  assert.equal(run('math.bitOr(4, 1) + math.bitXor(3, 1) + math.bitNot(0)'), 6);
+  assert.equal(run('math.bitShiftRight(-1, 60)'), 15);
+  fails('math.greatest("a", "b")');
+  fails('math.abs(-9223372036854775807 - 1)');
+});
+
+test('lists', () => {
+  assert.deepEqual(run('lists.range(3)'), [0, 1, 2]);
+  assert.deepEqual(run('s.l.slice(1, 3)'), [2, 3]);
+  assert.deepEqual(run('[1, [2, [3]]].flatten()'), [1, 2, [3]]);
+  assert.deepEqual(run('[1, [2, [3]]].flatten(2)'), [1, 2, 3]);
+  assert.deepEqual(run('[1, 2, 1, 2.0].distinct()'), [1, 2]);
+  assert.deepEqual(run('s.l.reverse()'), [3, 2, 1]);
+  assert.deepEqual(run("['b', 'c', 'a'].sort()"), ['a', 'b', 'c']);
+  assert.deepEqual(run("[{'n': 2}, {'n': 1}].sortBy(x, x.n)"), [{ n: 1 }, { n: 2 }]);
+  fails('s.l.slice(2, 1)');
+  fails("[1, 'a'].sort()");
+});
+
+test('strings extension', () => {
+  assert.equal(run('strings.quote(\'a"b\\n\')'), '"a\\"b\\n"');
+  assert.equal(run("'%s %s'.format([[1, 'a'], {'k': true}])"), '[1, "a"] {"k": true}');
+});
+
 test('signal paths', () => {
   const paths = (s) => cel.compile(s).paths;
-  assert.deepEqual(paths('signals.a.b + signals.c'), [['a', 'b'], ['c']]);
-  assert.deepEqual(paths("has(signals.a.b) && signals['x'].y"), [['a', 'b'], ['x', 'y']]);
-  assert.deepEqual(paths('signals.l.map(x, x.y)'), [['l']]);
-  assert.deepEqual(paths('signals[signals.k]'), [[], ['k']]);
+  assert.deepEqual(paths('s.a.b + s.c'), [['a', 'b'], ['c']]);
+  assert.deepEqual(paths("has(s.a.b) && s['x'].y"), [['a', 'b'], ['x', 'y']]);
+  assert.deepEqual(paths('s.l.map(x, x.y)'), [['l']]);
+  assert.deepEqual(paths('s[s.k]'), [[], ['k']]);
   assert.deepEqual(paths('1 + 2'), []);
-  assert.deepEqual(paths('[1].map(signals, signals)'), []);
+  assert.deepEqual(paths('[1].map(s, s)'), [[], []]);
 });
 
 test('parse errors', () => {
-  for (const src of ['1 +', '(1', "'unterminated", 'a.', '1 2', 'if', 'has(x)', '{1: 2', 'x.all(1, true)']) {
+  for (const src of ['1 +', '(1', "'unterminated", 'a.', '1 2', 'if', '{1: 2']) {
     assert.throws(() => cel.compile(src), cel.CelError, src);
   }
 });

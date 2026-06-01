@@ -475,3 +475,31 @@ a.k { text-decoration-color: color-mix(in srgb, var(--k) 45%, transparent); }
 .sample-wire .entry.open .raw { flex-basis: 100%; white-space: pre-wrap; overflow-wrap: anywhere; opacity: 1; padding-left: 1.6em; }
 .sample-wire .entry:has(.raw) { cursor: pointer; }
 .sample .he-dialog { position: static; width: auto; max-width: 100%; margin: 12px 0 0; box-shadow: 0 10px 30px -14px rgb(40 20 120 / 0.45); }
+
+/* --- component headings (components page) ---------------------------------- */
+
+h3.component {
+  font: 650 1.45rem/1.25 var(--mono);
+  margin: 3rem 0 0.7rem;
+  padding: 0.2rem 0 0.2rem 0.75rem;
+  border-left: 4px solid var(--accent);
+}
+h3.component a { color: var(--accent); text-decoration: none; }
+h3.component a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+h3.component a::after { content: " #"; color: var(--muted); opacity: 0; transition: opacity 0.15s; }
+h3.component:hover a::after { opacity: 1; }
+
+a.expr {
+  display: inline-block;
+  padding: 0 0.45em;
+  border-radius: 999px;
+  font: 600 0.78em/1.6 var(--mono);
+  color: var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 12%, transparent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+a.expr:hover { background: color-mix(in srgb, var(--accent-2) 22%, transparent); }
+
+.points { max-width: 60rem; padding-left: 1.2rem; }
+.points li { margin: 0.5rem 0; }

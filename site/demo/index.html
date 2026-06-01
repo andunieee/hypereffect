@@ -9,6 +9,9 @@
 <script src="../site.js" defer></script>
 <link rel="stylesheet" href="widgets.css">
 <link rel="stylesheet" href="demo.css">
+<script type="importmap">
+{ "imports": { "@marcbachmann/cel-js": "https://cdn.jsdelivr.net/npm/@marcbachmann/cel-js@8.0.0/+esm" } }
+</script>
 <script type="module" src="main.js"></script>
 </head>
 <body>
@@ -16,9 +19,8 @@
   <a class="name" href="../index.html">hypereffect</a>
   <nav>
     <a href="../index.html">Overview</a>
-    <a href="../concepts.html">Concepts</a>
-    <a href="../guide.html">Guide</a>
     <a href="../components.html">Components</a>
+    <a href="../expressions.html">Expressions</a>
     <a href="../spec.html">Spec</a>
     <a href="./" aria-current="page">Demo</a>
   </nav>
@@ -69,7 +71,6 @@
     <div id="detail" class="demo-detail">
       <div class="detail-empty">
         <p><strong>Select a message on the wire</strong> to see what it does.</p>
-        <p>Element ids, references to other elements and action payloads are highlighted. Hover an id to find the component in the application.</p>
       </div>
     </div>
   </section>

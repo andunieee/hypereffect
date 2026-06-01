@@ -29,11 +29,11 @@ pub fn is_cel(v: &Value) -> Option<&str> {
 ///     .parent("buttons")
 ///     .label("+")
 ///     .variant("primary")
-///     .disabled(cel("signals.count >= 10"))
+///     .disabled(cel("s.count >= 10"))
 ///     .on_press(Handler::action("add").payload(1));
 /// assert_eq!(
 ///     e.to_line(),
-///     r#"element {"id":"inc","type":"button","parent":"buttons","label":"+","variant":"primary","disabled":{"cel":"signals.count >= 10"},"onPress":{"action":"add","payload":1}}"#.to_owned() + "\n"
+///     r#"element {"id":"inc","type":"button","parent":"buttons","label":"+","variant":"primary","disabled":{"cel":"s.count >= 10"},"onPress":{"action":"add","payload":1}}"#.to_owned() + "\n"
 /// );
 /// ```
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

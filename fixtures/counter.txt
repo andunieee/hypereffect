@@ -4,11 +4,11 @@
 signal {"count":0}
 element {"id":"main","type":"column","gap":"medium","align":"start"}
 element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Counter"}
-element {"id":"value","type":"text","parent":"main","text":{"cel":"'Count: ' + string(signals.count)"}}
+element {"id":"value","type":"text","parent":"main","text":{"cel":"'Count: ' + string(s.count)"}}
 element {"id":"buttons","type":"row","parent":"main"}
 element {"id":"dec","type":"button","parent":"buttons","label":"−","onPress":{"action":"add","payload":-1}}
 element {"id":"inc","type":"button","parent":"buttons","label":"+","variant":"primary","onPress":{"action":"add","payload":1}}
-element {"id":"zero","type":"badge","parent":"main","text":"zero","visible":{"cel":"signals.count == 0"}}
+element {"id":"zero","type":"badge","parent":"main","text":"zero","visible":{"cel":"s.count == 0"}}
 =children - ["main"]
 =children main ["title","value","buttons","zero"]
 =attrs value {"text":"Count: 0","variant":"body","visible":true}

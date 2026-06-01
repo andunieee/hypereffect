@@ -13,9 +13,8 @@
   <a class="name" href="index.html">hypereffect</a>
   <nav>
     <a href="index.html">Overview</a>
-    <a href="concepts.html">Concepts</a>
-    <a href="guide.html">Guide</a>
     <a href="components.html">Components</a>
+    <a href="expressions.html">Expressions</a>
     <a href="spec.html" aria-current="page">Spec</a>
     <a href="demo/">Demo</a>
   </nav>
@@ -59,7 +58,7 @@
   <dt>Host</dt><dd>The application that embeds a renderer and provides it with a drawing surface and a transport.</dd>
   <dt>Session</dt><dd>One connection between a renderer and a server, from the renderer's <code>hello</code> until the transport closes.</dd>
   <dt>Element</dt><dd>A JSON object describing one instance of a component.</dd>
-  <dt>Signals</dt><dd>A single JSON object holding the values that expressions read and controls write.</dd>
+  <dt>Signals</dt><dd>A single JSON object holding the values that expressions read and controls write. Expressions read it as the variable <code>s</code>.</dd>
   <dt>Local signal</dt><dd>A member of the signals object, at any depth, whose key begins with <code>_</code> (U+005F).</dd>
   <dt>Structural attribute</dt><dd><code>id</code>, <code>type</code>, <code>parent</code>, <code>before</code>, <code>bind</code>, and every handler attribute. Their values MUST be literal.</dd>
 </dl>
@@ -135,7 +134,7 @@ element {"id":"a","type":"text","text":"Hello"}</pre>
   <li><code>id</code> is missing, not a string, or empty.</li>
   <li><code>type</code> is not a known component name.</li>
   <li><code>parent</code> is present and no element with that id exists.</li>
-  <li>The parent, or the root if <code>parent</code> is absent, does not accept children of this type under the <a href="components.html#nesting">nesting rules</a>.</li>
+  <li>The parent, or the root if <code>parent</code> is absent, does not accept children of this type (see the <code>parent</code> attribute of each <a href="components.html">component</a>).</li>
   <li><code>parent</code> is the element's own id or the id of one of its descendants.</li>
   <li>A structural attribute is a CEL expression, or has the wrong JSON type.</li>
 </ol>
@@ -179,8 +178,8 @@ element {"id":"a","type":"text","text":"Hello"}</pre>
 
 <h3><span class="num">9.1</span>Environment</h3>
 <ol>
-  <li>The environment declares one variable, <code>signals</code>, of type <code>dyn</code>, bound to the current signals.</li>
-  <li>The CEL standard definitions are available. Renderers SHOULD also provide the <code>strings</code> extension functions defined by cel-go (<code>lowerAscii</code>, <code>upperAscii</code>, <code>trim</code>, <code>join</code>, <code>split</code>, <code>replace</code>, <code>format</code> and others). Servers that use extensions SHOULD be prepared for renderers that do not support them.</li>
+  <li>The environment declares one variable, <code>s</code>, of type <code>dyn</code>, bound to the current signals.</li>
+  <li>Renderers MUST provide the CEL <a href="https://github.com/google/cel-spec/blob/master/doc/langdef.md#list-of-standard-definitions">standard definitions</a> and the <a href="https://github.com/google/cel-go/blob/master/ext/README.md#strings">strings</a> extension as defined by cel-go. The complete list is on the <a href="expressions.html#functions">Expressions</a> page.</li>
   <li>Renderers MUST NOT provide functions with side effects or functions that read state other than their arguments.</li>
 </ol>
 

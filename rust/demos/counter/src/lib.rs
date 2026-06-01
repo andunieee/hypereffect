@@ -20,22 +20,22 @@ impl App for Counter {
             text("value")
                 .parent("main")
                 .variant("h2")
-                .text(cel("'Count: ' + string(signals.count)")),
+                .text(cel("'Count: ' + string(s.count)")),
         );
         out.element(row("buttons").parent("main"));
         out.element(
             button("dec")
                 .parent("buttons")
-                .label(cel("'− ' + signals.step"))
-                .disabled(cel(format!("signals.count - int(signals.step) < -{LIMIT}")))
+                .label(cel("'− ' + s.step"))
+                .disabled(cel(format!("s.count - int(s.step) < -{LIMIT}")))
                 .on_press(Handler::action("add").payload(-1)),
         );
         out.element(
             button("inc")
                 .parent("buttons")
                 .variant("primary")
-                .label(cel("'+ ' + signals.step"))
-                .disabled(cel(format!("signals.count + int(signals.step) > {LIMIT}")))
+                .label(cel("'+ ' + s.step"))
+                .disabled(cel(format!("s.count + int(s.step) > {LIMIT}")))
                 .on_press(Handler::action("add").payload(1)),
         );
         out.element(
@@ -43,14 +43,14 @@ impl App for Counter {
                 .parent("buttons")
                 .variant("plain")
                 .label("Reset")
-                .disabled(cel("signals.count == 0"))
+                .disabled(cel("s.count == 0"))
                 .on_press(Handler::action("reset")),
         );
         out.element(
             badge("zero")
                 .parent("main")
                 .text("zero")
-                .visible(cel("signals.count == 0")),
+                .visible(cel("s.count == 0")),
         );
         out.element(
             select("step")
@@ -68,7 +68,7 @@ impl App for Counter {
                 .variant("warning")
                 .text(format!("The count stays between −{LIMIT} and {LIMIT}."))
                 .visible(cel(format!(
-                    "signals.count == {LIMIT} || signals.count == -{LIMIT}"
+                    "s.count == {LIMIT} || s.count == -{LIMIT}"
                 ))),
         );
     }

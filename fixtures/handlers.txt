@@ -3,13 +3,13 @@
 < hello {"signals":{}}
 signal {"_open":false,"count":1}
 element {"id":"col","type":"column"}
-element {"id":"toggle","type":"button","parent":"col","onPress":{"patch":{"_open":{"cel":"!signals._open"}}}}
+element {"id":"toggle","type":"button","parent":"col","onPress":{"patch":{"_open":{"cel":"!s._open"}}}}
 !trigger toggle onPress
 =signals {"_open":true,"count":1}
 !trigger toggle onPress
 =signals {"_open":false,"count":1}
 # A patch with nested objects, a literal, and a failing expression (omitted).
-element {"id":"p","type":"button","parent":"col","onPress":{"patch":{"a":{"b":{"cel":"signals.count + 1"},"c":[1]},"d":{"cel":"signals.nope"}},"action":"go","payload":{"k":[1,2]}}}
+element {"id":"p","type":"button","parent":"col","onPress":{"patch":{"a":{"b":{"cel":"s.count + 1"},"c":[1]},"d":{"cel":"s.nope"}},"action":"go","payload":{"k":[1,2]}}}
 !trigger p onPress
 < action {"name":"go","payload":{"k":[1,2]},"signals":{"count":1,"a":{"b":2,"c":[1]}}}
 # Hidden ancestors stop handlers; so do disabled controls.

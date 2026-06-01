@@ -46,13 +46,13 @@ impl Todos {
 
     fn row(&self, task: &Task) -> [Element; 3] {
         let id = &task.id;
-        let done = format!("signals.done.{id}");
+        let done = format!("s.done.{id}");
         [
             row(id.as_str())
                 .parent("items")
                 .justify("between")
                 .visible(cel(format!(
-                    "signals._filter == 'all' || (signals._filter == 'done') == {done}"
+                    "s._filter == 'all' || (s._filter == 'done') == {done}"
                 ))),
             checkbox(format!("{id}-check"))
                 .parent(id.as_str())
@@ -95,7 +95,7 @@ impl App for Todos {
                 .placeholder("New task")
                 .bind("new")
                 .error(cel(
-                    "size(signals.new) > 80 ? 'Keep it under 80 characters.' : ''",
+                    "size(s.new) > 80 ? 'Keep it under 80 characters.' : ''",
                 ))
                 .on_submit(Handler::action("add").indicator("_adding")),
         );
@@ -103,9 +103,9 @@ impl App for Todos {
             button("add")
                 .parent("add-row")
                 .variant("primary")
-                .label(cel("signals._adding ? 'Adding…' : 'Add'"))
+                .label(cel("s._adding ? 'Adding…' : 'Add'"))
                 .disabled(cel(
-                    "signals._adding || signals.new.trim() == '' || size(signals.new) > 80",
+                    "s._adding || s.new.trim() == '' || size(s.new) > 80",
                 ))
                 .on_press(Handler::action("add").indicator("_adding")),
         );
@@ -128,8 +128,8 @@ impl App for Todos {
         }
         out.element(row("footer").parent("todos").justify("between"));
         out.element(text("left").parent("footer").variant("caption").text(cel(
-            "string(signals.done.filter(k, !signals.done[k]).size()) + ' of ' + \
-                     string(size(signals.done)) + ' left'",
+            "string(s.done.filter(k, !s.done[k]).size()) + ' of ' + \
+                     string(size(s.done)) + ' left'",
         )));
         out.element(
             button("clear")
@@ -137,18 +137,18 @@ impl App for Todos {
                 .variant("failure")
                 .label("Clear completed…")
                 .disabled(cel(
-                    "!signals.done.exists(k, signals.done[k]) || signals._clearing",
+                    "!s.done.exists(k, s.done[k]) || s._clearing",
                 ))
                 .on_press(Handler::patch(json!({ "_confirm": true }))),
         );
         out.element(
             dialog("confirm")
                 .title("Clear completed tasks?")
-                .open(cel("signals._confirm"))
+                .open(cel("s._confirm"))
                 .on_dismiss(Handler::patch(json!({ "_confirm": false }))),
         );
         out.element(text("confirm-text").parent("confirm").text(cel(
-            "string(signals.done.filter(k, signals.done[k]).size()) + ' tasks will be deleted.'",
+            "string(s.done.filter(k, s.done[k]).size()) + ' tasks will be deleted.'",
         )));
         out.element(row("confirm-row").parent("confirm").justify("end"));
         out.element(

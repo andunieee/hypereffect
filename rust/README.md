@@ -17,7 +17,7 @@ impl App for Counter {
     fn hello(&mut self, out: &mut Outbox, _signals: &Map<String, Value>) {
         out.signal(json!({ "count": 0 }));
         out.element(column("main"));
-        out.element(text("value").parent("main").text(cel("'Count: ' + string(signals.count)")));
+        out.element(text("value").parent("main").text(cel("'Count: ' + string(s.count)")));
         out.element(button("inc").parent("main").label("+").on_press(Handler::action("add")));
     }
 
@@ -44,7 +44,8 @@ impl App for Counter {
 ## Renderers
 
 With the `client` feature, `client::Client` is the renderer side without
-drawing, on top of the [`cel`](https://crates.io/crates/cel) crate:
+drawing, on top of the [`cel`](https://github.com/cel-rust/cel-rust) crate with
+its strings, math and lists extensions:
 
 ```rust
 let mut c = hypereffect::client::Client::new();

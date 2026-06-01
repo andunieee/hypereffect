@@ -14,7 +14,7 @@
 //! let hello = c.hello(Default::default());
 //! assert_eq!(hello, "hello {\"signals\":{}}\n");
 //! c.receive(b"signal {\"count\":2}\n");
-//! c.receive(b"element {\"id\":\"v\",\"type\":\"text\",\"text\":{\"cel\":\"'Count: ' + string(signals.count)\"}}\n");
+//! c.receive(b"element {\"id\":\"v\",\"type\":\"text\",\"text\":{\"cel\":\"'Count: ' + string(s.count)\"}}\n");
 //! assert_eq!(c.get("v").unwrap().attrs["text"], json!("Count: 2"));
 //! ```
 
@@ -117,6 +117,10 @@ impl Client {
         let mut env = Env::stdlib();
         env.add_extension(cel::extensions::strings)
             .expect("strings extension");
+        env.add_extension(cel::extensions::math)
+            .expect("math extension");
+        env.add_extension(cel::extensions::lists)
+            .expect("lists extension");
         Client {
             env: Arc::new(env),
             nodes: HashMap::new(),
@@ -420,7 +424,7 @@ impl Client {
 
     fn eval(&self, prog: &Program) -> Result<cel::Value, String> {
         let mut ctx = Context::with_env(self.env.clone());
-        ctx.add_variable_from_value("signals", self.cel_signals());
+        ctx.add_variable_from_value("s", self.cel_signals());
         prog.execute(&ctx).map_err(|e| e.to_string())
     }
 

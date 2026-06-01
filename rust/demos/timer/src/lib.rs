@@ -44,8 +44,8 @@ impl Timer {
     }
 }
 
-const CLOCK: &str = "string(signals.remaining / 60) + ':' + \
-    (signals.remaining % 60 < 10 ? '0' : '') + string(signals.remaining % 60)";
+const CLOCK: &str = "string(s.remaining / 60) + ':' + \
+    (s.remaining % 60 < 10 ? '0' : '') + string(s.remaining % 60)";
 
 impl App for Timer {
     fn hello(&mut self, out: &mut Outbox, _signals: &Map<String, Value>) {
@@ -55,7 +55,7 @@ impl App for Timer {
         out.element(
             progress("bar")
                 .parent("timer")
-                .value(cel("double(signals.remaining) / double(signals.duration)")),
+                .value(cel("double(s.remaining) / double(s.duration)")),
         );
         out.element(
             slider("duration")
@@ -65,7 +65,7 @@ impl App for Timer {
                 .min(5)
                 .max(120)
                 .step(5)
-                .disabled(cel("signals.running"))
+                .disabled(cel("s.running"))
                 .on_change(Handler::action("duration")),
         );
         out.element(row("controls").parent("timer"));
@@ -73,15 +73,15 @@ impl App for Timer {
             button("start")
                 .parent("controls")
                 .variant("primary")
-                .label(cel("signals.running ? 'Pause' : (signals.remaining < signals.duration && !signals.finished ? 'Resume' : 'Start')"))
-                .disabled(cel("signals.finished"))
+                .label(cel("s.running ? 'Pause' : (s.remaining < s.duration && !s.finished ? 'Resume' : 'Start')"))
+                .disabled(cel("s.finished"))
                 .on_press(Handler::action("toggle")),
         );
         out.element(
             button("lap")
                 .parent("controls")
                 .label("Lap")
-                .disabled(cel("!signals.running"))
+                .disabled(cel("!s.running"))
                 .on_press(Handler::action("lap")),
         );
         out.element(
@@ -90,16 +90,16 @@ impl App for Timer {
                 .variant("plain")
                 .label("Reset")
                 .disabled(cel(
-                    "signals.remaining == signals.duration && !signals.running",
+                    "s.remaining == s.duration && !s.running",
                 ))
                 .on_press(Handler::action("reset")),
         );
         out.element(
             badge("status")
                 .parent("controls")
-                .variant(cel("signals.running ? 'info' : 'neutral'"))
+                .variant(cel("s.running ? 'info' : 'neutral'"))
                 .text(cel(
-                    "signals.running ? 'running' : (signals.finished ? 'done' : 'paused')",
+                    "s.running ? 'running' : (s.finished ? 'done' : 'paused')",
                 )),
         );
         out.element(
@@ -108,16 +108,16 @@ impl App for Timer {
                 .variant("success")
                 .title("Time’s up")
                 .text(cel(
-                    "'The ' + string(signals.duration) + ' second countdown finished.'",
+                    "'The ' + string(s.duration) + ' second countdown finished.'",
                 ))
-                .visible(cel("signals.finished")),
+                .visible(cel("s.finished")),
         );
         out.element(
             list("laps")
                 .parent("timer")
                 .empty("Laps appear here.")
                 .visible(cel(
-                    "signals.running || signals.remaining < signals.duration",
+                    "s.running || s.remaining < s.duration",
                 )),
         );
     }

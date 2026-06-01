@@ -25,8 +25,7 @@ python -m http.server -d site
 Pages:
 
 - `index.html` — overview
-- `concepts.html` — hypermedia, elements and signals, CEL, variants
-- `guide.html` — worked examples, writing servers and renderers
 - `components.html` — component reference
+- `expressions.html` — CEL expressions in attributes
 - `spec.html` — normative specification
 - `demo/` — the Rust demo servers running as WebAssembly, drawn by the JS library

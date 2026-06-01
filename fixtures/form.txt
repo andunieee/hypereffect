@@ -6,8 +6,8 @@ signal {"login":{"user":"","pass":""},"error":"","_busy":false}
 element {"id":"login","type":"card","title":"Sign in"}
 element {"id":"user","type":"input","parent":"login","label":"Username","bind":"login.user"}
 element {"id":"pass","type":"input","parent":"login","label":"Password","variant":"password","bind":"login.pass","onSubmit":{"action":"login","indicator":"_busy"}}
-element {"id":"err","type":"notice","parent":"login","variant":"failure","text":{"cel":"signals.error"},"visible":{"cel":"signals.error != ''"}}
-element {"id":"go","type":"button","parent":"login","variant":"primary","label":{"cel":"signals._busy ? 'Signing in…' : 'Sign in'"},"disabled":{"cel":"signals._busy || signals.login.user == ''"},"onPress":{"action":"login","indicator":"_busy"}}
+element {"id":"err","type":"notice","parent":"login","variant":"failure","text":{"cel":"s.error"},"visible":{"cel":"s.error != ''"}}
+element {"id":"go","type":"button","parent":"login","variant":"primary","label":{"cel":"s._busy ? 'Signing in…' : 'Sign in'"},"disabled":{"cel":"s._busy || s.login.user == ''"},"onPress":{"action":"login","indicator":"_busy"}}
 =attrs login {"title":"Sign in","gap":"medium"}
 =attrs user {"bind":"login.user","placeholder":null,"error":"","variant":"text","onChange":null}
 =attrs go {"disabled":true,"label":"Sign in"}

@@ -2,7 +2,7 @@
 // the element tree and the signals, evaluates expressions, runs handlers and
 // reports what changed so that a UI layer can redraw.
 
-import { compile, fromJson, toJson, CelError, Uint } from './cel.js';
+import { compile, fromJson, toJson, typeName, CelError, Uint } from './cel.js';
 import { COMPONENTS, accepts } from './components.js';
 import {
   LineReader, encodeLine, parseLine, isObject, isCel, mergePatch, stripLocal,
@@ -114,7 +114,7 @@ export class Session {
     if (isCel(raw)) {
       const prog = n.progs.get(name);
       if (!prog) return def;
-      try { v = prog.eval({ signals: this._celSignals() }); } catch (e) {
+      try { v = prog.eval(this._celSignals()); } catch (e) {
         if (!(e instanceof CelError)) throw e;
         this.diag(`${id}.${name}: ${e.message}`);
         return def;
@@ -261,7 +261,7 @@ export class Session {
     for (const k of Object.keys(patch)) {
       const v = patch[k];
       if (isCel(v)) {
-        try { out[k] = toJson(compile(v.cel).eval({ signals: this._celSignals() })); } catch (e) {
+        try { out[k] = toJson(compile(v.cel).eval(this._celSignals())); } catch (e) {
           if (!(e instanceof CelError)) throw e;
           this.diag(`${where}.patch.${k}: ${e.message}`);
         }
@@ -400,15 +400,15 @@ function validHandler(h) {
 // returns it as a plain JavaScript value.
 function check(type, v, def) {
   if (Array.isArray(type)) {
-    if (typeof v !== 'string') throw new CelError(`expected a string, got ${describe(v)}`);
+    if (typeof v !== 'string') throw new CelError(`expected a string, got ${typeName(v)}`);
     return type.includes(v, 1) ? v : def;
   }
   switch (type) {
     case 'string':
-      if (typeof v !== 'string') throw new CelError(`expected a string, got ${describe(v)}`);
+      if (typeof v !== 'string') throw new CelError(`expected a string, got ${typeName(v)}`);
       return v;
     case 'bool':
-      if (typeof v !== 'boolean') throw new CelError(`expected a bool, got ${describe(v)}`);
+      if (typeof v !== 'boolean') throw new CelError(`expected a bool, got ${typeName(v)}`);
       return v;
     case 'number?':
       if (v === null) return null;
@@ -416,25 +416,16 @@ function check(type, v, def) {
     case 'number':
       if (typeof v === 'number') return v;
       if (typeof v === 'bigint') return Number(v);
-      if (v instanceof Uint) return Number(v.v);
-      throw new CelError(`expected a number, got ${describe(v)}`);
+      if (v instanceof Uint) return Number(v.value);
+      throw new CelError(`expected a number, got ${typeName(v)}`);
     case 'options': {
-      if (!Array.isArray(v)) throw new CelError(`expected a list, got ${describe(v)}`);
+      if (!Array.isArray(v)) throw new CelError(`expected a list, got ${typeName(v)}`);
       return v.map((o) => {
-        const ok = o instanceof Map && typeof o.get('value') === 'string' && typeof o.get('label') === 'string';
+        const ok = typeName(o) === 'map' && !(o instanceof Map) && typeof o.value === 'string' && typeof o.label === 'string';
         if (!ok) throw new CelError('options must be objects with string value and label');
-        return { value: o.get('value'), label: o.get('label') };
+        return { value: o.value, label: o.label };
       });
     }
   }
   throw new CelError(`unknown attribute type ${type}`);
-}
-
-function describe(v) {
-  if (v === null) return 'null';
-  if (typeof v === 'bigint') return 'int';
-  if (typeof v === 'number') return 'double';
-  if (Array.isArray(v)) return 'list';
-  if (v instanceof Map) return 'map';
-  return typeof v;
 }

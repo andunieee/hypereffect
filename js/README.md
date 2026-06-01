@@ -1,10 +1,10 @@
 # hypereffect (JavaScript)
 
-The renderer side of a hypereffect session, without any drawing and without
-dependencies. `Session` parses lines, keeps the element tree and the signals,
-evaluates CEL expressions with its own interpreter, runs handlers, and tells a
-UI layer which elements changed. The UI layer maps components to widgets; see
-`site/demo/renderer.js` for one that uses HTML.
+The renderer side of a hypereffect session, without any drawing. `Session`
+parses lines, keeps the element tree and the signals, evaluates CEL
+expressions with [@marcbachmann/cel-js](https://www.npmjs.com/package/@marcbachmann/cel-js),
+runs handlers, and tells a UI layer which elements changed. The UI layer maps
+components to widgets; see `site/demo/renderer.js` for one that uses HTML.
 
 ```js
 import { Session } from 'hypereffect';
@@ -39,21 +39,30 @@ read a path the patch touched.
 
 ## CEL
 
-`cel.js` implements the CEL standard definitions (operators, `size`, `has`,
-`int`/`uint`/`double`/`string`/`bool`/`bytes`/`type`/`dyn`, `contains`,
-`startsWith`, `endsWith`, `matches`), the macros `all`, `exists`,
-`exists_one`, `map` and `filter`, and the cel-go strings extension (`charAt`,
-`indexOf`, `lastIndexOf`, `lowerAscii`, `upperAscii`, `replace`, `split`,
-`substring`, `trim`, `join`, `format`, `reverse`).
+`cel.js` sets up a cel-js environment with the variable `s` (the signals), and
+registers what cel-js lacks from the functions the spec requires: `charAt`,
+`replace`, `reverse`, `format` and `strings.quote` from the cel-go strings
+extension, and the math and lists extensions (`lists.first` and `lists.last`
+excepted, as in the spec).
+
+In a browser, map the bare `@marcbachmann/cel-js` import with an import map,
+as the site does:
+
+```html
+<script type="importmap">
+{ "imports": { "@marcbachmann/cel-js": "https://cdn.jsdelivr.net/npm/@marcbachmann/cel-js@8.0.0/+esm" } }
+</script>
+```
 
 Differences from the spec:
 
 - JSON numbers come from `JSON.parse`, so `1.0` and `1e3` in signals are ints
   rather than doubles.
-- Timestamps, durations, protobuf messages and optional values are not
-  supported.
-- `matches` uses JavaScript regular expressions, which agree with RE2 on common
-  syntax.
+- cel-js type-checks literals, as cel-go does, so `1 == 1.0` is an error;
+  values read from signals compare across numeric types by value.
+- Lists cannot be indexed with a `uint`, `int()` of a huge double does not
+  fail, and `matches` uses JavaScript regular expressions, which agree with
+  RE2 on common syntax but not on inline flags such as `(?i)`.
 
 ## Tests
 
