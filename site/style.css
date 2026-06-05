@@ -125,10 +125,10 @@ header.site .name {
 }
 header.site .name::before {
   content: "";
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
-  background: var(--brand);
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: url("logo.svg") center / contain no-repeat;
   box-shadow: 0 2px 10px rgb(106 70 224 / 0.35);
 }
 
