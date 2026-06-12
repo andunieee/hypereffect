@@ -15,7 +15,9 @@
   <nav>
     <a href="index.html">Overview</a>
     <a href="components.html">Components</a>
+    <a href="signals.html">Signals</a>
     <a href="expressions.html">Expressions</a>
+    <a href="actions.html">Actions</a>
     <a href="spec.html" aria-current="page">Spec</a>
     <a href="demo/">Demo</a>
   </nav>
@@ -165,7 +167,7 @@ element {"id":"a","type":"text","text":"Hello"}</pre>
   <li>The signals object is a JSON object. A <code>signal</code> message is applied to it using the MergePatch algorithm of RFC 7386, section 2: members whose patch value is <code>null</code> are removed, object values are merged recursively, and any other value replaces the target value.</li>
   <li>Arrays are values: a patch replaces an array entirely. There is no way to patch an element of an array.</li>
   <li>Writes made by the renderer itself — from <code>bind</code>, from a handler's <code>patch</code>, or from setting an indicator — are also applied as merge patches.</li>
-  <li>After applying a patch, the renderer MUST re-evaluate every expression whose result may have changed, and update the display accordingly. It MAY coalesce updates: it SHOULD process all messages that are available before redrawing.</li>
+  <li>After applying a patch, the renderer MUST update the display as if every expression and every bound control had been evaluated again against the new signals. It need not actually do so: see <a href="#dependencies">9.5</a>. It MAY coalesce updates: it SHOULD process all messages that are available before redrawing.</li>
   <li>The server MAY write local signals. The renderer MUST NOT send them.</li>
 </ol>
 
@@ -212,6 +214,17 @@ element {"id":"a","type":"text","text":"Hello"}</pre>
 <h3><span class="num">9.4</span>Failure</h3>
 <p>If an expression fails to parse, fails to evaluate (for example because a signal is missing), or produces a value of the wrong type, the attribute takes its default value. In a handler's <code>patch</code>, the member is omitted from the patch. The renderer SHOULD report the failure as a diagnostic and MUST NOT report it to the user.</p>
 <p>Renderers MAY limit the cost of evaluation using CEL's cost tracking, and treat an expression exceeding the limit as failed. The limit SHOULD be large enough for expressions of a few hundred characters over signals of a few hundred kilobytes.</p>
+
+<h3 id="dependencies"><span class="num">9.5</span>Dependencies</h3>
+<p>An expression's result is determined by the signal values it reads, since CEL has no side effects and the environment holds nothing else. A renderer can therefore re-evaluate only the expressions that read something a patch changed. This section defines what an expression reads, for renderers that do so.</p>
+<ol>
+  <li>A <em>read</em> is a signal path, as in 8.1, extended to any keys. Selecting a field or a constant key from <code>s</code>, possibly repeatedly, reads the path of the selection: <code>s.user.name</code> and <code>s['user'].name</code> read <code>user.name</code>. Any other use of a value taken from the signals reads the whole value at its path: <code>size(s.items)</code> reads <code>items</code>, and <code>s</code> alone reads every signal. A selection that finds no key, including inside <code>has()</code>, still reads its path.</li>
+  <li>A patch <em>affects</em> a read if the patch changes the value at the read's path, at a path that begins with it, or at a path it begins with. For example, a patch to <code>user</code> or to <code>user.name.first</code> affects the read <code>user.name</code>; a patch to <code>user.email</code> does not.</li>
+  <li>The <em>dependencies</em> of an expression are the reads made during its most recent evaluation. Only the parts of the expression that were evaluated count. In <code>s.a ? s.b : s.c</code>, when <code>s.a</code> is true the dependencies are <code>a</code> and <code>b</code>, not <code>c</code>. The same holds for <code>&amp;&amp;</code> and <code>||</code> when the left operand decides the result, and for macros that stop early, such as <code>exists</code>. An evaluation that fails has as dependencies the reads made before it failed.</li>
+  <li>After a patch, an expression none of whose dependencies is affected has the same result as before, and need not be evaluated. An expression with an affected dependency MUST be evaluated again, and its dependencies are replaced by the reads of the new evaluation. If <code>s.a</code> above becomes false, the expression is evaluated again and from then on depends on <code>a</code> and <code>c</code>.</li>
+  <li>A bound control depends on the path of its <code>bind</code>.</li>
+  <li>A renderer MAY use a larger set of dependencies than these, for example every path that appears in the expression regardless of which branch runs, or every signal. It MUST NOT use a smaller set.</li>
+</ol>
 
 <h2 id="handlers"><span class="num">10</span>Handlers</h2>
 <p>A handler is a JSON object with at least one of <code>patch</code> (an object) and <code>action</code> (a non-empty string). With <code>action</code> it MAY also have <code>payload</code> (any JSON value) and <code>indicator</code> (a signal path whose first segment begins with <code>_</code>). Handlers with none of <code>patch</code> or <code>action</code>, or with an invalid <code>indicator</code>, are invalid; an element with an invalid handler is rejected.</p>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hypereffect actions</title>
+<meta name="description" content="How hypereffect handlers patch signals locally and send actions to the server, with examples of the messages they produce.">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script src="site.js" defer></script>
+</head>
+<body>
+<header class="site"><div class="inner">
+  <a class="name" href="index.html">hypereffect</a>
+  <nav>
+    <a href="index.html">Overview</a>
+    <a href="components.html">Components</a>
+    <a href="signals.html">Signals</a>
+    <a href="expressions.html">Expressions</a>
+    <a href="actions.html" aria-current="page">Actions</a>
+    <a href="spec.html">Spec</a>
+    <a href="demo/">Demo</a>
+  </nav>
+</div></header>
+
+<main class="doc">
+<div class="doc-head">
+<h1>Actions</h1>
+<p class="lede">Event attributes such as <code>onPress</code> take a handler, which can change the signals locally, send an action to the server, or both.</p>
+</div>
+
+<nav class="toc" aria-label="Contents">
+<p class="toc-title">On this page</p>
+<ol>
+  <li><a href="#handlers">Handlers</a></li>
+  <li><a href="#events">Events</a></li>
+  <li><a href="#examples">Examples</a>
+    <ol>
+      <li><a href="#ex-action">An action</a></li>
+      <li><a href="#ex-bind">An action with bound input</a></li>
+      <li><a href="#ex-patch">A local patch</a></li>
+      <li><a href="#ex-both">Patch and action</a></li>
+      <li><a href="#ex-indicator">An indicator</a></li>
+    </ol>
+  </li>
+</ol>
+</nav>
+
+<article class="prose">
+<h2 id="handlers">Handlers</h2>
+<p>A handler is an object with at least one of:</p>
+<ul>
+  <li><code>patch</code> — a merge patch applied to the signals locally. Leaf values may be <a href="expressions.html#where">expressions</a>, evaluated before the patch is applied.</li>
+  <li><code>action</code> — the name of an action to send to the server. May be accompanied by <code>payload</code> (any JSON, literal) and <code>indicator</code> (a local signal path set to <code>true</code> when the action is sent).</li>
+</ul>
+<p>When the handler runs, the renderer:</p>
+<ol>
+  <li>stops if the element, or one of its ancestors, is disabled or hidden;</li>
+  <li>applies the <code>patch</code>, if any;</li>
+  <li>stops if there is no <code>action</code>, or the connection is closed;</li>
+  <li>sets the <code>indicator</code> to <code>true</code>, if any;</li>
+  <li>sends an <code>action</code> message with the name, the payload if there is one, and the signals, without local ones.</li>
+</ol>
+<p>So when both are present, the patch is applied first and the action carries the patched signals. Handlers are structural: they cannot be expressions. The exact rules are in the <a href="spec.html#handlers">specification</a>.</p>
+
+<h2 id="events">Events</h2>
+<table>
+  <thead><tr><th>Attribute</th><th>Components</th><th>Runs when</th></tr></thead>
+  <tbody>
+    <tr><td><code>onPress</code></td><td><a href="components.html#button">button</a></td><td>The button is pressed.</td></tr>
+    <tr><td><code>onChange</code></td><td><a href="components.html#input">input</a></td><td>An edit is finished: on losing focus, or after a short idle period. Not on every keystroke.</td></tr>
+    <tr><td></td><td><a href="components.html#checkbox">checkbox</a>, <a href="components.html#select">select</a>, <a href="components.html#tabs">tabs</a></td><td>After each change.</td></tr>
+    <tr><td></td><td><a href="components.html#slider">slider</a></td><td>The slider is released.</td></tr>
+    <tr><td><code>onSubmit</code></td><td><a href="components.html#input">input</a></td><td>The user confirms, with Enter in a single-line field.</td></tr>
+    <tr><td><code>onDismiss</code></td><td><a href="components.html#dialog">dialog</a></td><td>The user asks to close the dialog.</td></tr>
+  </tbody>
+</table>
+<p>For controls with <code>bind</code>, the new value is already in the signals when the handler runs.</p>
+
+<h2 id="examples">Examples</h2>
+<p>In these examples, lines from the renderer are marked in comments; everything else is from the server.</p>
+
+<h3 id="ex-action">An action</h3>
+<p>A button that sends an action with a payload. The signals hold a filter and a local tab selection.</p>
+<pre>signal {"filter":"all","_tab":"inbox"}
+element {"id":"archive-7","type":"button","label":"Archive",
+         "onPress":{"action":"archive","payload":{"contact":7}}}</pre>
+<p>When the user presses it, the renderer sends the action with the signals. <code>_tab</code> is local, so it is left out:</p>
+<pre><span class="c"># renderer → server</span>
+action {"name":"archive","payload":{"contact":7},"signals":{"filter":"all"}}</pre>
+<p>The server answers however it likes, here by removing the row and updating a count:</p>
+<pre>remove {"id":"row-7"}
+signal {"inbox":12}</pre>
+
+<h3 id="ex-bind">An action with bound input</h3>
+<p>An input writes to the signals through <code>bind</code>, so the server reads what was typed from the action's signals, with no payload needed.</p>
+<pre>element {"id":"q","type":"input","bind":"search.q","placeholder":"Search",
+         "onSubmit":{"action":"search"}}</pre>
+<p>The user types <em>lamp</em> and presses Enter:</p>
+<pre><span class="c"># renderer → server</span>
+action {"name":"search","signals":{"search":{"q":"lamp"}}}</pre>
+
+<h3 id="ex-patch">A local patch</h3>
+<p>A handler with only a <code>patch</code> changes the signals on the renderer and sends nothing. Here a button toggles a local signal that shows a section:</p>
+<pre>signal {"_more":false}
+element {"id":"toggle","type":"button","variant":"plain",
+         "label":{"cel":"s._more ? 'Less' : 'More'"},
+         "onPress":{"patch":{"_more":{"cel":"!s._more"}}}}
+element {"id":"details","type":"text","text":"Lorem ipsum","visible":{"cel":"s._more"}}</pre>
+<p>Pressing the button sets <code>_more</code> to <code>true</code>: the label becomes <em>Less</em> and the text appears. No message is sent.</p>
+
+<h3 id="ex-both">Patch and action</h3>
+<p>The patch is applied before the action is sent, so the action carries the patched signals. Here the buttons of a filter set the filter and ask the server for the matching items:</p>
+<pre>signal {"filter":"all"}
+element {"id":"done","type":"button","label":"Done",
+         "variant":{"cel":"s.filter == 'done' ? 'primary' : 'secondary'"},
+         "onPress":{"patch":{"filter":"done"},"action":"filter"}}</pre>
+<p>The button is highlighted at once, from the patch, and the server receives the new filter:</p>
+<pre><span class="c"># renderer → server</span>
+action {"name":"filter","signals":{"filter":"done"}}</pre>
+
+<h3 id="ex-indicator">An indicator</h3>
+<p>A confirmation dialog whose <em>Delete</em> button closes the dialog locally, marks the deletion as in progress, and sends the action.</p>
+<pre>signal {"_confirm":true,"_deleting":false}
+element {"id":"confirm","type":"dialog","title":"Delete project?",
+         "open":{"cel":"s._confirm"},"onDismiss":{"patch":{"_confirm":false}}}
+element {"id":"delete","type":"button","parent":"confirm","variant":"failure","label":"Delete",
+         "onPress":{"patch":{"_confirm":false},"action":"delete","payload":{"project":3},
+                    "indicator":"_deleting"}}
+element {"id":"status","type":"progress","label":"Deleting…","visible":{"cel":"s._deleting"}}</pre>
+<p>When the user presses <em>Delete</em>, the renderer applies the patch (the dialog closes), sets <code>_deleting</code> to <code>true</code> (the progress appears), and sends:</p>
+<pre><span class="c"># renderer → server</span>
+action {"name":"delete","payload":{"project":3},"signals":{}}</pre>
+<p>The renderer never clears an indicator. The server clears it when it is done, usually together with the result, and should do so on every path, including errors:</p>
+<pre>signal {"_deleting":false}
+remove {"id":"project-3"}</pre>
+</article>
+</main>
+
+<footer class="site"><div class="inner">hypereffect UI</div></footer>
+</body>
+</html>

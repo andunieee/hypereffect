@@ -439,7 +439,7 @@ a.k { text-decoration-color: color-mix(in srgb, var(--k) 45%, transparent); }
 
 
 
-/* --- component samples (components.js) ------------------------------------ */
+/* --- live samples (samples.js) --------------------------------------------- */
 
 .sample {
   display: grid;
@@ -503,3 +503,12 @@ a.expr:hover { background: color-mix(in srgb, var(--accent-2) 22%, transparent);
 
 .points { max-width: 60rem; padding-left: 1.2rem; }
 .points li { margin: 0.5rem 0; }
+
+.sample-signals {
+  margin: 0;
+  border-top: 3px solid var(--t-signal);
+}
+.sample-signals::before { content: "signals"; display: block; font: 600 0.72rem var(--mono); color: var(--t-signal); margin-bottom: 4px; }
+.sample-signals.changed { animation: signals-changed 0.6s ease-out; }
+@keyframes signals-changed { from { background: color-mix(in srgb, var(--t-signal) 22%, var(--code-bg)); } }
+.sample-side { display: flex; flex-direction: column; gap: 10px; align-self: start; min-width: 0; }

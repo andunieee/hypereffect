@@ -15,7 +15,9 @@
   <nav>
     <a href="index.html">Overview</a>
     <a href="components.html">Components</a>
+    <a href="signals.html">Signals</a>
     <a href="expressions.html" aria-current="page">Expressions</a>
+    <a href="actions.html">Actions</a>
     <a href="spec.html">Spec</a>
     <a href="demo/">Demo</a>
   </nav>
@@ -69,7 +71,7 @@ element {"id":"computed","type":"text","text":{"cel":"'Hello, ' + s.user.name"}}
 
 <h2 id="where">Where expressions are allowed</h2>
 <p>Any attribute may be an expression except the structural ones, which must be literal: <code>id</code>, <code>type</code>, <code>parent</code>, <code>before</code>, <code>bind</code> and the handlers (<code>onPress</code>, <code>onChange</code>, <code>onSubmit</code>, <code>onDismiss</code>). The <a href="components.html">component reference</a> marks each attribute that accepts an expression.</p>
-<p>Inside a handler, the leaf values of a <code>patch</code> may be expressions. They are evaluated against the current signals before the patch is applied, which allows a toggle:</p>
+<p>Inside a <a href="actions.html#handlers">handler</a>, the leaf values of a <code>patch</code> may be expressions. They are evaluated against the current signals before the patch is applied, which allows a toggle:</p>
 <pre>"onPress": {"patch":{"_expanded":{"cel":"!s._expanded"}}}</pre>
 
 <h2 id="functions">Functions</h2>

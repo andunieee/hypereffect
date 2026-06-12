@@ -1,7 +1,8 @@
-// Turns each sample on the Components page into a small live session: the
-// messages in the sample are shown as wire rows and rendered next to them
-// with the demo's renderer. Actions the user triggers appear as rows too;
-// there is no server, so nothing answers them.
+// Turns each .sample on a page into a small live session: the messages in
+// the sample are shown as wire rows and rendered next to them with the
+// demo's renderer. Actions the user triggers appear as rows too; there is no
+// server, so nothing answers them. A sample with data-signals also shows the
+// current signals, updated as they change.
 
 import { Session } from './demo/lib/index.js';
 import { DomRenderer } from './demo/renderer.js';
@@ -48,6 +49,27 @@ function mount(sample, lines) {
     onDiagnostic: (msg) => add('diag', msg),
   });
   const renderer = new DomRenderer(session, surface);
+  if (sample.hasAttribute('data-signals')) {
+    const view = document.createElement('pre');
+    view.className = 'sample-signals';
+    const side = div('sample-side');
+    frame.replaceWith(side);
+    side.append(frame, view);
+    let last = '';
+    const flush = session.flush.bind(session);
+    session.flush = () => {
+      flush();
+      const text = JSON.stringify(session.signals, null, 2);
+      if (text === last) return;
+      view.textContent = text;
+      if (last) {
+        view.classList.remove('changed');
+        void view.offsetWidth; // restart the animation
+        view.classList.add('changed');
+      }
+      last = text;
+    };
+  }
   const trigger = session.trigger.bind(session);
   session.trigger = (id, event) => {
     triggering = id;

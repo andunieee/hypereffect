@@ -26,6 +26,8 @@ Pages:
 
 - `index.html` — overview
 - `components.html` — component reference
+- `signals.html` — signals, two-way binding and reactivity
 - `expressions.html` — CEL expressions in attributes
+- `actions.html` — handlers, local patches and actions
 - `spec.html` — normative specification
 - `demo/` — the Rust demo servers running as WebAssembly, drawn by the JS library
