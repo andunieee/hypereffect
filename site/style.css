@@ -393,7 +393,6 @@ main.home { padding-top: 24px; }
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.outcomes { margin-top: 4px; }
 
 /* Coloured emphasis in prose */
 .k { --k: var(--accent); color: var(--k); font-weight: 650; }
