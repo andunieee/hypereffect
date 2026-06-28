@@ -1,12 +1,12 @@
 [package]
-name = "demo-timer"
+name = "demo-psu"
 version = "0.1.0"
 publish = false
 edition.workspace = true
 license.workspace = true
 
 [lib]
-name = "timer"
+name = "psu"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]

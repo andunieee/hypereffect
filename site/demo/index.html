@@ -33,7 +33,7 @@
 <div class="demo-intro">
   <div>
     <h1>Demo</h1>
-    <p class="lede">Three small applications, written in Rust with the <code>hypereffect</code> crate and compiled to WebAssembly, run here as servers. A renderer built on the JavaScript library draws them with HTML. Everything that passes between the two is shown under <em>Wire</em>; select a message to see what it does.</p>
+    <p class="lede">Three small applications, written in Rust with the <code>hypereffect</code> crate and compiled to WebAssembly, run here as servers: the control panel a bench power supply would serve over its serial port, a sandboxed plugin that imports contacts into a host application, and a task list. A renderer built on the JavaScript library draws them with HTML. Everything that passes between the two is shown under <em>Wire</em>; select a message to see what it does.</p>
   </div>
 </div>
 
@@ -42,8 +42,8 @@
   <label class="demo-latency">Latency
     <select id="latency">
       <option value="0">none</option>
-      <option value="150">150 ms</option>
-      <option value="600" selected>600 ms</option>
+      <option value="150" selected>150 ms</option>
+      <option value="600">600 ms</option>
       <option value="1500">1.5 s</option>
     </select>
   </label>

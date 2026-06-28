@@ -2,7 +2,8 @@
 
 `hypereffect/` is a library crate with types and helpers for both ends of the
 protocol. `demos/` holds three servers that the site's `/demo` page runs as
-WebAssembly.
+WebAssembly: a bench power supply's control panel, a CSV import plugin and a
+task list.
 
 ## Servers
 

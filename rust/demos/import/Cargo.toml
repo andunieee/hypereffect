@@ -1,12 +1,12 @@
 [package]
-name = "demo-counter"
+name = "demo-import"
 version = "0.1.0"
 publish = false
 edition.workspace = true
 license.workspace = true
 
 [lib]
-name = "counter"
+name = "import"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
