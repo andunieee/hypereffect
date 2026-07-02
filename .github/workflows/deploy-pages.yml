@@ -3,7 +3,7 @@ name: Deploy site to GitHub Pages
 on:
   push:
     branches: [master]
-    paths: [site/**, js/**, rust/**, scripts/**, .github/workflows/deploy-pages.yml]
+    paths: [site/**, js/**, rust/**, justfile, .github/workflows/deploy-pages.yml]
   workflow_dispatch:
 
 permissions:
@@ -30,8 +30,11 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
+      - name: Install just
+        uses: extractions/setup-just@v2
+
       - name: Build demo
-        run: ./scripts/build-demo.sh
+        run: just build-demo
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

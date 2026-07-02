@@ -1,8 +1,22 @@
+default: test
+
+test: test-rust test-js
+
+test-rust:
+    cargo test --manifest-path rust/Cargo.toml --all-features
+
+test-js:
+    npm --prefix js install
+    npm --prefix js test
+
+clippy:
+    cargo clippy --manifest-path rust/Cargo.toml --all-features --all-targets -- -D warnings
+
 host-site:
     python -m http.server -d site 9090
 
 build-demo:
-    #!/bin/env bash
+    #!/usr/bin/env bash
     # Builds the demo servers to WebAssembly and copies them, with the JavaScript
     # library, into site/demo so the site can be served as static files.
     demos="psu import todos"

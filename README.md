@@ -18,7 +18,7 @@ Open `site/index.html` in a browser, or serve the directory. The demo needs a
 build step first (Rust with the `wasm32-unknown-unknown` target):
 
 ```
-./scripts/build-demo.sh
+just build-demo
 python -m http.server -d site
 ```
 

@@ -14,12 +14,13 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
           components: clippy
+      - uses: extractions/setup-just@v2
       - name: Test
-        run: cargo test --manifest-path rust/Cargo.toml --all-features
+        run: just test-rust
       - name: Clippy
-        run: cargo clippy --manifest-path rust/Cargo.toml --all-features --all-targets -- -D warnings
+        run: just clippy
       - name: Build demos to wasm
-        run: ./scripts/build-demo.sh
+        run: just build-demo
 
   js:
     runs-on: ubuntu-latest
@@ -28,6 +29,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: extractions/setup-just@v2
       - name: Test
-        run: node --test
-        working-directory: js
+        run: just test-js
