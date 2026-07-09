@@ -6,9 +6,9 @@ import { wireRow, Pairing } from './wire.js';
 
 const SRC = 'https://github.com/andunieee/hypereffect/blob/master/rust/demos';
 const DEMOS = {
-  psu: 'Power supply',
-  import: 'CSV import',
   todos: 'Tasks',
+  import: 'CSV import',
+  psu: 'Power supply',
 };
 const MAX_LOG = 400;
 
@@ -209,7 +209,7 @@ async function connect(name) {
 }
 
 function select(name) {
-  if (!DEMOS[name]) name = 'psu';
+  if (!DEMOS[name]) name = 'todos';
   for (const b of picker.querySelectorAll('button')) b.setAttribute('aria-pressed', b.dataset.demo === name ? 'true' : 'false');
   source.href = `${SRC}/${name}/src/lib.rs`;
   clearLog();
