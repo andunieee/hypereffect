@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hypereffect</title>
-<meta name="description" content="hypereffect: a small hypermedia protocol for server-driven UI in simple apps, rendered natively on any platform.">
+<meta name="description" content="hypereffect: a small hypermedia protocol for server-driven UI, rendered natively.">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
 <script src="site.js" defer></script>
@@ -25,7 +25,6 @@
 
 <main class="home">
 <section class="hero">
-  <p class="eyebrow">Server-driven UI, rendered natively</p>
   <h1>hypereffect</h1>
   <p class="lede">A simple protocol for describing <strong class="k k-accent">server-guided</strong>, <strong class="k k-signal">reactive</strong> interfaces that can be <strong class="k k-element">rendered anywhere</strong>.</p>
 </section>
@@ -125,21 +124,18 @@ remove {"id":"help"}</pre></div>
   <p>Places where an application is better served by an interface built for it.</p>
   <div class="cards three">
     <div class="card off"><h3>Visual, highly interactive interfaces</h3><p>Data visualization, editing photos, audio or video, action games, navigating a map: anything drawn or manipulated directly rather than described as text, inputs and buttons.</p></div>
-    <div class="card off"><h3>Tools people live in</h3><p>Software used all day, where comfort, polish and shortcuts that build into muscle memory matter more than being able to run anywhere, even when the content is plain text.</p></div>
-    <div class="card off"><h3>Dense, busy screens</h3><p>Simple applications that still show a lot at once with many actions always within reach, like messaging and social media apps, email clients, chat-based team tools, trading screens, or project boards with many cards and columns.</p></div>
+    <div class="card off"><h3>Tools people live in</h3><p>Software used all day, where comfort, visual polish and shortcuts that build into muscle memory matter more than anything, even when the content is plain text.</p></div>
+    <div class="card off"><h3>Dense, busy screens</h3><p>Applications that show a lot at once with many potential actions always within reach of the user, like dashboards, messaging and social media apps, trading screens, project boards.</p></div>
   </div>
 </section>
 
 <section class="band" id="hypermedia">
   <h2>A hypermedia system</h2>
-  <p>hypereffect follows the ideas of <a href="https://hypermedia.systems/">Hypermedia Systems</a>.</p>
+  <p>hypereffect strives to be the world's second most successful <a href="https://hypermedia.systems/hypermedia-a-reintroduction/">hypermedia system</a>, after HTML.</p>
   <ul class="points">
-    <li><strong>The same four parts as the web.</strong> A format (lines of JSON instead of HTML), a protocol (any ordered byte stream instead of HTTP), a server, and a generic client (a <em>renderer</em> instead of a browser).</li>
-    <li><strong>Self-describing messages.</strong> Everything needed to show and operate the interface arrives in the messages, so one renderer displays every application and never changes when an application does.</li>
-    <li><strong>Hypermedia controls.</strong> Like links and forms, components with an <code>onPress</code> or <code>onSubmit</code> say what triggers them and which action they send.</li>
-    <li><strong>Responses are not tied to requests.</strong> An action is a command; the server answers with any number of patches on the same stream, which is the only way the interface changes.</li>
-    <li><strong>The server is the engine of state.</strong> It decides which controls exist in each state. A renderer knows buttons and inputs, never contacts or orders, so features are added on the server only, with no client scripting.</li>
-    <li><strong>Narrower than the web.</strong> No URLs or history: a session is one surface, and actions are names sent over it. No custom components or styles, so that every renderer can show every application.</li>
+    <li><strong>The server describes the UI.</strong> The client receives the interface itself, not data to interpret: it never parses contacts or orders and never needs to know what they mean in order to render them.</li>
+    <li><strong>The server drives application state.</strong> Instead of a client-side store and router deciding what is possible, the server decides what the user sees and which actions are available next.</li>
+    <li><strong>Behavior is declared in the markup.</strong> Each element describes the interactions it offers and where they go, so the document stays self-describing. Buttons and inputs in hypereffect are <em>hypermedia controls</em>: like links and forms, they declare their actions directly in their attributes.</li>
   </ul>
 </section>
 </main>
