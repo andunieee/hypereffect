@@ -85,6 +85,50 @@ remove {"id":"help"}</pre></div>
 </ol>
 </section>
 
+<section class="band" id="renderers">
+  <h2>One application, every renderer</h2>
+  <p>Messages say what is on the screen, never how it looks. Each renderer draws them with the widgets and conventions of its own platform, so the same server looks at home in each of them.</p>
+  <figure class="fanout">
+    <p class="fan-src"><span class="hl-tag t-signal">signal</span> ×1 · <span class="hl-tag t-element">element</span> ×5</p>
+    <div class="screens" aria-hidden="true">
+      <div class="screen s-web">
+        <div class="s-frame">
+          <div class="s-chrome"><i></i><i></i><i></i><span>counter</span></div>
+          <div class="s-body">
+            <div class="sw-h2">Count: 0</div>
+            <div class="sw-row"><span class="sw-btn primary">Add one</span><span class="sw-btn plain">Help</span></div>
+            <div class="sw-caption">Press Add one to count.</div>
+          </div>
+        </div>
+        <p class="s-name">Web</p>
+      </div>
+      <div class="screen s-term">
+        <div class="s-frame">
+<pre class="st-body"><b>COUNT: 0</b>
+<span class="st-rule">────────────────────</span>
+<span class="st-focus">[ Add one ]</span>
+[ Help ]
+<span class="st-dim">Press Add one to count.</span>
+
+<span class="st-dim">tab next · enter press · q quit</span></pre>
+        </div>
+        <p class="s-name">Terminal</p>
+      </div>
+      <div class="screen s-phone">
+        <div class="s-frame">
+          <div class="sp-status"><span>9:41</span><span>●●●</span></div>
+          <div class="sp-title">Count: 0</div>
+          <div class="sp-btn">Add one</div>
+          <div class="sp-link">Help</div>
+          <div class="sp-foot">Press Add one to count.</div>
+        </div>
+        <p class="s-name">Phone</p>
+      </div>
+    </div>
+    <figcaption>The counter from above, after pressing <em>Help</em>. The web renderer is the one in the <a href="demo/">demo</a>; the other two show how a terminal or a phone renderer would draw the same messages.</figcaption>
+  </figure>
+</section>
+
 <section class="band pitch" id="why" aria-labelledby="why-title">
   <div class="pitch-text">
     <p class="eyebrow">Why</p>
@@ -108,6 +152,19 @@ remove {"id":"help"}</pre></div>
   </figure>
 </section>
 
+<section class="band" id="transports">
+  <h2>Transport-agnostic</h2>
+  <p>hypereffect doesn't specify how the server talks to the renderer, or what a server and a renderer are in the first place. Anything that carries text reliably will do. The <a href="spec.html#transports">spec</a> defines mappings for the common ones.</p>
+  <ul class="plugs">
+    <li><b>stdin / stdout</b><span>of a child process</span></li>
+    <li><b>Unix socket</b><span>for local services</span></li>
+    <li><b>Serial line</b><span>to an embedded device</span></li>
+    <li><b>WebSocket</b><span>a message per frame</span></li>
+    <li><b>iroh</b><span>bidirectional streams</span></li>
+    <li><b>In-process</b><span>a WASM module</span></li>
+  </ul>
+</section>
+
 <section class="band" id="use-cases">
   <h2>Use cases</h2>
   <p>Interfaces that are mostly text, inputs, buttons and lists, with the logic on a server or in another process.</p>
@@ -119,27 +176,69 @@ remove {"id":"help"}</pre></div>
   </div>
 </section>
 
-<section class="band" id="non-use-cases">
+<section class="band quiet" id="non-use-cases">
   <h2>Non-use cases</h2>
-  <p>Places where an application is better served by an interface built for it.</p>
-  <div class="cards three">
-    <div class="card off"><h3>Visual, highly interactive interfaces</h3><p>Data visualization, editing photos, audio or video, action games, navigating a map: anything drawn or manipulated directly rather than described as text, inputs and buttons.</p></div>
-    <div class="card off"><h3>Tools people live in</h3><p>Software used all day, where comfort, visual polish and shortcuts that build into muscle memory matter more than anything, even when the content is plain text.</p></div>
-    <div class="card off"><h3>Dense, busy screens</h3><p>Applications that show a lot at once with many potential actions always within reach of the user, like dashboards, messaging and social media apps, trading screens, project boards.</p></div>
-  </div>
+  <ul>
+    <li><strong>Visual, highly interactive interfaces.</strong> Data visualization, editing photos, audio or video, action games, navigating a map: anything drawn or manipulated directly rather than described as text, inputs and buttons.</li>
+    <li><strong>Tools people live in.</strong> Software used all day, where comfort, visual polish and shortcuts that build into muscle memory matter more than anything, even when the content is plain text.</li>
+    <li><strong>Dense, busy screens.</strong> Applications that show a lot at once with many potential actions always within reach of the user, like dashboards, messaging and social media apps, trading screens, project boards.</li>
+  </ul>
 </section>
 
-<section class="band" id="hypermedia">
+<section class="band hyper" id="hypermedia">
   <h2>A hypermedia system</h2>
-  <p>hypereffect strives to be the world's second most successful <a href="https://hypermedia.systems/hypermedia-a-reintroduction/">hypermedia system</a>, after HTML.</p>
-  <ul class="points">
-    <li><strong>The server describes the UI.</strong> The client receives the interface itself, not data to interpret: it never parses contacts or orders and never needs to know what they mean in order to render them.</li>
-    <li><strong>The server drives application state.</strong> Instead of a client-side store and router deciding what is possible, the server decides what the user sees and which actions are available next.</li>
-    <li><strong>Behavior is declared in the markup.</strong> Each element describes the interactions it offers and where they go, so the document stays self-describing. Buttons and inputs in hypereffect are <em>hypermedia controls</em>: like links and forms, they declare their actions directly in their attributes.</li>
+  <p class="hyper-lead">hypereffect strives to be the world's second most successful <a href="https://hypermedia.systems/hypermedia-a-reintroduction/">hypermedia system</a>, after HTML.</p>
+  <ul class="tenets">
+    <li class="t-element">
+      <h3>The server describes the UI.</h3>
+      <p>The client receives the interface itself: it never parses contacts or orders and never needs to know what they mean in order to render them.</p>
+    </li>
+    <li class="t-signal">
+      <h3>The server drives application state.</h3>
+      <p>The server decides what the user sees and which actions are available next, instead of client code deciding what is possible.</p>
+    </li>
+    <li class="t-action">
+      <h3>Behavior is declared in the markup.</h3>
+      <p>Each element describes the interactions it offers, the document is self-describing. Buttons and inputs are <em>hypermedia controls</em>.</p>
+    </li>
+  </ul>
+</section>
+
+<section class="band" id="reactive">
+  <h2>Locally reactive</h2>
+  <p>Not every keystroke needs a round trip. The renderer keeps a shared JSON object of <a href="signals.html">signals</a>, and attributes can be <a href="expressions.html">expressions</a> over them, so a total, a hint or whether a button is enabled updates as soon as the user types. Every action carries the current signals to the server, and the server can patch them at any time, not only in reply to an action.</p>
+</section>
+
+<section class="band" id="principles">
+  <h2>Deliberately small</h2>
+  <p>The protocol leaves things out on purpose, so that every renderer can show every application.</p>
+  <ol class="manifesto">
+    <li><h3>No styling.</h3><p>Variants say what something is, like <code>h2</code>, <code>primary</code> or <code>warning</code>. The renderer decides how they look.</p></li>
+    <li><h3>No custom components.</h3><p>18 components, the same in every renderer, interoperability reigns.</p></li>
+    <li><h3>No scripts.</h3><p>Expressions compute values and have no side effects. A server cannot run arbitrary code on the renderer.</p></li>
+  </ol>
+</section>
+
+<section class="band" id="safety">
+  <h2>Inherently safe</h2>
+  <p>A renderer trusts a server for content, never for execution. There is nothing to run: expressions have no side effects and there are no scripts, so opening an unknown server is about as risky as reading what it says. In the other direction, the server treats every action as untrusted user input, whatever the renderer claims to have shown. See the <a href="spec.html#security">security considerations</a>.</p>
+</section>
+
+<section class="band a11y" id="accessibility">
+  <div class="a11y-text">
+    <h2>Necessarily Accessible</h2>
+    <p>Messages carry meaning, not pixels: headings have a level, buttons and inputs have labels, images have alt text. A renderer maps them to the platform's own widgets, so screen readers, keyboard navigation, text scaling and high contrast work the way people already know.</p>
+  </div>
+  <ul class="spoken" aria-label="Elements and what a screen reader announces">
+    <li><code>text · h2 · "Count: 0"</code><q>Count: 0, heading level 2</q></li>
+    <li><code>button · primary · "Add one"</code><q>Add one, button</q></li>
+    <li><code>input · number · "Voltage"</code><q>Voltage, edit text, 12.00</q></li>
+    <li><code>checkbox · switch · "Output 1"</code><q>Output 1, switch, on</q></li>
+    <li><code>image · alt "Wiring diagram"</code><q>Wiring diagram, image</q></li>
   </ul>
 </section>
 </main>
 
-<footer class="site"><div class="inner">hypereffect UI</div></footer>
+<footer class="site"><div class="inner">hypereffect UI · <a href="https://github.com/andunieee/hypereffect">GitHub</a></div></footer>
 </body>
 </html>

@@ -1,4 +1,4 @@
-default: test
+default: host-site
 
 test: test-rust test-js
 
