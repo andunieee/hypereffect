@@ -18,8 +18,13 @@ function highlight(pre) {
     const text = node.data;
     const frag = document.createDocumentFragment();
     let last = 0;
+    // Text between tokens is JSON punctuation: let long lines wrap after commas.
+    const plain = (s) => s.split(',').forEach((part, i) => {
+      if (i) frag.append(',', document.createElement('wbr'));
+      frag.append(part);
+    });
     for (const m of text.matchAll(TOKEN)) {
-      frag.append(text.slice(last, m.index));
+      plain(text.slice(last, m.index));
       const span = (cls, s) => {
         const el = document.createElement('span');
         el.className = cls;
@@ -33,7 +38,7 @@ function highlight(pre) {
       } else frag.append(span('hl-num', m[4]));
       last = m.index + m[0].length;
     }
-    frag.append(text.slice(last));
+    plain(text.slice(last));
     node.replaceWith(frag);
   }
 }
