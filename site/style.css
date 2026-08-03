@@ -596,7 +596,7 @@ a.expr:hover { background: color-mix(in srgb, var(--accent-2) 22%, transparent);
 
 /* --- overview: renderers fan-out ------------------------------------------- */
 
-.fanout { --fork: color-mix(in srgb, var(--muted) 45%, var(--rule)); margin: 1.4rem 0 0; }
+.fanout { --warn: #d69214; --fork: color-mix(in srgb, var(--muted) 45%, var(--rule)); margin: 1.4rem 0 0; }
 .fan-src {
   width: fit-content;
   margin: 0 auto;
@@ -655,6 +655,13 @@ a.expr:hover { background: color-mix(in srgb, var(--accent-2) 22%, transparent);
 .sw-btn.primary { background: var(--accent); color: var(--on-accent); }
 .sw-btn.plain { color: var(--accent); }
 .sw-caption { font-size: 0.85rem; color: var(--muted); }
+.sw-notice {
+  padding: 7px 12px;
+  border-left: 3px solid var(--warn);
+  border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--warn) 12%, var(--bg-2));
+  font-size: 0.9rem;
+}
 
 .s-term .s-frame { border-radius: 8px; border: 1px solid var(--rule); background: #16141f; box-shadow: 0 14px 30px -20px rgb(0 0 0 / 0.6); }
 .st-body {
@@ -670,21 +677,67 @@ a.expr:hover { background: color-mix(in srgb, var(--accent-2) 22%, transparent);
 .st-body b { color: #fff; }
 .st-rule, .st-dim { color: #8a86a3; }
 .st-focus { background: #d8d4ea; color: #16141f; }
+.st-warn { color: #f0b545; }
 
 .s-phone .s-frame {
-  max-width: 13.5rem;
-  display: grid;
-  gap: 10px;
-  padding: 10px 16px 26px;
-  border: 7px solid var(--fg);
-  border-radius: 30px;
-  background: var(--bg-2);
+  position: relative;
+  max-width: 11.5rem;
+  aspect-ratio: 9 / 19;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 8px 12px 10px;
+  border: 6px solid var(--fg);
+  border-radius: 32px;
+  background:
+    linear-gradient(115deg, rgb(255 255 255 / 0.22), transparent 38%),
+    var(--bg-2);
+  /* Tilted in 3D; the stacked shadows are the phone's side, then its shadow on the page. */
+  --edge: color-mix(in srgb, var(--fg) 72%, var(--bg));
+  transform: perspective(1100px) rotateY(-22deg) rotateX(8deg) rotateZ(1deg);
+  box-shadow:
+    1px 1px 0 var(--edge), 2px 2px 0 var(--edge), 3px 3px 0 var(--edge),
+    4px 3px 0 var(--edge), 5px 4px 0 var(--edge), 6px 4px 0 var(--edge),
+    30px 34px 40px -14px rgb(20 10 60 / 0.35);
+  transition: transform 0.5s cubic-bezier(.2, .7, .2, 1);
 }
-.sp-status { display: flex; justify-content: space-between; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; }
-.sp-title { margin-top: 8px; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
-.sp-btn { padding: 9px; border-radius: 12px; background: var(--accent-2); color: var(--on-accent); text-align: center; font-weight: 600; }
+.s-phone .s-frame:hover { transform: perspective(1100px) rotateY(-6deg) rotateX(3deg); }
+@media (prefers-reduced-motion: reduce) { .s-phone .s-frame { transition: none; } }
+/* Camera island and home indicator. */
+.s-phone .s-frame::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 3.2rem;
+  height: 14px;
+  margin-left: -1.6rem;
+  border-radius: 999px;
+  background: var(--fg);
+}
+.s-phone .s-frame::after {
+  content: "";
+  align-self: center;
+  width: 40%;
+  height: 4px;
+  margin-top: auto;
+  border-radius: 999px;
+  background: var(--fg);
+  opacity: 0.8;
+}
+.sp-status { display: flex; justify-content: space-between; padding: 0 6px; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.06em; }
+.sp-title { margin-top: 10px; font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em; }
+.sp-notice {
+  padding: 7px 8px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--warn) 16%, var(--bg-2));
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+}
+.sp-btn { padding: 8px; border-radius: 12px; font-size: 0.92rem; background: var(--accent-2); color: var(--on-accent); text-align: center; font-weight: 600; }
 .sp-link { text-align: center; color: var(--accent-2); font-weight: 500; }
-.sp-foot { font-size: 0.78rem; color: var(--muted); text-align: center; }
+.sp-foot { font-size: 0.72rem; color: var(--muted); text-align: center; }
 
 .fanout figcaption { margin-top: 18px; color: var(--muted); font-size: 0.92rem; max-width: 60rem; }
 
