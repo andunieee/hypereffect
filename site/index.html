@@ -7,6 +7,11 @@
 <meta name="description" content="hypereffect: a small hypermedia protocol for server-driven UI, rendered natively.">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <link rel="stylesheet" href="style.css">
+<script>
+  // The homepage example alternates; ?example=basil or ?example=table picks one.
+  { const q = new URLSearchParams(location.search).get('example');
+    document.documentElement.dataset.example = ['basil', 'table'].includes(q) ? q : Math.random() < 0.5 ? 'basil' : 'table'; }
+</script>
 <script src="site.js" defer></script>
 </head>
 <body>
@@ -40,7 +45,7 @@
 <pre>hello {}</pre></div>
   </li>
 
-  <li class="step t-element">
+  <li data-ex="basil" class="step t-element">
     <div class="step-text">
       <p>The server answers with the state, as <a class="k k-signal" href="signals.html">signals</a>, and a few <strong class="k k-element">elements</strong>. The renderer draws them with its own native widgets, in its own style.</p>
       <p>There is a <strong class="k k-element">fixed set of eighteen components</strong>, and they carry <strong class="k k-element">semantic variants, not styles</strong>: <code>h2</code> or <code>warning</code>, never a colour or a margin.</p>
@@ -53,7 +58,7 @@ element {"id":"soil","type":"notice","parent":"plant","variant":{"cel":"s.moistu
 element {"id":"water","type":"button","parent":"plant","variant":"primary","label":"Water now","onPress":{"action":"water"}}</pre></div>
   </li>
 
-  <li class="step t-signal">
+  <li data-ex="basil" class="step t-signal">
     <div class="step-text">
       <p>Elements declare up front the <strong class="k k-accent">few interactions they support</strong>. When the user acts, a handler can do only two things:</p>
       <ul>
@@ -66,7 +71,7 @@ element {"id":"water","type":"button","parent":"plant","variant":"primary","labe
 element {"id":"tip","type":"text","parent":"plant","variant":"caption","text":"Basil wilts below 30%.","visible":{"cel":"s._why"}}</pre></div>
   </li>
 
-  <li class="step t-action">
+  <li data-ex="basil" class="step t-action">
     <div class="step-text">
       <p><strong class="k k-action">Actions</strong> are sent to the server, with the current signals. Local signals, whose names start with <code>_</code>, stay on the client.</p>
     </div>
@@ -74,7 +79,7 @@ element {"id":"tip","type":"text","parent":"plant","variant":"caption","text":"B
 <pre>action {"name":"water","signals":{"moisture":24}}</pre></div>
   </li>
 
-  <li class="step t-remove">
+  <li data-ex="basil" class="step t-remove">
     <div class="step-text">
       <p>The server decides what happens next. It can send <strong class="k k-element">new elements</strong>, <strong class="k k-element">replace</strong> or <strong class="k k-remove">remove</strong> existing ones, or send <strong class="k k-signal">signal updates</strong> that are merged into the client's state, which may change the interface again.</p>
       <p>Here the pump has run. The notice now reads <em>Soil moisture 61%</em> and turns from a warning into a success without being re-sent: its text and variant are <a class="k k-accent" href="expressions.html">expressions</a>.</p>
@@ -84,6 +89,51 @@ element {"id":"tip","type":"text","parent":"plant","variant":"caption","text":"B
 element {"id":"water","type":"button","parent":"plant","variant":"primary","label":"Watered","disabled":true}
 remove {"id":"why"}</pre></div>
   </li>
+  <li data-ex="table" class="step t-element">
+    <div class="step-text">
+      <p>The server answers with the state, as <a class="k k-signal" href="signals.html">signals</a>, and a few <strong class="k k-element">elements</strong>. The renderer draws them with its own native widgets, in its own style.</p>
+      <p>There is a <strong class="k k-element">fixed set of eighteen components</strong>, and they carry <strong class="k k-element">semantic variants, not styles</strong>: <code>h2</code> or <code>segmented</code>, never a colour or a margin.</p>
+    </div>
+    <div class="step-code"><span class="dir">server → renderer</span>
+<pre>signal {"time":"20:00","notes":"","_notes":false}
+element {"id":"book","type":"column"}
+element {"id":"title","type":"text","parent":"book","variant":"h2","text":"Table for two"}
+element {"id":"time","type":"select","parent":"book","variant":"segmented","label":"Time","bind":"time","options":[{"value":"19:00","label":"19:00"},{"value":"20:00","label":"20:00"},{"value":"21:30","label":"21:30"}]}
+element {"id":"go","type":"button","parent":"book","variant":"primary","label":{"cel":"'Book for ' + s.time"},"onPress":{"action":"reserve"}}</pre></div>
+  </li>
+
+  <li data-ex="table" class="step t-signal">
+    <div class="step-text">
+      <p>Elements declare up front the <strong class="k k-accent">few interactions they support</strong>. When the user acts, a handler can do only two things:</p>
+      <ul>
+        <li><strong class="k k-signal">change the state locally</strong>, and every attribute that depends on it is recomputed: picking <em>21:30</em> updates the bound <code>time</code> and the button now reads <em>Book for 21:30</em>; pressing <em>Add a note</em> sets <code>_notes</code>, and a notes field appears;</li>
+        <li><strong class="k k-action">fire an action</strong>, like <code>reserve</code> above.</li>
+      </ul>
+    </div>
+    <div class="step-code"><span class="dir">server → renderer</span>
+<pre>element {"id":"add","type":"button","parent":"book","variant":"plain","label":"Add a note","onPress":{"patch":{"_notes":true}}}
+element {"id":"notes","type":"input","parent":"book","variant":"multiline","label":"Notes","bind":"notes","visible":{"cel":"s._notes"}}</pre></div>
+  </li>
+
+  <li data-ex="table" class="step t-action">
+    <div class="step-text">
+      <p><strong class="k k-action">Actions</strong> are sent to the server, with the current signals. Local signals, whose names start with <code>_</code>, stay on the client.</p>
+    </div>
+    <div class="step-code"><span class="dir">renderer → server</span>
+<pre>action {"name":"reserve","signals":{"time":"21:30","notes":"Window seat, please"}}</pre></div>
+  </li>
+
+  <li data-ex="table" class="step t-remove">
+    <div class="step-text">
+      <p>The server decides what happens next. It can send <strong class="k k-element">new elements</strong>, <strong class="k k-element">replace</strong> or <strong class="k k-remove">remove</strong> existing ones, or send <strong class="k k-signal">signal updates</strong> that are merged into the client's state, which may change the interface again.</p>
+      <p>Here the table is booked. The new notice reads <em>Booked for 21:30, ref LP-4821</em>: its text is an <a class="k k-accent" href="expressions.html">expression</a> over the time the user picked and the reference the server just sent.</p>
+    </div>
+    <div class="step-code"><span class="dir">server → renderer</span>
+<pre>signal {"ref":"LP-4821"}
+element {"id":"done","type":"notice","parent":"book","before":"time","variant":"success","text":{"cel":"'Booked for ' + s.time + ', ref ' + s.ref"}}
+element {"id":"go","type":"button","parent":"book","variant":"primary","label":"Booked","disabled":true}
+remove {"id":"add"}</pre></div>
+  </li>
 </ol>
 </section>
 
@@ -92,7 +142,7 @@ remove {"id":"why"}</pre></div>
   <p>Messages say what is on the screen, never how it looks. Each renderer draws them with the widgets and conventions of its own platform, so the same server looks at home in each of them.</p>
   <figure class="fanout">
     <p class="fan-src"><span class="hl-tag t-signal">signal</span> ×1 · <span class="hl-tag t-element">element</span> ×6</p>
-    <div class="screens" aria-hidden="true">
+    <div class="screens" data-ex="basil" aria-hidden="true">
       <div class="screen s-web">
         <div class="s-frame">
           <div class="s-chrome"><i></i><i></i><i></i><span>greenhouse.local</span></div>
@@ -131,7 +181,46 @@ remove {"id":"why"}</pre></div>
         <p class="s-name">Phone</p>
       </div>
     </div>
-    <figcaption>The plant from above, after pressing <em>Why?</em> and before watering. The web renderer is the one in the <a href="demo/">demo</a>; the other two show how a terminal or a phone renderer would draw the same messages.</figcaption>
+    <div class="screens" data-ex="table" aria-hidden="true">
+      <div class="screen s-web">
+        <div class="s-frame">
+          <div class="s-chrome"><i></i><i></i><i></i><span>reservations</span></div>
+          <div class="s-body">
+            <div class="sw-h2">Table for two</div>
+            <div class="sw-seg"><span>19:00</span><span>20:00</span><span class="on">21:30</span></div>
+            <div class="sw-row"><span class="sw-btn primary">Book for 21:30</span><span class="sw-btn plain">Add a note</span></div>
+            <div class="sw-field"><small>Notes</small><span>Window seat, please</span></div>
+          </div>
+        </div>
+        <p class="s-name">Web</p>
+      </div>
+      <div class="screen s-term">
+        <div class="s-frame">
+<pre class="st-body"><b>TABLE FOR TWO</b>
+<span class="st-rule">────────────────────</span>
+Time <span class="st-dim">( ) 19:00 ( ) 20:00</span> (•) 21:30
+
+[ Book for 21:30 ]
+[ Add a note ]
+Notes
+<span class="st-focus">Window seat, please▏</span>
+
+<span class="st-dim">tab next · enter press · q quit</span></pre>
+        </div>
+        <p class="s-name">Terminal</p>
+      </div>
+      <div class="screen s-phone">
+        <div class="s-frame">
+          <div class="sp-status"><span>9:41</span><span>●●●</span></div>
+          <div class="sp-title">Table for two</div>
+          <div class="sp-seg"><span>19:00</span><span>20:00</span><span class="on">21:30</span></div>
+          <div class="sp-btn">Book for 21:30</div>
+          <div class="sp-link">Add a note</div>
+          <div class="sp-field"><small>Notes</small>Window seat, please</div>
+        </div>
+        <p class="s-name">Phone</p>
+      </div>
+    </div>
   </figure>
 </section>
 
@@ -231,9 +320,12 @@ remove {"id":"why"}</pre></div>
     <p>Messages carry meaning, not pixels: headings have a level, buttons and inputs have labels, images have alt text. A renderer maps them to the platform's own widgets, so screen readers, keyboard navigation, text scaling and high contrast work the way people already know.</p>
   </div>
   <ul class="spoken" aria-label="Elements and what a screen reader announces">
-    <li><code>text · h2 · "Basil"</code><q>Basil, heading level 2</q></li>
-    <li><code>notice · warning · "Soil moisture 24%"</code><q>Warning: Soil moisture 24%</q></li>
-    <li><code>button · primary · "Water now"</code><q>Water now, button</q></li>
+    <li data-ex="basil"><code>text · h2 · "Basil"</code><q>Basil, heading level 2</q></li>
+    <li data-ex="basil"><code>notice · warning · "Soil moisture 24%"</code><q>Warning: Soil moisture 24%</q></li>
+    <li data-ex="basil"><code>button · primary · "Water now"</code><q>Water now, button</q></li>
+    <li data-ex="table"><code>text · h2 · "Table for two"</code><q>Table for two, heading level 2</q></li>
+    <li data-ex="table"><code>select · segmented · "Time"</code><q>Time, 21:30, 3 of 3</q></li>
+    <li data-ex="table"><code>button · primary · "Book for 21:30"</code><q>Book for 21:30, button</q></li>
     <li><code>input · number · "Voltage"</code><q>Voltage, edit text, 12.00</q></li>
     <li><code>checkbox · switch · "Output 1"</code><q>Output 1, switch, on</q></li>
     <li><code>image · alt "Wiring diagram"</code><q>Wiring diagram, image</q></li>
