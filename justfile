@@ -40,3 +40,6 @@ build-demo:
     cp -r js/src site/demo/lib
     
     echo "Built site/demo. Serve it with: python -m http.server -d site"
+
+fmt:
+    npx --yes prettier@3 --write "site/**/*.{html,css}"

@@ -1,163 +1,288 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>hypereffect</title>
-<meta name="description" content="hypereffect: a small hypermedia protocol for server-driven UI, rendered natively.">
-<link rel="icon" href="logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css">
-<script>
-  // The homepage example alternates; ?example=basil or ?example=table picks one.
-  { const q = new URLSearchParams(location.search).get('example');
-    document.documentElement.dataset.example = ['basil', 'table'].includes(q) ? q : Math.random() < 0.5 ? 'basil' : 'table'; }
-</script>
-<script src="site.js" defer></script>
-</head>
-<body>
-<header class="site"><div class="inner">
-  <a class="name" href="index.html">hypereffect</a>
-  <nav>
-    <a href="index.html" aria-current="page">Overview</a>
-    <a href="components.html">Components</a>
-    <a href="signals.html">Signals</a>
-    <a href="expressions.html">Expressions</a>
-    <a href="actions.html">Actions</a>
-    <a href="demo/">Demo</a>
-    <a href="spec.html">Spec</a>
-  </nav>
-</div></header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>hypereffect</title>
+    <meta
+      name="description"
+      content="hypereffect: a small hypermedia protocol for server-driven UI, rendered natively."
+    />
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+    <script>
+      // The homepage example alternates; ?example=basil or ?example=table picks one.
+      {
+        const q = new URLSearchParams(location.search).get("example");
+        document.documentElement.dataset.example = ["basil", "table"].includes(q)
+          ? q
+          : Math.random() < 0.5
+            ? "basil"
+            : "table";
+      }
+    </script>
+    <script src="site.js" defer></script>
+  </head>
+  <body>
+    <header class="site">
+      <div class="inner">
+        <a class="name" href="index.html">hypereffect</a>
+        <nav>
+          <a href="index.html" aria-current="page">Overview</a>
+          <a href="components.html">Components</a>
+          <a href="signals.html">Signals</a>
+          <a href="expressions.html">Expressions</a>
+          <a href="actions.html">Actions</a>
+          <a href="demo/">Demo</a>
+          <a href="spec.html">Spec</a>
+        </nav>
+      </div>
+    </header>
 
-<main class="home">
-<section class="hero">
-  <h1>hypereffect</h1>
-  <p class="lede">A simple protocol for describing server&#8209;guided, reactive interfaces that can be <strong>rendered anywhere</strong>.</p>
-  <p class="cta"><a class="btn primary" href="demo/">Try the demo</a><a class="btn" href="spec.html">Read the spec</a></p>
-</section>
+    <main class="home">
+      <section class="hero">
+        <h1>hypereffect</h1>
+        <p class="lede">
+          A simple protocol for describing server&#8209;guided, reactive interfaces that can be
+          <strong>rendered anywhere</strong>.
+        </p>
+        <p class="cta">
+          <a class="btn primary" href="demo/">Try the demo</a>
+          <a class="btn" href="spec.html">Read the spec</a>
+        </p>
+      </section>
 
-<section class="session" aria-label="A session, step by step">
-<ol class="steps">
-  <li class="step t-hello">
-    <div class="step-text">
-      <p>A client, the <em>renderer</em>, starts the session by sending <strong class="k k-hello">hello</strong>. It knows nothing about the application yet.</p>
-    </div>
-    <div class="step-code"><span class="dir">renderer → server</span>
-<pre>hello {}</pre></div>
-  </li>
+      <section class="session" aria-label="A session, step by step">
+        <ol class="steps">
+          <li class="step t-hello">
+            <div class="step-text">
+              <p>
+                A client, the <em>renderer</em>, starts the session by sending
+                <strong class="k k-hello">hello</strong>. It knows nothing about the application
+                yet.
+              </p>
+            </div>
+            <div class="step-code">
+              <span class="dir">renderer → server</span>
+              <pre>hello {}</pre>
+            </div>
+          </li>
 
-  <li data-ex="basil" class="step t-element">
-    <div class="step-text">
-      <p>The server answers with the state, as <a class="k k-signal" href="signals.html">signals</a>, and a few <strong class="k k-element">elements</strong>. The renderer draws them with its own native widgets, in its own style.</p>
-      <p>There is a <strong class="k k-element">fixed set of eighteen components</strong>, and they carry <strong class="k k-element">semantic variants, not styles</strong>: <code>h2</code> or <code>warning</code>, never a colour or a margin.</p>
-    </div>
-    <div class="step-code"><span class="dir">server → renderer</span>
-<pre>signal {"moisture":24,"_why":false}
+          <li data-ex="basil" class="step t-element">
+            <div class="step-text">
+              <p>
+                The server answers with the state, as
+                <a class="k k-signal" href="signals.html">signals</a>, and a few
+                <strong class="k k-element">elements</strong>. The renderer draws them with its own
+                native widgets, in its own style.
+              </p>
+              <p>
+                There is a <strong class="k k-element">fixed set of eighteen components</strong>,
+                and they carry <strong class="k k-element">semantic variants, not styles</strong>:
+                <code>h2</code> or <code>warning</code>, never a colour or a margin.
+              </p>
+            </div>
+            <div class="step-code">
+              <span class="dir">server → renderer</span>
+              <pre>
+signal {"moisture":24,"_why":false}
 element {"id":"plant","type":"column"}
 element {"id":"name","type":"text","parent":"plant","variant":"h2","text":"Basil"}
 element {"id":"soil","type":"notice","parent":"plant","variant":{"cel":"s.moisture &lt; 30 ? 'warning' : 'success'"},"text":{"cel":"'Soil moisture ' + string(s.moisture) + '%'"}}
-element {"id":"water","type":"button","parent":"plant","variant":"primary","label":"Water now","onPress":{"action":"water"}}</pre></div>
-  </li>
+element {"id":"water","type":"button","parent":"plant","variant":"primary","label":"Water now","onPress":{"action":"water"}}</pre>
+            </div>
+          </li>
 
-  <li data-ex="basil" class="step t-signal">
-    <div class="step-text">
-      <p>Elements declare up front the <strong class="k k-accent">few interactions they support</strong>. When the user acts, a handler can do only two things:</p>
-      <ul>
-        <li><strong class="k k-signal">change the state locally</strong>, and every attribute that depends on it is recomputed: pressing <em>Why?</em> sets <code>_why</code>, and the tip appears;</li>
-        <li><strong class="k k-action">fire an action</strong>, like <code>water</code> above.</li>
-      </ul>
-    </div>
-    <div class="step-code"><span class="dir">server → renderer</span>
-<pre>element {"id":"why","type":"button","parent":"plant","variant":"plain","label":"Why?","onPress":{"patch":{"_why":true}}}
-element {"id":"tip","type":"text","parent":"plant","variant":"caption","text":"Basil wilts below 30%.","visible":{"cel":"s._why"}}</pre></div>
-  </li>
+          <li data-ex="basil" class="step t-signal">
+            <div class="step-text">
+              <p>
+                Elements declare up front the
+                <strong class="k k-accent">few interactions they support</strong>. When the user
+                acts, a handler can do only two things:
+              </p>
+              <ul>
+                <li>
+                  <strong class="k k-signal">change the state locally</strong>, and every attribute
+                  that depends on it is recomputed: pressing <em>Why?</em> sets <code>_why</code>,
+                  and the tip appears;
+                </li>
+                <li>
+                  <strong class="k k-action">fire an action</strong>, like <code>water</code> above.
+                </li>
+              </ul>
+            </div>
+            <div class="step-code">
+              <span class="dir">server → renderer</span>
+              <pre>
+element {"id":"why","type":"button","parent":"plant","variant":"plain","label":"Why?","onPress":{"patch":{"_why":true}}}
+element {"id":"tip","type":"text","parent":"plant","variant":"caption","text":"Basil wilts below 30%.","visible":{"cel":"s._why"}}</pre>
+            </div>
+          </li>
 
-  <li data-ex="basil" class="step t-action">
-    <div class="step-text">
-      <p><strong class="k k-action">Actions</strong> are sent to the server, with the current signals. Local signals, whose names start with <code>_</code>, stay on the client.</p>
-    </div>
-    <div class="step-code"><span class="dir">renderer → server</span>
-<pre>action {"name":"water","signals":{"moisture":24}}</pre></div>
-  </li>
+          <li data-ex="basil" class="step t-action">
+            <div class="step-text">
+              <p>
+                <strong class="k k-action">Actions</strong> are sent to the server, with the current
+                signals. Local signals, whose names start with <code>_</code>, stay on the client.
+              </p>
+            </div>
+            <div class="step-code">
+              <span class="dir">renderer → server</span>
+              <pre>action {"name":"water","signals":{"moisture":24}}</pre>
+            </div>
+          </li>
 
-  <li data-ex="basil" class="step t-remove">
-    <div class="step-text">
-      <p>The server decides what happens next. It can send <strong class="k k-element">new elements</strong>, <strong class="k k-element">replace</strong> or <strong class="k k-remove">remove</strong> existing ones, or send <strong class="k k-signal">signal updates</strong> that are merged into the client's state, which may change the interface again.</p>
-      <p>Here the pump has run. The notice now reads <em>Soil moisture 61%</em> and turns from a warning into a success without being re-sent: its text and variant are <a class="k k-accent" href="expressions.html">expressions</a>.</p>
-    </div>
-    <div class="step-code"><span class="dir">server → renderer</span>
-<pre>signal {"moisture":61}
+          <li data-ex="basil" class="step t-remove">
+            <div class="step-text">
+              <p>
+                The server decides what happens next. It can send
+                <strong class="k k-element">new elements</strong>,
+                <strong class="k k-element">replace</strong> or
+                <strong class="k k-remove">remove</strong> existing ones, or send
+                <strong class="k k-signal">signal updates</strong> that are merged into the client's
+                state, which may change the interface again.
+              </p>
+              <p>
+                Here the pump has run. The notice now reads <em>Soil moisture 61%</em> and turns
+                from a warning into a success without being re-sent: its text and variant are
+                <a class="k k-accent" href="expressions.html">expressions</a>.
+              </p>
+            </div>
+            <div class="step-code">
+              <span class="dir">server → renderer</span>
+              <pre>
+signal {"moisture":61}
 element {"id":"water","type":"button","parent":"plant","variant":"primary","label":"Watered","disabled":true}
-remove {"id":"why"}</pre></div>
-  </li>
-  <li data-ex="table" class="step t-element">
-    <div class="step-text">
-      <p>The server answers with the state, as <a class="k k-signal" href="signals.html">signals</a>, and a few <strong class="k k-element">elements</strong>. The renderer draws them with its own native widgets, in its own style.</p>
-      <p>There is a <strong class="k k-element">fixed set of eighteen components</strong>, and they carry <strong class="k k-element">semantic variants, not styles</strong>: <code>h2</code> or <code>segmented</code>, never a colour or a margin.</p>
-    </div>
-    <div class="step-code"><span class="dir">server → renderer</span>
-<pre>signal {"time":"20:00","notes":"","_notes":false}
+remove {"id":"why"}</pre>
+            </div>
+          </li>
+          <li data-ex="table" class="step t-element">
+            <div class="step-text">
+              <p>
+                The server answers with the state, as
+                <a class="k k-signal" href="signals.html">signals</a>, and a few
+                <strong class="k k-element">elements</strong>. The renderer draws them with its own
+                native widgets, in its own style.
+              </p>
+              <p>
+                There is a <strong class="k k-element">fixed set of eighteen components</strong>,
+                and they carry <strong class="k k-element">semantic variants, not styles</strong>:
+                <code>h2</code> or <code>segmented</code>, never a colour or a margin.
+              </p>
+            </div>
+            <div class="step-code">
+              <span class="dir">server → renderer</span>
+              <pre>
+signal {"time":"20:00","notes":"","_notes":false}
 element {"id":"book","type":"column"}
 element {"id":"title","type":"text","parent":"book","variant":"h2","text":"Table for two"}
 element {"id":"time","type":"select","parent":"book","variant":"segmented","label":"Time","bind":"time","options":[{"value":"19:00","label":"19:00"},{"value":"20:00","label":"20:00"},{"value":"21:30","label":"21:30"}]}
-element {"id":"go","type":"button","parent":"book","variant":"primary","label":{"cel":"'Book for ' + s.time"},"onPress":{"action":"reserve"}}</pre></div>
-  </li>
+element {"id":"go","type":"button","parent":"book","variant":"primary","label":{"cel":"'Book for ' + s.time"},"onPress":{"action":"reserve"}}</pre>
+            </div>
+          </li>
 
-  <li data-ex="table" class="step t-signal">
-    <div class="step-text">
-      <p>Elements declare up front the <strong class="k k-accent">few interactions they support</strong>. When the user acts, a handler can do only two things:</p>
-      <ul>
-        <li><strong class="k k-signal">change the state locally</strong>, and every attribute that depends on it is recomputed: picking <em>21:30</em> updates the bound <code>time</code> and the button now reads <em>Book for 21:30</em>; pressing <em>Add a note</em> sets <code>_notes</code>, and a notes field appears;</li>
-        <li><strong class="k k-action">fire an action</strong>, like <code>reserve</code> above.</li>
-      </ul>
-    </div>
-    <div class="step-code"><span class="dir">server → renderer</span>
-<pre>element {"id":"add","type":"button","parent":"book","variant":"plain","label":"Add a note","onPress":{"patch":{"_notes":true}}}
-element {"id":"notes","type":"input","parent":"book","variant":"multiline","label":"Notes","bind":"notes","visible":{"cel":"s._notes"}}</pre></div>
-  </li>
+          <li data-ex="table" class="step t-signal">
+            <div class="step-text">
+              <p>
+                Elements declare up front the
+                <strong class="k k-accent">few interactions they support</strong>. When the user
+                acts, a handler can do only two things:
+              </p>
+              <ul>
+                <li>
+                  <strong class="k k-signal">change the state locally</strong>, and every attribute
+                  that depends on it is recomputed: picking <em>21:30</em> updates the bound
+                  <code>time</code> and the button now reads <em>Book for 21:30</em>; pressing
+                  <em>Add a note</em> sets <code>_notes</code>, and a notes field appears;
+                </li>
+                <li>
+                  <strong class="k k-action">fire an action</strong>, like
+                  <code>reserve</code> above.
+                </li>
+              </ul>
+            </div>
+            <div class="step-code">
+              <span class="dir">server → renderer</span>
+              <pre>
+element {"id":"add","type":"button","parent":"book","variant":"plain","label":"Add a note","onPress":{"patch":{"_notes":true}}}
+element {"id":"notes","type":"input","parent":"book","variant":"multiline","label":"Notes","bind":"notes","visible":{"cel":"s._notes"}}</pre>
+            </div>
+          </li>
 
-  <li data-ex="table" class="step t-action">
-    <div class="step-text">
-      <p><strong class="k k-action">Actions</strong> are sent to the server, with the current signals. Local signals, whose names start with <code>_</code>, stay on the client.</p>
-    </div>
-    <div class="step-code"><span class="dir">renderer → server</span>
-<pre>action {"name":"reserve","signals":{"time":"21:30","notes":"Window seat, please"}}</pre></div>
-  </li>
+          <li data-ex="table" class="step t-action">
+            <div class="step-text">
+              <p>
+                <strong class="k k-action">Actions</strong> are sent to the server, with the current
+                signals. Local signals, whose names start with <code>_</code>, stay on the client.
+              </p>
+            </div>
+            <div class="step-code">
+              <span class="dir">renderer → server</span>
+              <pre>
+action {"name":"reserve","signals":{"time":"21:30","notes":"Window seat, please"}}</pre>
+            </div>
+          </li>
 
-  <li data-ex="table" class="step t-remove">
-    <div class="step-text">
-      <p>The server decides what happens next. It can send <strong class="k k-element">new elements</strong>, <strong class="k k-element">replace</strong> or <strong class="k k-remove">remove</strong> existing ones, or send <strong class="k k-signal">signal updates</strong> that are merged into the client's state, which may change the interface again.</p>
-      <p>Here the table is booked. The new notice reads <em>Booked for 21:30, ref LP-4821</em>: its text is an <a class="k k-accent" href="expressions.html">expression</a> over the time the user picked and the reference the server just sent.</p>
-    </div>
-    <div class="step-code"><span class="dir">server → renderer</span>
-<pre>signal {"ref":"LP-4821"}
+          <li data-ex="table" class="step t-remove">
+            <div class="step-text">
+              <p>
+                The server decides what happens next. It can send
+                <strong class="k k-element">new elements</strong>,
+                <strong class="k k-element">replace</strong> or
+                <strong class="k k-remove">remove</strong> existing ones, or send
+                <strong class="k k-signal">signal updates</strong> that are merged into the client's
+                state, which may change the interface again.
+              </p>
+              <p>
+                Here the table is booked. The new notice reads
+                <em>Booked for 21:30, ref LP-4821</em>: its text is an
+                <a class="k k-accent" href="expressions.html">expression</a> over the time the user
+                picked and the reference the server just sent.
+              </p>
+            </div>
+            <div class="step-code">
+              <span class="dir">server → renderer</span>
+              <pre>
+signal {"ref":"LP-4821"}
 element {"id":"done","type":"notice","parent":"book","before":"time","variant":"success","text":{"cel":"'Booked for ' + s.time + ', ref ' + s.ref"}}
 element {"id":"go","type":"button","parent":"book","variant":"primary","label":"Booked","disabled":true}
-remove {"id":"add"}</pre></div>
-  </li>
-</ol>
-</section>
+remove {"id":"add"}</pre>
+            </div>
+          </li>
+        </ol>
+      </section>
 
-<section class="band" id="renderers">
-  <h2>One application, every renderer</h2>
-  <p>Messages say what is on the screen, never how it looks. Each renderer draws them with the widgets and conventions of its own platform, so the same server looks at home in each of them.</p>
-  <figure class="fanout">
-    <p class="fan-src"><span class="hl-tag t-signal">signal</span> ×1 · <span class="hl-tag t-element">element</span> ×6</p>
-    <div class="screens" data-ex="basil" aria-hidden="true">
-      <div class="screen s-web">
-        <div class="s-frame">
-          <div class="s-chrome"><i></i><i></i><i></i><span>greenhouse.local</span></div>
-          <div class="s-body">
-            <div class="sw-h2">Basil</div>
-            <div class="sw-notice">Soil moisture 24%</div>
-            <div class="sw-row"><span class="sw-btn primary">Water now</span><span class="sw-btn plain">Why?</span></div>
-            <div class="sw-caption">Basil wilts below 30%.</div>
-          </div>
-        </div>
-        <p class="s-name">Web</p>
-      </div>
-      <div class="screen s-term">
-        <div class="s-frame">
-<pre class="st-body"><b>BASIL</b>
+      <section class="band" id="renderers">
+        <h2>One application, every renderer</h2>
+        <p>
+          Messages say what is on the screen, never how it looks. Each renderer draws them with the
+          widgets and conventions of its own platform, so the same server looks at home in each of
+          them.
+        </p>
+        <figure class="fanout">
+          <p class="fan-src">
+            <span class="hl-tag t-signal">signal</span> ×1 ·
+            <span class="hl-tag t-element">element</span> ×6
+          </p>
+          <div class="screens" data-ex="basil" aria-hidden="true">
+            <div class="screen s-web">
+              <div class="s-frame">
+                <div class="s-chrome"><i></i><i></i><i></i><span>greenhouse.local</span></div>
+                <div class="s-body">
+                  <div class="sw-h2">Basil</div>
+                  <div class="sw-notice">Soil moisture 24%</div>
+                  <div class="sw-row">
+                    <span class="sw-btn primary">Water now</span
+                    ><span class="sw-btn plain">Why?</span>
+                  </div>
+                  <div class="sw-caption">Basil wilts below 30%.</div>
+                </div>
+              </div>
+              <p class="s-name">Web</p>
+            </div>
+            <div class="screen s-term">
+              <div class="s-frame">
+                <pre class="st-body"><b>BASIL</b>
 <span class="st-rule">────────────────────</span>
 <span class="st-warn">! Soil moisture 24%</span>
 
@@ -166,37 +291,42 @@ remove {"id":"add"}</pre></div>
 <span class="st-dim">Basil wilts below 30%.</span>
 
 <span class="st-dim">tab next · enter press · q quit</span></pre>
-        </div>
-        <p class="s-name">Terminal</p>
-      </div>
-      <div class="screen s-phone">
-        <div class="s-frame">
-          <div class="sp-status"><span>9:41</span><span>●●●</span></div>
-          <div class="sp-title">Basil</div>
-          <div class="sp-notice">Soil moisture 24%</div>
-          <div class="sp-btn">Water now</div>
-          <div class="sp-link">Why?</div>
-          <div class="sp-foot">Basil wilts below 30%.</div>
-        </div>
-        <p class="s-name">Phone</p>
-      </div>
-    </div>
-    <div class="screens" data-ex="table" aria-hidden="true">
-      <div class="screen s-web">
-        <div class="s-frame">
-          <div class="s-chrome"><i></i><i></i><i></i><span>reservations</span></div>
-          <div class="s-body">
-            <div class="sw-h2">Table for two</div>
-            <div class="sw-seg"><span>19:00</span><span>20:00</span><span class="on">21:30</span></div>
-            <div class="sw-row"><span class="sw-btn primary">Book for 21:30</span><span class="sw-btn plain">Add a note</span></div>
-            <div class="sw-field"><small>Notes</small><span>Window seat, please</span></div>
+              </div>
+              <p class="s-name">Terminal</p>
+            </div>
+            <div class="screen s-phone">
+              <div class="s-frame">
+                <div class="sp-status"><span>9:41</span><span>●●●</span></div>
+                <div class="sp-title">Basil</div>
+                <div class="sp-notice">Soil moisture 24%</div>
+                <div class="sp-btn">Water now</div>
+                <div class="sp-link">Why?</div>
+                <div class="sp-foot">Basil wilts below 30%.</div>
+              </div>
+              <p class="s-name">Phone</p>
+            </div>
           </div>
-        </div>
-        <p class="s-name">Web</p>
-      </div>
-      <div class="screen s-term">
-        <div class="s-frame">
-<pre class="st-body"><b>TABLE FOR TWO</b>
+          <div class="screens" data-ex="table" aria-hidden="true">
+            <div class="screen s-web">
+              <div class="s-frame">
+                <div class="s-chrome"><i></i><i></i><i></i><span>reservations</span></div>
+                <div class="s-body">
+                  <div class="sw-h2">Table for two</div>
+                  <div class="sw-seg">
+                    <span>19:00</span><span>20:00</span><span class="on">21:30</span>
+                  </div>
+                  <div class="sw-row">
+                    <span class="sw-btn primary">Book for 21:30</span
+                    ><span class="sw-btn plain">Add a note</span>
+                  </div>
+                  <div class="sw-field"><small>Notes</small><span>Window seat, please</span></div>
+                </div>
+              </div>
+              <p class="s-name">Web</p>
+            </div>
+            <div class="screen s-term">
+              <div class="s-frame">
+                <pre class="st-body"><b>TABLE FOR TWO</b>
 <span class="st-rule">────────────────────</span>
 Time <span class="st-dim">( ) 19:00 ( ) 20:00</span> (•) 21:30
 
@@ -206,133 +336,248 @@ Notes
 <span class="st-focus">Window seat, please▏</span>
 
 <span class="st-dim">tab next · enter press · q quit</span></pre>
+              </div>
+              <p class="s-name">Terminal</p>
+            </div>
+            <div class="screen s-phone">
+              <div class="s-frame">
+                <div class="sp-status"><span>9:41</span><span>●●●</span></div>
+                <div class="sp-title">Table for two</div>
+                <div class="sp-seg">
+                  <span>19:00</span><span>20:00</span><span class="on">21:30</span>
+                </div>
+                <div class="sp-btn">Book for 21:30</div>
+                <div class="sp-link">Add a note</div>
+                <div class="sp-field"><small>Notes</small>Window seat, please</div>
+              </div>
+              <p class="s-name">Phone</p>
+            </div>
+          </div>
+        </figure>
+      </section>
+
+      <section class="band pitch" id="why" aria-labelledby="why-title">
+        <div class="pitch-text">
+          <p class="eyebrow">Why</p>
+          <h2 id="why-title">Every program still builds its own interface</h2>
+          <p>
+            For decades, each new kind of computer came with an operating system written just for
+            it, and the same work was repeated until a shared one took over. Phones went through it
+            only recently, until Android.
+          </p>
+          <p>
+            Interfaces are still at that stage. Useful software that needs to take input from people
+            and show them results invents its own interface, often from raw bytes on a screen or a
+            serial line. Even with a cross-platform toolkit or a whole web browser underneath, the
+            interface is still built from zero, once per program.
+          </p>
+          <p class="pitch-claim">
+            <strong>hypereffect is the shared layer.</strong> It provides the bare minimum needed
+            for most of what software asks of people, in a form that is safe and simple: a renderer
+            is written once per platform and works with any number of servers.
+          </p>
         </div>
-        <p class="s-name">Terminal</p>
-      </div>
-      <div class="screen s-phone">
-        <div class="s-frame">
-          <div class="sp-status"><span>9:41</span><span>●●●</span></div>
-          <div class="sp-title">Table for two</div>
-          <div class="sp-seg"><span>19:00</span><span>20:00</span><span class="on">21:30</span></div>
-          <div class="sp-btn">Book for 21:30</div>
-          <div class="sp-link">Add a note</div>
-          <div class="sp-field"><small>Notes</small>Window seat, please</div>
+        <figure class="parts">
+          <p class="parts-claim">Text, lists, inputs and buttons go a long way.</p>
+          <div class="parts-mock" aria-hidden="true">
+            <span class="pm-label">text</span>
+            <div class="pm-text">Output 1 · 12.00 V · 0.85 A</div>
+            <span class="pm-label">list</span>
+            <div class="pm-list">
+              <span>Output 1</span><span>Output 2</span><span>Sequence</span>
+            </div>
+            <span class="pm-label">input</span>
+            <div class="pm-input">12.00</div>
+            <span class="pm-label">button</span>
+            <div class="pm-button">Apply</div>
+          </div>
+        </figure>
+      </section>
+
+      <section class="band" id="transports">
+        <h2>Transport-agnostic</h2>
+        <p>
+          hypereffect doesn't specify how the server talks to the renderer, or what a server and a
+          renderer are in the first place. Anything that carries text reliably will do. The
+          <a href="spec.html#transports">spec</a> defines mappings for the common ones.
+        </p>
+        <ul class="plugs">
+          <li><b>stdin / stdout</b><span>of a child process</span></li>
+          <li><b>Unix socket</b><span>for local services</span></li>
+          <li><b>Serial line</b><span>to an embedded device</span></li>
+          <li><b>WebSocket</b><span>a message per frame</span></li>
+          <li><b>iroh</b><span>bidirectional streams</span></li>
+          <li><b>In-process</b><span>a WASM module</span></li>
+        </ul>
+      </section>
+
+      <section class="band" id="use-cases">
+        <h2>Use cases</h2>
+        <p>
+          Interfaces that are mostly text, inputs, buttons and lists, with the logic on a server or
+          in another process.
+        </p>
+        <div class="cards two">
+          <div class="card">
+            <h3>Sandboxed modules</h3>
+            <p>
+              A WebAssembly module can render structured information and get input from a user
+              without having to paint each pixel.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Control panels for hardware</h3>
+            <p>
+              A device serves its own control panel over a socket or serial line, the controller
+              gets a clear and native UI.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Alternative browser ecosystem for simple services</h3>
+            <p>
+              A service speaks hypereffect at a URL and looks native in a generic hypereffect
+              browser.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Interfaces generated by agents</h3>
+            <p>
+              An LLM agent builds forms and choices on the fly, as plain JSON with no code to run.
+            </p>
+          </div>
         </div>
-        <p class="s-name">Phone</p>
+      </section>
+
+      <section class="band quiet" id="non-use-cases">
+        <h2>Non-use cases</h2>
+        <ul>
+          <li>
+            <strong>Visual, highly interactive interfaces.</strong> Data visualization, editing
+            photos, audio or video, action games, navigating a map: anything drawn or manipulated
+            directly rather than described as text, inputs and buttons.
+          </li>
+          <li>
+            <strong>Tools people live in.</strong> Software used all day, where comfort, visual
+            polish and shortcuts that build into muscle memory matter more than anything, even when
+            the content is plain text.
+          </li>
+          <li>
+            <strong>Dense, busy screens.</strong> Applications that show a lot at once with many
+            potential actions always within reach of the user, like dashboards, messaging and social
+            media apps, trading screens, project boards.
+          </li>
+        </ul>
+      </section>
+
+      <section class="band hyper" id="hypermedia">
+        <h2>A hypermedia system</h2>
+        <p class="hyper-lead">
+          hypereffect strives to be the world's second most successful
+          <a href="https://hypermedia.systems/hypermedia-a-reintroduction/">hypermedia system</a>,
+          after HTML.
+        </p>
+        <ul class="tenets">
+          <li>
+            <h3>The server describes the UI.</h3>
+            <p>
+              The client receives the interface itself: it never parses contacts or orders and never
+              needs to know what they mean in order to render them.
+            </p>
+          </li>
+          <li>
+            <h3>The server drives application state.</h3>
+            <p>
+              The server decides what the user sees and which actions are available next, instead of
+              client code deciding what is possible.
+            </p>
+          </li>
+          <li>
+            <h3>Behavior is declared in the markup.</h3>
+            <p>
+              Each element describes the interactions it offers, the document is self-describing.
+              Buttons and inputs are <em>hypermedia controls</em>.
+            </p>
+          </li>
+        </ul>
+      </section>
+
+      <section class="band" id="principles">
+        <h2>Deliberately small</h2>
+        <p>
+          The protocol leaves things out on purpose, so that every renderer can show every
+          application.
+        </p>
+        <ol class="manifesto">
+          <li>
+            <h3>No styling.</h3>
+            <p>
+              Variants say what something is, like <code>h2</code>, <code>primary</code> or
+              <code>warning</code>. The renderer decides how they look.
+            </p>
+          </li>
+          <li>
+            <h3>No custom components.</h3>
+            <p>18 components, the same in every renderer, interoperability reigns.</p>
+          </li>
+          <li>
+            <h3>No scripts.</h3>
+            <p>
+              Expressions compute values and have no side effects. A server cannot run arbitrary
+              code on the renderer.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="band" id="safety">
+        <h2>Inherently safe</h2>
+        <p>
+          A renderer trusts a server for content, never for execution. There is nothing to run:
+          expressions have no side effects and there are no scripts, so opening an unknown server is
+          about as risky as reading what it says. In the other direction, the server treats every
+          action as untrusted user input, whatever the renderer claims to have shown. See the
+          <a href="spec.html#security">security considerations</a>.
+        </p>
+      </section>
+
+      <section class="band a11y" id="accessibility">
+        <div class="a11y-text">
+          <h2>Necessarily accessible</h2>
+          <p>
+            Messages carry meaning, not pixels: headings have a level, buttons and inputs have
+            labels, images have alt text. A renderer maps them to the platform's own widgets, so
+            screen readers, keyboard navigation, text scaling and high contrast work the way people
+            already know.
+          </p>
+        </div>
+        <ul class="spoken" aria-label="Elements and what a screen reader announces">
+          <li data-ex="basil"><code>text · h2 · "Basil"</code><q>Basil, heading level 2</q></li>
+          <li data-ex="basil">
+            <code>notice · warning · "Soil moisture 24%"</code><q>Warning: Soil moisture 24%</q>
+          </li>
+          <li data-ex="basil">
+            <code>button · primary · "Water now"</code><q>Water now, button</q>
+          </li>
+          <li data-ex="table">
+            <code>text · h2 · "Table for two"</code><q>Table for two, heading level 2</q>
+          </li>
+          <li data-ex="table">
+            <code>select · segmented · "Time"</code><q>Time, 21:30, 3 of 3</q>
+          </li>
+          <li data-ex="table">
+            <code>button · primary · "Book for 21:30"</code><q>Book for 21:30, button</q>
+          </li>
+          <li><code>input · number · "Voltage"</code><q>Voltage, edit text, 12.00</q></li>
+          <li><code>checkbox · switch · "Output 1"</code><q>Output 1, switch, on</q></li>
+          <li><code>image · alt "Wiring diagram"</code><q>Wiring diagram, image</q></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="site">
+      <div class="inner">
+        hypereffect · <a href="https://github.com/andunieee/hypereffect">GitHub</a>
       </div>
-    </div>
-  </figure>
-</section>
-
-<section class="band pitch" id="why" aria-labelledby="why-title">
-  <div class="pitch-text">
-    <p class="eyebrow">Why</p>
-    <h2 id="why-title">Every program still builds its own interface</h2>
-    <p>For decades, each new kind of computer came with an operating system written just for it, and the same work was repeated until a shared one took over. Phones went through it only recently, until Android.</p>
-    <p>Interfaces are still at that stage. Useful software that needs to take input from people and show them results invents its own interface, often from raw bytes on a screen or a serial line. Even with a cross-platform toolkit or a whole web browser underneath, the interface is still built from zero, once per program.</p>
-    <p class="pitch-claim"><strong>hypereffect is the shared layer.</strong> It provides the bare minimum needed for most of what software asks of people, in a form that is safe and simple: a renderer is written once per platform and works with any number of servers.</p>
-  </div>
-  <figure class="parts">
-    <p class="parts-claim">Text, lists, inputs and buttons go a long way.</p>
-    <div class="parts-mock" aria-hidden="true">
-      <span class="pm-label">text</span>
-      <div class="pm-text">Output 1 · 12.00 V · 0.85 A</div>
-      <span class="pm-label">list</span>
-      <div class="pm-list"><span>Output 1</span><span>Output 2</span><span>Sequence</span></div>
-      <span class="pm-label">input</span>
-      <div class="pm-input">12.00</div>
-      <span class="pm-label">button</span>
-      <div class="pm-button">Apply</div>
-    </div>
-  </figure>
-</section>
-
-<section class="band" id="transports">
-  <h2>Transport-agnostic</h2>
-  <p>hypereffect doesn't specify how the server talks to the renderer, or what a server and a renderer are in the first place. Anything that carries text reliably will do. The <a href="spec.html#transports">spec</a> defines mappings for the common ones.</p>
-  <ul class="plugs">
-    <li><b>stdin / stdout</b><span>of a child process</span></li>
-    <li><b>Unix socket</b><span>for local services</span></li>
-    <li><b>Serial line</b><span>to an embedded device</span></li>
-    <li><b>WebSocket</b><span>a message per frame</span></li>
-    <li><b>iroh</b><span>bidirectional streams</span></li>
-    <li><b>In-process</b><span>a WASM module</span></li>
-  </ul>
-</section>
-
-<section class="band" id="use-cases">
-  <h2>Use cases</h2>
-  <p>Interfaces that are mostly text, inputs, buttons and lists, with the logic on a server or in another process.</p>
-  <div class="cards two">
-    <div class="card"><h3>Sandboxed modules</h3><p>A WebAssembly module can render structured information and get input from a user without having to paint each pixel.</p></div>
-    <div class="card"><h3>Control panels for hardware</h3><p>A device serves its own control panel over a socket or serial line, the controller gets a clear and native UI.</p></div>
-    <div class="card"><h3>Alternative browser ecosystem for simple services</h3><p>A service speaks hypereffect at a URL and looks native in a generic hypereffect browser.</p></div>
-    <div class="card"><h3>Interfaces generated by agents</h3><p>An LLM agent builds forms and choices on the fly, as plain JSON with no code to run.</p></div>
-  </div>
-</section>
-
-<section class="band quiet" id="non-use-cases">
-  <h2>Non-use cases</h2>
-  <ul>
-    <li><strong>Visual, highly interactive interfaces.</strong> Data visualization, editing photos, audio or video, action games, navigating a map: anything drawn or manipulated directly rather than described as text, inputs and buttons.</li>
-    <li><strong>Tools people live in.</strong> Software used all day, where comfort, visual polish and shortcuts that build into muscle memory matter more than anything, even when the content is plain text.</li>
-    <li><strong>Dense, busy screens.</strong> Applications that show a lot at once with many potential actions always within reach of the user, like dashboards, messaging and social media apps, trading screens, project boards.</li>
-  </ul>
-</section>
-
-<section class="band hyper" id="hypermedia">
-  <h2>A hypermedia system</h2>
-  <p class="hyper-lead">hypereffect strives to be the world's second most successful <a href="https://hypermedia.systems/hypermedia-a-reintroduction/">hypermedia system</a>, after HTML.</p>
-  <ul class="tenets">
-    <li>
-      <h3>The server describes the UI.</h3>
-      <p>The client receives the interface itself: it never parses contacts or orders and never needs to know what they mean in order to render them.</p>
-    </li>
-    <li>
-      <h3>The server drives application state.</h3>
-      <p>The server decides what the user sees and which actions are available next, instead of client code deciding what is possible.</p>
-    </li>
-    <li>
-      <h3>Behavior is declared in the markup.</h3>
-      <p>Each element describes the interactions it offers, the document is self-describing. Buttons and inputs are <em>hypermedia controls</em>.</p>
-    </li>
-  </ul>
-</section>
-
-<section class="band" id="principles">
-  <h2>Deliberately small</h2>
-  <p>The protocol leaves things out on purpose, so that every renderer can show every application.</p>
-  <ol class="manifesto">
-    <li><h3>No styling.</h3><p>Variants say what something is, like <code>h2</code>, <code>primary</code> or <code>warning</code>. The renderer decides how they look.</p></li>
-    <li><h3>No custom components.</h3><p>18 components, the same in every renderer, interoperability reigns.</p></li>
-    <li><h3>No scripts.</h3><p>Expressions compute values and have no side effects. A server cannot run arbitrary code on the renderer.</p></li>
-  </ol>
-</section>
-
-<section class="band" id="safety">
-  <h2>Inherently safe</h2>
-  <p>A renderer trusts a server for content, never for execution. There is nothing to run: expressions have no side effects and there are no scripts, so opening an unknown server is about as risky as reading what it says. In the other direction, the server treats every action as untrusted user input, whatever the renderer claims to have shown. See the <a href="spec.html#security">security considerations</a>.</p>
-</section>
-
-<section class="band a11y" id="accessibility">
-  <div class="a11y-text">
-    <h2>Necessarily accessible</h2>
-    <p>Messages carry meaning, not pixels: headings have a level, buttons and inputs have labels, images have alt text. A renderer maps them to the platform's own widgets, so screen readers, keyboard navigation, text scaling and high contrast work the way people already know.</p>
-  </div>
-  <ul class="spoken" aria-label="Elements and what a screen reader announces">
-    <li data-ex="basil"><code>text · h2 · "Basil"</code><q>Basil, heading level 2</q></li>
-    <li data-ex="basil"><code>notice · warning · "Soil moisture 24%"</code><q>Warning: Soil moisture 24%</q></li>
-    <li data-ex="basil"><code>button · primary · "Water now"</code><q>Water now, button</q></li>
-    <li data-ex="table"><code>text · h2 · "Table for two"</code><q>Table for two, heading level 2</q></li>
-    <li data-ex="table"><code>select · segmented · "Time"</code><q>Time, 21:30, 3 of 3</q></li>
-    <li data-ex="table"><code>button · primary · "Book for 21:30"</code><q>Book for 21:30, button</q></li>
-    <li><code>input · number · "Voltage"</code><q>Voltage, edit text, 12.00</q></li>
-    <li><code>checkbox · switch · "Output 1"</code><q>Output 1, switch, on</q></li>
-    <li><code>image · alt "Wiring diagram"</code><q>Wiring diagram, image</q></li>
-  </ul>
-</section>
-</main>
-
-<footer class="site"><div class="inner">hypereffect · <a href="https://github.com/andunieee/hypereffect">GitHub</a></div></footer>
-</body>
+    </footer>
+  </body>
 </html>

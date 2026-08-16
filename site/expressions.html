@@ -1,165 +1,434 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>hypereffect expressions</title>
-<meta name="description" content="How hypereffect uses CEL expressions to compute attribute values from signals, and the functions available to them.">
-<link rel="icon" href="logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css">
-<script src="site.js" defer></script>
-</head>
-<body>
-<header class="site"><div class="inner">
-  <a class="name" href="index.html">hypereffect</a>
-  <nav>
-    <a href="index.html">Overview</a>
-    <a href="components.html">Components</a>
-    <a href="signals.html">Signals</a>
-    <a href="expressions.html" aria-current="page">Expressions</a>
-    <a href="actions.html">Actions</a>
-    <a href="demo/">Demo</a>
-    <a href="spec.html">Spec</a>
-  </nav>
-</div></header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>hypereffect expressions</title>
+    <meta
+      name="description"
+      content="How hypereffect uses CEL expressions to compute attribute values from signals, and the functions available to them."
+    />
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="site.js" defer></script>
+  </head>
+  <body>
+    <header class="site">
+      <div class="inner">
+        <a class="name" href="index.html">hypereffect</a>
+        <nav>
+          <a href="index.html">Overview</a>
+          <a href="components.html">Components</a>
+          <a href="signals.html">Signals</a>
+          <a href="expressions.html" aria-current="page">Expressions</a>
+          <a href="actions.html">Actions</a>
+          <a href="demo/">Demo</a>
+          <a href="spec.html">Spec</a>
+        </nav>
+      </div>
+    </header>
 
-<main class="doc">
-<div class="doc-head">
-<h1>Expressions</h1>
-<p class="lede">Attribute values can be computed from signals with CEL expressions. The renderer re-evaluates them whenever the signals they read change.</p>
-</div>
+    <main class="doc">
+      <div class="doc-head">
+        <h1>Expressions</h1>
+        <p class="lede">
+          Attribute values can be computed from signals with CEL expressions. The renderer
+          re-evaluates them whenever the signals they read change.
+        </p>
+      </div>
 
-<nav class="toc" aria-label="Contents">
-<p class="toc-title">On this page</p>
-<ol>
-  <li><a href="#cel">CEL</a></li>
-  <li><a href="#syntax">Syntax</a></li>
-  <li><a href="#variables">The <code>s</code> variable</a></li>
-  <li><a href="#where">Where expressions are allowed</a></li>
-  <li><a href="#functions">Functions</a>
-    <ol>
-      <li><a href="#standard">Standard</a></li>
-      <li><a href="#strings">Strings</a></li>
-    </ol>
-  </li>
-  <li><a href="#types">Types</a></li>
-  <li><a href="#failure">Failure</a></li>
-</ol>
-</nav>
+      <nav class="toc" aria-label="Contents">
+        <p class="toc-title">On this page</p>
+        <ol>
+          <li><a href="#cel">CEL</a></li>
+          <li><a href="#syntax">Syntax</a></li>
+          <li>
+            <a href="#variables">The <code>s</code> variable</a>
+          </li>
+          <li><a href="#where">Where expressions are allowed</a></li>
+          <li>
+            <a href="#functions">Functions</a>
+            <ol>
+              <li><a href="#standard">Standard</a></li>
+              <li><a href="#strings">Strings</a></li>
+            </ol>
+          </li>
+          <li><a href="#types">Types</a></li>
+          <li><a href="#failure">Failure</a></li>
+        </ol>
+      </nav>
 
-<article class="prose">
-<h2 id="cel">CEL</h2>
-<p>Expressions are written in the <a href="https://cel.dev/">Common Expression Language</a> (CEL), a small language designed for evaluating untrusted expressions quickly and safely. It looks like the expression part of C, Java or JavaScript:</p>
-<pre>s.count + 1
+      <article class="prose">
+        <h2 id="cel">CEL</h2>
+        <p>
+          Expressions are written in the
+          <a href="https://cel.dev/">Common Expression Language</a> (CEL), a small language designed
+          for evaluating untrusted expressions quickly and safely. It looks like the expression part
+          of C, Java or JavaScript:
+        </p>
+        <pre>
+s.count + 1
 s.user.name + ' (' + string(s.user.unread) + ')'
 s.saved ? 'success' : 'failure'
 size(s.items) == 0</pre>
-<p>CEL has no side effects and is not Turing-complete: evaluating an expression cannot change signals or send messages, and its cost is bounded by the size of the expression and its input. It has independent implementations in Go, Java, C++, Rust, JavaScript, Python and others.</p>
+        <p>
+          CEL has no side effects and is not Turing-complete: evaluating an expression cannot change
+          signals or send messages, and its cost is bounded by the size of the expression and its
+          input. It has independent implementations in Go, Java, C++, Rust, JavaScript, Python and
+          others.
+        </p>
 
-<h2 id="syntax">Syntax</h2>
-<p>An expression is a JSON object with a single <code>cel</code> member holding the expression as a string. It takes the place of a literal value:</p>
-<pre>element {"id":"static","type":"text","text":"Hello"}
+        <h2 id="syntax">Syntax</h2>
+        <p>
+          An expression is a JSON object with a single <code>cel</code> member holding the
+          expression as a string. It takes the place of a literal value:
+        </p>
+        <pre>
+element {"id":"static","type":"text","text":"Hello"}
 element {"id":"computed","type":"text","text":{"cel":"'Hello, ' + s.user.name"}}</pre>
-<p>Any other value is literal, including objects with other members or with a non-string <code>cel</code>.</p>
-<pre>"text":     {"cel":"'Count: ' + string(s.count)"}
+        <p>
+          Any other value is literal, including objects with other members or with a non-string
+          <code>cel</code>.
+        </p>
+        <pre>
+"text":     {"cel":"'Count: ' + string(s.count)"}
 "visible":  {"cel":"s.count &gt; 0"}
 "disabled": {"cel":"s._busy || s.login.user == ''"}
 "variant":  {"cel":"s.saved ? 'success' : 'failure'"}</pre>
 
-<h2 id="variables">The <code>s</code> variable</h2>
-<p>Expressions have a single variable, <code>s</code>, which holds the current signals. With the signals <code>{"count":3,"user":{"name":"Ada"},"_open":true}</code>, the expressions <code>s.count</code>, <code>s.user.name</code> and <code>s._open</code> evaluate to <code>3</code>, <code>"Ada"</code> and <code>true</code>. Keys that are not CEL identifiers can be read with an index, as in <code>s['first-name']</code>.</p>
+        <h2 id="variables">The <code>s</code> variable</h2>
+        <p>
+          Expressions have a single variable, <code>s</code>, which holds the current signals. With
+          the signals <code>{"count":3,"user":{"name":"Ada"},"_open":true}</code>, the expressions
+          <code>s.count</code>, <code>s.user.name</code> and <code>s._open</code> evaluate to
+          <code>3</code>, <code>"Ada"</code> and <code>true</code>. Keys that are not CEL
+          identifiers can be read with an index, as in <code>s['first-name']</code>.
+        </p>
 
-<h2 id="where">Where expressions are allowed</h2>
-<p>Any attribute may be an expression except the structural ones, which must be literal: <code>id</code>, <code>type</code>, <code>parent</code>, <code>before</code>, <code>bind</code> and the handlers (<code>onPress</code>, <code>onChange</code>, <code>onSubmit</code>, <code>onDismiss</code>). The <a href="components.html">component reference</a> marks each attribute that accepts an expression.</p>
-<p>Inside a <a href="actions.html#handlers">handler</a>, the leaf values of a <code>patch</code> may be expressions. They are evaluated against the current signals before the patch is applied, which allows a toggle:</p>
-<pre>"onPress": {"patch":{"_expanded":{"cel":"!s._expanded"}}}</pre>
+        <h2 id="where">Where expressions are allowed</h2>
+        <p>
+          Any attribute may be an expression except the structural ones, which must be literal:
+          <code>id</code>, <code>type</code>, <code>parent</code>, <code>before</code>,
+          <code>bind</code> and the handlers (<code>onPress</code>, <code>onChange</code>,
+          <code>onSubmit</code>, <code>onDismiss</code>). The
+          <a href="components.html">component reference</a> marks each attribute that accepts an
+          expression.
+        </p>
+        <p>
+          Inside a <a href="actions.html#handlers">handler</a>, the leaf values of a
+          <code>patch</code> may be expressions. They are evaluated against the current signals
+          before the patch is applied, which allows a toggle:
+        </p>
+        <pre>"onPress": {"patch":{"_expanded":{"cel":"!s._expanded"}}}</pre>
 
-<h2 id="functions">Functions</h2>
-<p>Every renderer provides the CEL standard definitions and the strings extension, listed below. Functions written <code>x.f()</code> are called on a value; the others are called on their own or through their namespace.</p>
+        <h2 id="functions">Functions</h2>
+        <p>
+          Every renderer provides the CEL standard definitions and the strings extension, listed
+          below. Functions written <code>x.f()</code> are called on a value; the others are called
+          on their own or through their namespace.
+        </p>
 
-<h3 id="standard">Standard</h3>
-<p>Defined in the <a href="https://github.com/google/cel-spec/blob/master/doc/langdef.md#list-of-standard-definitions">CEL language definition</a>.</p>
-<table>
-  <thead><tr><th>Operator or function</th><th>Description</th></tr></thead>
-  <tbody>
-    <tr><td><code>!</code> <code>&amp;&amp;</code> <code>||</code></td><td>Logical not, and, or. <code>&amp;&amp;</code> and <code>||</code> tolerate an error on one side if the other side decides the result.</td></tr>
-    <tr><td><code>c ? a : b</code></td><td>Conditional.</td></tr>
-    <tr><td><code>==</code> <code>!=</code> <code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code></td><td>Comparison. Numbers of different types compare by value.</td></tr>
-    <tr><td><code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code></td><td>Arithmetic on numbers of the same type. <code>+</code> also concatenates strings and lists. <code>-</code> also negates.</td></tr>
-    <tr><td><code>a in b</code></td><td>Whether a list contains a value, or a map has a key.</td></tr>
-    <tr><td><code>a[i]</code></td><td>List index or map key.</td></tr>
-    <tr><td><code>size(x)</code>, <code>x.size()</code></td><td>Length of a string (in code points), list or map.</td></tr>
-    <tr><td><code>str.contains(t)</code></td><td>Whether <code>str</code> contains <code>t</code>.</td></tr>
-    <tr><td><code>str.startsWith(t)</code>, <code>str.endsWith(t)</code></td><td>Prefix and suffix tests.</td></tr>
-    <tr><td><code>str.matches(re)</code>, <code>matches(str, re)</code></td><td>Whether <code>str</code> contains a match of the <a href="https://github.com/google/re2/wiki/Syntax">RE2</a> regular expression.</td></tr>
-    <tr><td><code>int(x)</code>, <code>uint(x)</code>, <code>double(x)</code></td><td>Number conversions, from numbers or strings.</td></tr>
-    <tr><td><code>string(x)</code></td><td>Converts a number, bool, timestamp or duration to a string.</td></tr>
-    <tr><td><code>bool(x)</code></td><td>Parses <code>"true"</code> or <code>"false"</code>.</td></tr>
-    <tr><td><code>bytes(x)</code></td><td>Converts a string to bytes.</td></tr>
-    <tr><td><code>dyn(x)</code></td><td>Marks a value as dynamically typed.</td></tr>
-    <tr><td><code>type(x)</code></td><td>The type of a value, comparable with <code>int</code>, <code>string</code>, <code>list</code>, <code>map</code> and so on.</td></tr>
-    <tr><td><code>timestamp(str)</code>, <code>duration(str)</code></td><td>Parse an RFC 3339 timestamp, or a duration such as <code>"1h30m"</code>. Timestamps and durations support <code>+</code>, <code>-</code> and comparison.</td></tr>
-    <tr><td><code>t.getFullYear()</code>, <code>getMonth()</code>, <code>getDate()</code>, <code>getDayOfMonth()</code>, <code>getDayOfWeek()</code>, <code>getDayOfYear()</code>, <code>getHours()</code>, <code>getMinutes()</code>, <code>getSeconds()</code>, <code>getMilliseconds()</code></td><td>Timestamp components, in UTC or in the time zone given as an argument. <code>getHours()</code> to <code>getMilliseconds()</code> also apply to durations.</td></tr>
-  </tbody>
-</table>
-<p>Macros:</p>
-<table>
-  <thead><tr><th>Macro</th><th>Description</th></tr></thead>
-  <tbody>
-    <tr><td><code>has(x.f)</code></td><td>Whether the map <code>x</code> has the key <code>f</code>: <code>has(s.user)</code>.</td></tr>
-    <tr><td><code>l.all(x, p)</code></td><td>Whether <code>p</code> holds for every item. On a map, iterates over keys.</td></tr>
-    <tr><td><code>l.exists(x, p)</code></td><td>Whether <code>p</code> holds for some item.</td></tr>
-    <tr><td><code>l.exists_one(x, p)</code></td><td>Whether <code>p</code> holds for exactly one item.</td></tr>
-    <tr><td><code>l.map(x, e)</code>, <code>l.map(x, p, e)</code></td><td>The list of <code>e</code> for each item, optionally only those for which <code>p</code> holds.</td></tr>
-    <tr><td><code>l.filter(x, p)</code></td><td>The items for which <code>p</code> holds.</td></tr>
-  </tbody>
-</table>
+        <h3 id="standard">Standard</h3>
+        <p>
+          Defined in the
+          <a
+            href="https://github.com/google/cel-spec/blob/master/doc/langdef.md#list-of-standard-definitions"
+            >CEL language definition</a
+          >.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Operator or function</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>!</code> <code>&amp;&amp;</code> <code>||</code></td>
+              <td>
+                Logical not, and, or. <code>&amp;&amp;</code> and <code>||</code> tolerate an error
+                on one side if the other side decides the result.
+              </td>
+            </tr>
+            <tr>
+              <td><code>c ? a : b</code></td>
+              <td>Conditional.</td>
+            </tr>
+            <tr>
+              <td>
+                <code>==</code> <code>!=</code> <code>&lt;</code> <code>&lt;=</code>
+                <code>&gt;</code> <code>&gt;=</code>
+              </td>
+              <td>Comparison. Numbers of different types compare by value.</td>
+            </tr>
+            <tr>
+              <td><code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code></td>
+              <td>
+                Arithmetic on numbers of the same type. <code>+</code> also concatenates strings and
+                lists. <code>-</code> also negates.
+              </td>
+            </tr>
+            <tr>
+              <td><code>a in b</code></td>
+              <td>Whether a list contains a value, or a map has a key.</td>
+            </tr>
+            <tr>
+              <td><code>a[i]</code></td>
+              <td>List index or map key.</td>
+            </tr>
+            <tr>
+              <td><code>size(x)</code>, <code>x.size()</code></td>
+              <td>Length of a string (in code points), list or map.</td>
+            </tr>
+            <tr>
+              <td><code>str.contains(t)</code></td>
+              <td>Whether <code>str</code> contains <code>t</code>.</td>
+            </tr>
+            <tr>
+              <td><code>str.startsWith(t)</code>, <code>str.endsWith(t)</code></td>
+              <td>Prefix and suffix tests.</td>
+            </tr>
+            <tr>
+              <td><code>str.matches(re)</code>, <code>matches(str, re)</code></td>
+              <td>
+                Whether <code>str</code> contains a match of the
+                <a href="https://github.com/google/re2/wiki/Syntax">RE2</a> regular expression.
+              </td>
+            </tr>
+            <tr>
+              <td><code>int(x)</code>, <code>uint(x)</code>, <code>double(x)</code></td>
+              <td>Number conversions, from numbers or strings.</td>
+            </tr>
+            <tr>
+              <td><code>string(x)</code></td>
+              <td>Converts a number, bool, timestamp or duration to a string.</td>
+            </tr>
+            <tr>
+              <td><code>bool(x)</code></td>
+              <td>Parses <code>"true"</code> or <code>"false"</code>.</td>
+            </tr>
+            <tr>
+              <td><code>bytes(x)</code></td>
+              <td>Converts a string to bytes.</td>
+            </tr>
+            <tr>
+              <td><code>dyn(x)</code></td>
+              <td>Marks a value as dynamically typed.</td>
+            </tr>
+            <tr>
+              <td><code>type(x)</code></td>
+              <td>
+                The type of a value, comparable with <code>int</code>, <code>string</code>,
+                <code>list</code>, <code>map</code> and so on.
+              </td>
+            </tr>
+            <tr>
+              <td><code>timestamp(str)</code>, <code>duration(str)</code></td>
+              <td>
+                Parse an RFC 3339 timestamp, or a duration such as <code>"1h30m"</code>. Timestamps
+                and durations support <code>+</code>, <code>-</code> and comparison.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <code>t.getFullYear()</code>, <code>getMonth()</code>, <code>getDate()</code>,
+                <code>getDayOfMonth()</code>, <code>getDayOfWeek()</code>,
+                <code>getDayOfYear()</code>, <code>getHours()</code>, <code>getMinutes()</code>,
+                <code>getSeconds()</code>, <code>getMilliseconds()</code>
+              </td>
+              <td>
+                Timestamp components, in UTC or in the time zone given as an argument.
+                <code>getHours()</code> to <code>getMilliseconds()</code> also apply to durations.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Macros:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Macro</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>has(x.f)</code></td>
+              <td>
+                Whether the map <code>x</code> has the key <code>f</code>: <code>has(s.user)</code>.
+              </td>
+            </tr>
+            <tr>
+              <td><code>l.all(x, p)</code></td>
+              <td>Whether <code>p</code> holds for every item. On a map, iterates over keys.</td>
+            </tr>
+            <tr>
+              <td><code>l.exists(x, p)</code></td>
+              <td>Whether <code>p</code> holds for some item.</td>
+            </tr>
+            <tr>
+              <td><code>l.exists_one(x, p)</code></td>
+              <td>Whether <code>p</code> holds for exactly one item.</td>
+            </tr>
+            <tr>
+              <td><code>l.map(x, e)</code>, <code>l.map(x, p, e)</code></td>
+              <td>
+                The list of <code>e</code> for each item, optionally only those for which
+                <code>p</code> holds.
+              </td>
+            </tr>
+            <tr>
+              <td><code>l.filter(x, p)</code></td>
+              <td>The items for which <code>p</code> holds.</td>
+            </tr>
+          </tbody>
+        </table>
 
-<h3 id="strings">Strings</h3>
-<p>Defined by the <a href="https://github.com/google/cel-go/blob/master/ext/README.md#strings">cel-go strings extension</a>. Indexes count code points.</p>
-<table>
-  <thead><tr><th>Function</th><th>Description</th></tr></thead>
-  <tbody>
-    <tr><td><code>str.charAt(i)</code></td><td>The character at index <code>i</code>, or <code>""</code> at the end of the string.</td></tr>
-    <tr><td><code>str.indexOf(t)</code>, <code>str.indexOf(t, from)</code></td><td>Index of the first occurrence of <code>t</code>, or <code>-1</code>.</td></tr>
-    <tr><td><code>str.lastIndexOf(t)</code>, <code>str.lastIndexOf(t, from)</code></td><td>Index of the last occurrence of <code>t</code>, or <code>-1</code>.</td></tr>
-    <tr><td><code>str.substring(start)</code>, <code>str.substring(start, end)</code></td><td>The characters from <code>start</code> up to <code>end</code>, exclusive.</td></tr>
-    <tr><td><code>str.lowerAscii()</code>, <code>str.upperAscii()</code></td><td>Changes the case of ASCII letters only.</td></tr>
-    <tr><td><code>str.trim()</code></td><td>Removes leading and trailing whitespace.</td></tr>
-    <tr><td><code>str.replace(old, new)</code>, <code>str.replace(old, new, n)</code></td><td>Replaces occurrences of <code>old</code>, all of them or the first <code>n</code>.</td></tr>
-    <tr><td><code>str.split(sep)</code>, <code>str.split(sep, n)</code></td><td>Splits into a list, into at most <code>n</code> parts if given.</td></tr>
-    <tr><td><code>l.join()</code>, <code>l.join(sep)</code></td><td>Joins a list of strings.</td></tr>
-    <tr><td><code>str.reverse()</code></td><td>The characters in reverse order.</td></tr>
-    <tr><td><code>str.format(args)</code></td><td>Formats a list of values, <code>printf</code> style: <code>"%s has %d items".format([s.name, size(s.items)])</code>. Verbs: <code>%s</code>, <code>%d</code>, <code>%f</code> (with precision, as <code>%.2f</code>), <code>%e</code>, <code>%b</code>, <code>%o</code>, <code>%x</code>, <code>%X</code>, <code>%%</code>.</td></tr>
-    <tr><td><code>strings.quote(str)</code></td><td>The string as a quoted CEL string literal.</td></tr>
-  </tbody>
-</table>
+        <h3 id="strings">Strings</h3>
+        <p>
+          Defined by the
+          <a href="https://github.com/google/cel-go/blob/master/ext/README.md#strings"
+            >cel-go strings extension</a
+          >. Indexes count code points.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Function</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>str.charAt(i)</code></td>
+              <td>
+                The character at index <code>i</code>, or <code>""</code> at the end of the string.
+              </td>
+            </tr>
+            <tr>
+              <td><code>str.indexOf(t)</code>, <code>str.indexOf(t, from)</code></td>
+              <td>Index of the first occurrence of <code>t</code>, or <code>-1</code>.</td>
+            </tr>
+            <tr>
+              <td><code>str.lastIndexOf(t)</code>, <code>str.lastIndexOf(t, from)</code></td>
+              <td>Index of the last occurrence of <code>t</code>, or <code>-1</code>.</td>
+            </tr>
+            <tr>
+              <td><code>str.substring(start)</code>, <code>str.substring(start, end)</code></td>
+              <td>The characters from <code>start</code> up to <code>end</code>, exclusive.</td>
+            </tr>
+            <tr>
+              <td><code>str.lowerAscii()</code>, <code>str.upperAscii()</code></td>
+              <td>Changes the case of ASCII letters only.</td>
+            </tr>
+            <tr>
+              <td><code>str.trim()</code></td>
+              <td>Removes leading and trailing whitespace.</td>
+            </tr>
+            <tr>
+              <td><code>str.replace(old, new)</code>, <code>str.replace(old, new, n)</code></td>
+              <td>
+                Replaces occurrences of <code>old</code>, all of them or the first <code>n</code>.
+              </td>
+            </tr>
+            <tr>
+              <td><code>str.split(sep)</code>, <code>str.split(sep, n)</code></td>
+              <td>Splits into a list, into at most <code>n</code> parts if given.</td>
+            </tr>
+            <tr>
+              <td><code>l.join()</code>, <code>l.join(sep)</code></td>
+              <td>Joins a list of strings.</td>
+            </tr>
+            <tr>
+              <td><code>str.reverse()</code></td>
+              <td>The characters in reverse order.</td>
+            </tr>
+            <tr>
+              <td><code>str.format(args)</code></td>
+              <td>
+                Formats a list of values, <code>printf</code> style:
+                <code>"%s has %d items".format([s.name, size(s.items)])</code>. Verbs:
+                <code>%s</code>, <code>%d</code>, <code>%f</code> (with precision, as
+                <code>%.2f</code>), <code>%e</code>, <code>%b</code>, <code>%o</code>,
+                <code>%x</code>, <code>%X</code>, <code>%%</code>.
+              </td>
+            </tr>
+            <tr>
+              <td><code>strings.quote(str)</code></td>
+              <td>The string as a quoted CEL string literal.</td>
+            </tr>
+          </tbody>
+        </table>
 
-<h2 id="types">Types</h2>
-<p>Signals are JSON, and are seen by CEL as follows:</p>
-<table>
-  <thead><tr><th>JSON</th><th>CEL</th></tr></thead>
-  <tbody>
-    <tr><td>null</td><td><code>null_type</code></td></tr>
-    <tr><td>true, false</td><td><code>bool</code></td></tr>
-    <tr><td>number with no fraction or exponent</td><td><code>int</code></td></tr>
-    <tr><td>any other number</td><td><code>double</code></td></tr>
-    <tr><td>string</td><td><code>string</code></td></tr>
-    <tr><td>array</td><td><code>list(dyn)</code></td></tr>
-    <tr><td>object</td><td><code>map(string, dyn)</code></td></tr>
-  </tbody>
-</table>
-<p>CEL does not mix <code>int</code> and <code>double</code> in arithmetic. If a signal can hold either, convert it first: <code>double(x) * 2.0</code>.</p>
-<p>The result must match the attribute's type. String and enum attributes need a <code>string</code>, with no implicit conversion, so numbers must go through <code>string()</code> or <code>format()</code>. Bool attributes need a <code>bool</code>. Number attributes accept <code>int</code>, <code>uint</code> or <code>double</code>.</p>
+        <h2 id="types">Types</h2>
+        <p>Signals are JSON, and are seen by CEL as follows:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>JSON</th>
+              <th>CEL</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>null</td>
+              <td><code>null_type</code></td>
+            </tr>
+            <tr>
+              <td>true, false</td>
+              <td><code>bool</code></td>
+            </tr>
+            <tr>
+              <td>number with no fraction or exponent</td>
+              <td><code>int</code></td>
+            </tr>
+            <tr>
+              <td>any other number</td>
+              <td><code>double</code></td>
+            </tr>
+            <tr>
+              <td>string</td>
+              <td><code>string</code></td>
+            </tr>
+            <tr>
+              <td>array</td>
+              <td><code>list(dyn)</code></td>
+            </tr>
+            <tr>
+              <td>object</td>
+              <td><code>map(string, dyn)</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          CEL does not mix <code>int</code> and <code>double</code> in arithmetic. If a signal can
+          hold either, convert it first: <code>double(x) * 2.0</code>.
+        </p>
+        <p>
+          The result must match the attribute's type. String and enum attributes need a
+          <code>string</code>, with no implicit conversion, so numbers must go through
+          <code>string()</code> or <code>format()</code>. Bool attributes need a <code>bool</code>.
+          Number attributes accept <code>int</code>, <code>uint</code> or <code>double</code>.
+        </p>
 
-<h2 id="failure">Failure</h2>
-<p>If an expression fails to parse, fails to evaluate, or produces a value of the wrong type, the attribute takes its default. The renderer reports this as a diagnostic, never to the user.</p>
-<p>Reading a signal that does not exist is an evaluation failure. The default of <code>visible</code> and <code>open</code> is <code>true</code>, so a failed expression shows the element. Send signals before the elements that read them, or test for them with <code>has()</code>:</p>
-<pre>"text": {"cel":"has(s.user.name) ? s.user.name : 'guest'"}</pre>
-<p>The exact rules are in the <a href="spec.html#expressions">specification</a>.</p>
-</article>
-</main>
+        <h2 id="failure">Failure</h2>
+        <p>
+          If an expression fails to parse, fails to evaluate, or produces a value of the wrong type,
+          the attribute takes its default. The renderer reports this as a diagnostic, never to the
+          user.
+        </p>
+        <p>
+          Reading a signal that does not exist is an evaluation failure. The default of
+          <code>visible</code> and <code>open</code> is <code>true</code>, so a failed expression
+          shows the element. Send signals before the elements that read them, or test for them with
+          <code>has()</code>:
+        </p>
+        <pre>"text": {"cel":"has(s.user.name) ? s.user.name : 'guest'"}</pre>
+        <p>The exact rules are in the <a href="spec.html#expressions">specification</a>.</p>
+      </article>
+    </main>
 
-<footer class="site"><div class="inner">hypereffect UI</div></footer>
-</body>
+    <footer class="site"><div class="inner">hypereffect UI</div></footer>
+  </body>
 </html>

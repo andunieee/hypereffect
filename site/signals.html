@@ -1,107 +1,185 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>hypereffect signals</title>
-<meta name="description" content="How hypereffect signals hold state, how controls bind to them in both directions, and how attributes follow them.">
-<link rel="icon" href="logo.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="demo/widgets.css">
-<script type="importmap">
-{ "imports": { "@marcbachmann/cel-js": "https://cdn.jsdelivr.net/npm/@marcbachmann/cel-js@8.0.0/+esm" } }
-</script>
-<script type="module" src="samples.js"></script>
-<script src="site.js" defer></script>
-</head>
-<body>
-<header class="site"><div class="inner">
-  <a class="name" href="index.html">hypereffect</a>
-  <nav>
-    <a href="index.html">Overview</a>
-    <a href="components.html">Components</a>
-    <a href="signals.html" aria-current="page">Signals</a>
-    <a href="expressions.html">Expressions</a>
-    <a href="actions.html">Actions</a>
-    <a href="demo/">Demo</a>
-    <a href="spec.html">Spec</a>
-  </nav>
-</div></header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>hypereffect signals</title>
+    <meta
+      name="description"
+      content="How hypereffect signals hold state, how controls bind to them in both directions, and how attributes follow them."
+    />
+    <link rel="icon" href="logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="demo/widgets.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "@marcbachmann/cel-js": "https://cdn.jsdelivr.net/npm/@marcbachmann/cel-js@8.0.0/+esm"
+        }
+      }
+    </script>
+    <script type="module" src="samples.js"></script>
+    <script src="site.js" defer></script>
+  </head>
+  <body>
+    <header class="site">
+      <div class="inner">
+        <a class="name" href="index.html">hypereffect</a>
+        <nav>
+          <a href="index.html">Overview</a>
+          <a href="components.html">Components</a>
+          <a href="signals.html" aria-current="page">Signals</a>
+          <a href="expressions.html">Expressions</a>
+          <a href="actions.html">Actions</a>
+          <a href="demo/">Demo</a>
+          <a href="spec.html">Spec</a>
+        </nav>
+      </div>
+    </header>
 
-<main class="doc">
-<div class="doc-head">
-<h1>Signals</h1>
-<p class="lede">Signals are the state an interface reads and writes: one JSON object, shared by the server and the renderer. Controls bind to it in both directions, and attributes follow it as it changes. The idea, and the name, come from <a href="https://data-star.dev/">Datastar</a>.</p>
-</div>
+    <main class="doc">
+      <div class="doc-head">
+        <h1>Signals</h1>
+        <p class="lede">
+          Signals are the state an interface reads and writes: one JSON object, shared by the server
+          and the renderer. Controls bind to it in both directions, and attributes follow it as it
+          changes. The idea, and the name, come from <a href="https://data-star.dev/">Datastar</a>.
+        </p>
+      </div>
 
-<nav class="toc" aria-label="Contents">
-<p class="toc-title">On this page</p>
-<ol>
-  <li><a href="#example">A live example</a></li>
-  <li><a href="#patches">Changing signals</a></li>
-  <li><a href="#local">Local signals</a></li>
-  <li><a href="#paths">Signal paths</a></li>
-  <li><a href="#binding">Two-way binding</a></li>
-  <li><a href="#reactivity">Attributes follow signals</a></li>
-</ol>
-</nav>
+      <nav class="toc" aria-label="Contents">
+        <p class="toc-title">On this page</p>
+        <ol>
+          <li><a href="#example">A live example</a></li>
+          <li><a href="#patches">Changing signals</a></li>
+          <li><a href="#local">Local signals</a></li>
+          <li><a href="#paths">Signal paths</a></li>
+          <li><a href="#binding">Two-way binding</a></li>
+          <li><a href="#reactivity">Attributes follow signals</a></li>
+        </ol>
+      </nav>
 
-<article class="prose">
-<h2 id="example">A live example</h2>
-<p>The input and the checkbox are bound to signals, and the greeting and the badge are expressions that read them. Type in the field, tick the box, or press <em>Clear</em>, and watch the signals below the rendering.</p>
-<div class="sample" data-signals>
-<pre class="sample-src">signal {"user":{"name":"Ada"},"_shout":false}
+      <article class="prose">
+        <h2 id="example">A live example</h2>
+        <p>
+          The input and the checkbox are bound to signals, and the greeting and the badge are
+          expressions that read them. Type in the field, tick the box, or press <em>Clear</em>, and
+          watch the signals below the rendering.
+        </p>
+        <div class="sample" data-signals>
+          <pre class="sample-src">
+signal {"user":{"name":"Ada"},"_shout":false}
 element {"id":"form","type":"column","gap":"small","align":"start"}
 element {"id":"name","type":"input","parent":"form","label":"Name","bind":"user.name"}
 element {"id":"shout","type":"checkbox","parent":"form","label":"Shout","bind":"_shout"}
 element {"id":"greeting","type":"text","parent":"form","variant":"h3","text":{"cel":"s.user.name == '' ? 'Who are you?' : 'Hello, ' + (s._shout ? s.user.name.upperAscii() + '!' : s.user.name)"}}
 element {"id":"length","type":"badge","parent":"form","text":{"cel":"string(size(s.user.name)) + ' characters'"},"visible":{"cel":"s.user.name != ''"}}
 element {"id":"clear","type":"button","parent":"form","variant":"plain","label":"Clear","onPress":{"patch":{"user":{"name":""}}}}</pre>
-</div>
-<p>Nothing here talks to a server: the binding, the patch from <em>Clear</em> and the updates all happen in the renderer.</p>
+        </div>
+        <p>
+          Nothing here talks to a server: the binding, the patch from <em>Clear</em> and the updates
+          all happen in the renderer.
+        </p>
 
-<h2 id="patches">Changing signals</h2>
-<p>A session starts with the signals sent by the renderer in its <code>hello</code>, usually <code>{}</code>. After that they change in three ways, all as <a href="https://www.rfc-editor.org/rfc/rfc7386">JSON Merge Patch</a>: objects merge recursively, other values replace, and <code>null</code> deletes a key.</p>
-<ul>
-  <li>The server sends a <code>signal</code> message.</li>
-  <li>The user changes a control with <code>bind</code>.</li>
-  <li>A <a href="actions.html#handlers">handler</a> applies a <code>patch</code>, or sets an indicator.</li>
-</ul>
-<pre>signal {"user":{"name":"Ada","unread":3}}
+        <h2 id="patches">Changing signals</h2>
+        <p>
+          A session starts with the signals sent by the renderer in its <code>hello</code>, usually
+          <code>{}</code>. After that they change in three ways, all as
+          <a href="https://www.rfc-editor.org/rfc/rfc7386">JSON Merge Patch</a>: objects merge
+          recursively, other values replace, and <code>null</code> deletes a key.
+        </p>
+        <ul>
+          <li>The server sends a <code>signal</code> message.</li>
+          <li>The user changes a control with <code>bind</code>.</li>
+          <li>
+            A <a href="actions.html#handlers">handler</a> applies a <code>patch</code>, or sets an
+            indicator.
+          </li>
+        </ul>
+        <pre>signal {"user":{"name":"Ada","unread":3}}
 signal {"user":{"unread":4}}          <span class="c"># name is kept</span>
 signal {"user":{"unread":null}}       <span class="c"># unread is deleted</span></pre>
-<p>Arrays are values: a patch replaces an array as a whole.</p>
+        <p>Arrays are values: a patch replaces an array as a whole.</p>
 
-<h2 id="local">Local signals</h2>
-<p>A key that begins with <code>_</code>, at any depth, is local. Local signals are never sent to the server, neither in <code>hello</code> nor with actions. They hold state that only matters to the renderer, such as whether a dialog is open or which tab is selected. The server may still write them.</p>
+        <h2 id="local">Local signals</h2>
+        <p>
+          A key that begins with <code>_</code>, at any depth, is local. Local signals are never
+          sent to the server, neither in <code>hello</code> nor with actions. They hold state that
+          only matters to the renderer, such as whether a dialog is open or which tab is selected.
+          The server may still write them.
+        </p>
 
-<h2 id="paths">Signal paths</h2>
-<p>The <code>bind</code> attribute and handler indicators name a place in the signals with a dot-separated path, such as <code>"user.name"</code>. Each segment matches <code>[A-Za-z_][A-Za-z0-9_]*</code>. A path whose first segment begins with <code>_</code> is local.</p>
+        <h2 id="paths">Signal paths</h2>
+        <p>
+          The <code>bind</code> attribute and handler indicators name a place in the signals with a
+          dot-separated path, such as <code>"user.name"</code>. Each segment matches
+          <code>[A-Za-z_][A-Za-z0-9_]*</code>. A path whose first segment begins with
+          <code>_</code> is local.
+        </p>
 
-<h2 id="binding">Two-way binding</h2>
-<p>A control with <code>bind</code> — <a href="components.html#input">input</a>, <a href="components.html#checkbox">checkbox</a>, <a href="components.html#select">select</a>, <a href="components.html#slider">slider</a> or <a href="components.html#tabs">tabs</a> — is tied to the value at its path in both directions.</p>
-<dl>
-  <dt>From the signals to the control</dt>
-  <dd>The control shows the value at its path. Whenever that value changes, whether from the server, a handler or another control bound to the same path, the control shows the new value, even if it has focus. If the value is missing or of the wrong type, the control shows its empty state.</dd>
-  <dt>From the control to the signals</dt>
-  <dd>When the user changes the control, the renderer writes the new value at the path, as the patch <code>{"user":{"name":"Grace"}}</code> for <code>user.name</code>. Missing objects along the path are created. The value has the type the component describes: a string for an input, a bool for a checkbox, a number for a slider.</dd>
-</dl>
-<p>Binding is local: the server learns the value when an action is sent, since actions carry the signals. To react to a change as it happens, give the control an <code>onChange</code> handler with an action.</p>
-<pre>element {"id":"email","type":"input","bind":"form.email","onChange":{"action":"check-email"}}
+        <h2 id="binding">Two-way binding</h2>
+        <p>
+          A control with <code>bind</code> — <a href="components.html#input">input</a>,
+          <a href="components.html#checkbox">checkbox</a>,
+          <a href="components.html#select">select</a>,
+          <a href="components.html#slider">slider</a> or <a href="components.html#tabs">tabs</a> —
+          is tied to the value at its path in both directions.
+        </p>
+        <dl>
+          <dt>From the signals to the control</dt>
+          <dd>
+            The control shows the value at its path. Whenever that value changes, whether from the
+            server, a handler or another control bound to the same path, the control shows the new
+            value, even if it has focus. If the value is missing or of the wrong type, the control
+            shows its empty state.
+          </dd>
+          <dt>From the control to the signals</dt>
+          <dd>
+            When the user changes the control, the renderer writes the new value at the path, as the
+            patch <code>{"user":{"name":"Grace"}}</code> for <code>user.name</code>. Missing objects
+            along the path are created. The value has the type the component describes: a string for
+            an input, a bool for a checkbox, a number for a slider.
+          </dd>
+        </dl>
+        <p>
+          Binding is local: the server learns the value when an action is sent, since actions carry
+          the signals. To react to a change as it happens, give the control an
+          <code>onChange</code> handler with an action.
+        </p>
+        <pre>element {"id":"email","type":"input","bind":"form.email","onChange":{"action":"check-email"}}
 <span class="c"># renderer → server, after the user types and leaves the field</span>
 action {"name":"check-email","signals":{"form":{"email":"ada@example.com"}}}</pre>
 
-<h2 id="reactivity">Attributes follow signals</h2>
-<p>Any attribute given as an <a href="expressions.html">expression</a> is a function of the signals. When the signals change, by any of the means above, the renderer re-evaluates the expressions that read the changed values and updates what they affect, without anything being re-sent. The server can change a whole interface with one small <code>signal</code> message:</p>
-<pre>signal {"unread":3}
+        <h2 id="reactivity">Attributes follow signals</h2>
+        <p>
+          Any attribute given as an <a href="expressions.html">expression</a> is a function of the
+          signals. When the signals change, by any of the means above, the renderer re-evaluates the
+          expressions that read the changed values and updates what they affect, without anything
+          being re-sent. The server can change a whole interface with one small
+          <code>signal</code> message:
+        </p>
+        <pre>signal {"unread":3}
 element {"id":"inbox","type":"button","label":{"cel":"'Inbox (' + string(s.unread) + ')'"},
          "variant":{"cel":"s.unread &gt; 0 ? 'primary' : 'secondary'"}}
 signal {"unread":0}          <span class="c"># the label becomes "Inbox (0)" and the button secondary</span></pre>
-<p>Renderers should only redraw what changed. An expression reads specific signals, such as <code>s.unread</code> or <code>s.user.name</code>, so a renderer can record which ones each attribute read the last time it was evaluated, and skip it when a patch changes none of them. Only the branches that ran count: <code>s.a ? s.b : s.c</code> depends on <code>a</code> and <code>b</code> while <code>s.a</code> is true, and on <code>a</code> and <code>c</code> once it becomes false. Bound controls work the same way: a control is updated when the value at its path changes. The exact rules are in the <a href="spec.html#dependencies">specification</a>.</p>
-<p>Use elements for structure, what is on the screen, and signals for values that change while the structure stays the same: a count, a status, a validation message, whether something is visible. Keep signals small: they are sent with every action.</p>
-</article>
-</main>
+        <p>
+          Renderers should only redraw what changed. An expression reads specific signals, such as
+          <code>s.unread</code> or <code>s.user.name</code>, so a renderer can record which ones
+          each attribute read the last time it was evaluated, and skip it when a patch changes none
+          of them. Only the branches that ran count: <code>s.a ? s.b : s.c</code> depends on
+          <code>a</code> and <code>b</code> while <code>s.a</code> is true, and on
+          <code>a</code> and <code>c</code> once it becomes false. Bound controls work the same way:
+          a control is updated when the value at its path changes. The exact rules are in the
+          <a href="spec.html#dependencies">specification</a>.
+        </p>
+        <p>
+          Use elements for structure, what is on the screen, and signals for values that change
+          while the structure stays the same: a count, a status, a validation message, whether
+          something is visible. Keep signals small: they are sent with every action.
+        </p>
+      </article>
+    </main>
 
-<footer class="site"><div class="inner">hypereffect UI</div></footer>
-</body>
+    <footer class="site"><div class="inner">hypereffect UI</div></footer>
+  </body>
 </html>
