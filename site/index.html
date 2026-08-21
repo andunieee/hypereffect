@@ -11,14 +11,13 @@
     <link rel="icon" href="logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="style.css" />
     <script>
-      // The homepage example alternates; ?example=basil or ?example=table picks one.
+      // The homepage example is picked at random; ?example=<name> picks one.
       {
+        const all = ["basil", "table", "expense"];
         const q = new URLSearchParams(location.search).get("example");
-        document.documentElement.dataset.example = ["basil", "table"].includes(q)
+        document.documentElement.dataset.example = all.includes(q)
           ? q
-          : Math.random() < 0.5
-            ? "basil"
-            : "table";
+          : all[Math.floor(Math.random() * all.length)];
       }
     </script>
     <script src="site.js" defer></script>
@@ -249,6 +248,97 @@ element {"id":"go","type":"button","parent":"book","variant":"primary","label":"
 remove {"id":"add"}</pre>
             </div>
           </li>
+          <li data-ex="expense" class="step t-element">
+            <div class="step-text">
+              <p>
+                The server answers with the state, as
+                <a class="k k-signal" href="signals.html">signals</a>, and a few
+                <strong class="k k-element">elements</strong>. The renderer draws them with its own
+                native widgets, in its own style.
+              </p>
+              <p>
+                There is a <strong class="k k-element">fixed set of eighteen components</strong>,
+                and they carry <strong class="k k-element">semantic variants, not styles</strong>:
+                <code>number</code> or <code>primary</code>, never a colour or a margin.
+              </p>
+            </div>
+            <div class="step-code">
+              <span class="dir">server → renderer</span>
+              <pre>
+signal {"amount":null,"kind":"meals"}
+element {"id":"exp","type":"column"}
+element {"id":"title","type":"text","parent":"exp","variant":"h2","text":"New expense"}
+element {"id":"amount","type":"input","parent":"exp","variant":"number","label":"Amount (€)","bind":"amount"}
+element {"id":"kind","type":"select","parent":"exp","label":"Category","bind":"kind","options":[{"value":"travel","label":"Travel"},{"value":"meals","label":"Meals"},{"value":"office","label":"Office supplies"}]}
+element {"id":"go","type":"button","parent":"exp","variant":"primary","label":"Submit","disabled":{"cel":"s.amount == null"},"onPress":{"action":"submit"}}</pre>
+            </div>
+          </li>
+
+          <li data-ex="expense" class="step t-signal">
+            <div class="step-text">
+              <p>
+                Elements declare up front the
+                <strong class="k k-accent">few interactions they support</strong>. When the user
+                acts, a handler can do only two things:
+              </p>
+              <ul>
+                <li>
+                  <strong class="k k-signal">change the state locally</strong>, and every attribute
+                  that depends on it is recomputed: typing <em>64.50</em> for a meal shows the
+                  policy warning and enables <em>Submit</em>; pressing <em>Reset</em> patches
+                  <code>amount</code> back to empty, and both go away;
+                </li>
+                <li>
+                  <strong class="k k-action">fire an action</strong>, like
+                  <code>submit</code> above.
+                </li>
+              </ul>
+            </div>
+            <div class="step-code">
+              <span class="dir">server → renderer</span>
+              <pre>
+element {"id":"policy","type":"notice","parent":"exp","before":"go","variant":"warning","text":"Meals over €50 need a manager's approval.","visible":{"cel":"s.kind == 'meals' &amp;&amp; s.amount != null &amp;&amp; s.amount &gt; 50"}}
+element {"id":"reset","type":"button","parent":"exp","variant":"plain","label":"Reset","onPress":{"patch":{"amount":null}}}</pre>
+            </div>
+          </li>
+
+          <li data-ex="expense" class="step t-action">
+            <div class="step-text">
+              <p>
+                <strong class="k k-action">Actions</strong> are sent to the server, with the current
+                signals. Local signals, whose names start with <code>_</code>, stay on the client.
+              </p>
+            </div>
+            <div class="step-code">
+              <span class="dir">renderer → server</span>
+              <pre>action {"name":"submit","signals":{"amount":64.5,"kind":"meals"}}</pre>
+            </div>
+          </li>
+
+          <li data-ex="expense" class="step t-remove">
+            <div class="step-text">
+              <p>
+                The server decides what happens next. It can send
+                <strong class="k k-element">new elements</strong>,
+                <strong class="k k-element">replace</strong> or
+                <strong class="k k-remove">remove</strong> existing ones, or send
+                <strong class="k k-signal">signal updates</strong> that are merged into the client's
+                state, which may change the interface again.
+              </p>
+              <p>
+                Here the expense is filed and the server clears <code>amount</code> for the next
+                one. The policy warning hides and <em>Submit</em> is disabled again on their own:
+                both are <a class="k k-accent" href="expressions.html">expressions</a> over
+                <code>amount</code>.
+              </p>
+            </div>
+            <div class="step-code">
+              <span class="dir">server → renderer</span>
+              <pre>
+signal {"amount":null}
+element {"id":"sent","type":"notice","parent":"exp","before":"amount","variant":"success","text":"€64.50 for meals sent to your manager."}</pre>
+            </div>
+          </li>
         </ol>
       </section>
 
@@ -262,7 +352,8 @@ remove {"id":"add"}</pre>
         <figure class="fanout">
           <p class="fan-src">
             <span class="hl-tag t-signal">signal</span> ×1 ·
-            <span class="hl-tag t-element">element</span> ×6
+            <span class="hl-tag t-element">element</span> <span data-ex="basil">×6</span
+            ><span data-ex="table">×6</span><span data-ex="expense">×7</span>
           </p>
           <div class="screens" data-ex="basil" aria-hidden="true">
             <div class="screen s-web">
@@ -349,6 +440,56 @@ Notes
                 <div class="sp-btn">Book for 21:30</div>
                 <div class="sp-link">Add a note</div>
                 <div class="sp-field"><small>Notes</small>Window seat, please</div>
+              </div>
+              <p class="s-name">Phone</p>
+            </div>
+          </div>
+          <div class="screens" data-ex="expense" aria-hidden="true">
+            <div class="screen s-web">
+              <div class="s-frame">
+                <div class="s-chrome"><i></i><i></i><i></i><span>expenses</span></div>
+                <div class="s-body">
+                  <div class="sw-h2">New expense</div>
+                  <div class="sw-field">
+                    <small>Amount (€)</small><span class="line">64.50</span>
+                  </div>
+                  <div class="sw-field">
+                    <small>Category</small><span class="line sw-select">Meals</span>
+                  </div>
+                  <div class="sw-notice">Meals over €50 need a manager's approval.</div>
+                  <div class="sw-row">
+                    <span class="sw-btn primary">Submit</span
+                    ><span class="sw-btn plain">Reset</span>
+                  </div>
+                </div>
+              </div>
+              <p class="s-name">Web</p>
+            </div>
+            <div class="screen s-term">
+              <div class="s-frame">
+                <pre class="st-body"><b>NEW EXPENSE</b>
+<span class="st-rule">────────────────────</span>
+Amount (€)  <span class="st-focus">64.50▏</span>
+Category    &lt; Meals &gt;
+<span class="st-warn">! Meals over €50 need a</span>
+<span class="st-warn">  manager's approval.</span>
+
+[ Submit ]
+[ Reset ]
+
+<span class="st-dim">tab next · enter press · q quit</span></pre>
+              </div>
+              <p class="s-name">Terminal</p>
+            </div>
+            <div class="screen s-phone">
+              <div class="s-frame">
+                <div class="sp-status"><span>9:41</span><span>●●●</span></div>
+                <div class="sp-title">New expense</div>
+                <div class="sp-field"><small>Amount (€)</small>64.50</div>
+                <div class="sp-pick"><span>Category</span><span>Meals ›</span></div>
+                <div class="sp-notice">Meals over €50 need a manager's approval.</div>
+                <div class="sp-btn">Submit</div>
+                <div class="sp-link">Reset</div>
               </div>
               <p class="s-name">Phone</p>
             </div>
@@ -566,6 +707,16 @@ Notes
           </li>
           <li data-ex="table">
             <code>button · primary · "Book for 21:30"</code><q>Book for 21:30, button</q>
+          </li>
+          <li data-ex="expense">
+            <code>text · h2 · "New expense"</code><q>New expense, heading level 2</q>
+          </li>
+          <li data-ex="expense">
+            <code>input · number · "Amount (€)"</code><q>Amount (euros), edit text, 64.50</q>
+          </li>
+          <li data-ex="expense">
+            <code>notice · warning · "Meals over €50…"</code
+            ><q>Warning: Meals over €50 need a manager's approval.</q>
           </li>
           <li><code>input · number · "Voltage"</code><q>Voltage, edit text, 12.00</q></li>
           <li><code>checkbox · switch · "Output 1"</code><q>Output 1, switch, on</q></li>

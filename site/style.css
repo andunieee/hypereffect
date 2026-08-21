@@ -955,8 +955,9 @@ a.expr:hover {
 /* --- overview: alternating example ---------------------------------------- */
 
 /* The inline script in index.html picks one; without it the basil example shows. */
+html[data-example]:not([data-example="basil"]) [data-ex="basil"],
 html:not([data-example="table"]) [data-ex="table"],
-html[data-example="table"] [data-ex="basil"] {
+html:not([data-example="expense"]) [data-ex="expense"] {
   display: none;
 }
 
@@ -1128,6 +1129,19 @@ html[data-example="table"] [data-ex="basil"] {
   border: 1px solid var(--rule);
   border-radius: 8px;
 }
+.sw-field .line {
+  padding-bottom: 6px;
+}
+.sw-field .sw-select {
+  width: fit-content;
+  min-width: 8rem;
+}
+.sw-field .sw-select::after {
+  content: "▾";
+  float: right;
+  margin-left: 10px;
+  color: var(--muted);
+}
 .sw-notice {
   padding: 7px 12px;
   border-left: 3px solid var(--warn);
@@ -1273,6 +1287,17 @@ html[data-example="table"] [data-ex="basil"] {
 .sp-field small {
   color: var(--muted);
   font-size: 0.65rem;
+}
+.sp-pick {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: var(--code-bg);
+  font-size: 0.78rem;
+}
+.sp-pick span + span {
+  color: var(--muted);
 }
 .sp-btn {
   padding: 8px;
