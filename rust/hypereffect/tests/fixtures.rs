@@ -129,7 +129,15 @@ fn run(path: &Path) {
 
 #[test]
 fn fixtures() {
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../fixtures");
+    // The shared fixtures live one level above the workspace; the published
+    // crate carries them under `fixtures/` instead (see the symlink).
+    let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let dir = manifest.join("fixtures");
+    let dir = if dir.exists() {
+        dir
+    } else {
+        manifest.join("../../fixtures")
+    };
     let mut files: Vec<_> = std::fs::read_dir(&dir)
         .unwrap()
         .filter_map(|e| e.ok().map(|e| e.path()))
