@@ -127,7 +127,11 @@ impl Psu {
     fn meter(&mut self) -> Value {
         let on = self.v > 0.0;
         let v = if on { self.v + self.jitter(0.006) } else { 0.0 };
-        let i = if on && self.i > 0.0 { self.i + self.jitter(0.0006) } else { 0.0 };
+        let i = if on && self.i > 0.0 {
+            self.i + self.jitter(0.0006)
+        } else {
+            0.0
+        };
         json!({ "meter": {
             "v": format!("{:.2}", v.max(0.0)),
             "i": format!("{:.3}", i.max(0.0)),
@@ -146,7 +150,11 @@ impl App for Psu {
 
         out.element(card("psu").title("Bench supply · channel 1"));
         out.element(row("readout").parent("psu").justify("between").wrap(true));
-        for (id, unit, name) in [("v", "V", "Voltage"), ("i", "A", "Current"), ("p", "W", "Power")] {
+        for (id, unit, name) in [
+            ("v", "V", "Voltage"),
+            ("i", "A", "Current"),
+            ("p", "W", "Power"),
+        ] {
             let col = format!("{id}-col");
             out.element(column(col.as_str()).parent("readout").gap("none"));
             out.element(
@@ -155,7 +163,12 @@ impl App for Psu {
                     .variant("h1")
                     .text(cel(format!("s.meter.{id} + ' {unit}'"))),
             );
-            out.element(text(format!("{id}-name")).parent(col.as_str()).variant("caption").text(name));
+            out.element(
+                text(format!("{id}-name"))
+                    .parent(col.as_str())
+                    .variant("caption")
+                    .text(name),
+            );
         }
         out.element(row("status").parent("psu"));
         out.element(
@@ -262,12 +275,20 @@ impl App for Psu {
                 }
             }
             "output" => {
-                self.output = action.signal("out").and_then(Value::as_bool).unwrap_or(false);
+                self.output = action
+                    .signal("out")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(false);
                 if self.output {
                     self.tripped = false;
                 }
             }
-            "ocp" => self.ocp = action.signal("ocp").and_then(Value::as_bool).unwrap_or(false),
+            "ocp" => {
+                self.ocp = action
+                    .signal("ocp")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(false)
+            }
             "load" => {
                 let name = action.signal("load").and_then(Value::as_str);
                 if let Some(n) = LOADS.iter().position(|l| Some(l.0) == name) {

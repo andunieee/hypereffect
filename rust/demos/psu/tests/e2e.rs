@@ -18,7 +18,9 @@ fn regulates_and_trips() {
     }
     assert_eq!(l.server.app().unwrap().mode(), Mode::Cv);
     assert_eq!(l.client.attr("mode", "variant"), Some(json!("success")));
-    let v: f64 = l.client.attr("v-value", "text").unwrap().as_str().unwrap()[..4].parse().unwrap();
+    let v: f64 = l.client.attr("v-value", "text").unwrap().as_str().unwrap()[..4]
+        .parse()
+        .unwrap();
     assert!((v - 5.0).abs() < 0.01, "{v}");
 
     // A short circuit holds the current at the limit.
@@ -41,7 +43,12 @@ fn regulates_and_trips() {
         l.tick(t as f64 * 250.0);
     }
     assert_eq!(l.client.attr("tripped", "visible"), Some(json!(true)));
-    assert_eq!(l.client.attr("tripped", "text"), Some(json!("The output was turned off when the load reached 2.00 A.")));
+    assert_eq!(
+        l.client.attr("tripped", "text"),
+        Some(json!(
+            "The output was turned off when the load reached 2.00 A."
+        ))
+    );
     assert_eq!(l.client.value("out").cloned(), Some(json!(false)));
     for t in 30..60 {
         l.tick(t as f64 * 250.0);

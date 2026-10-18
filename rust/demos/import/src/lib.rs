@@ -43,7 +43,11 @@ impl Contact {
 
     fn summary(&self) -> String {
         let parts = [&self.name, &self.email, &self.phone, &self.company];
-        let s: Vec<&str> = parts.iter().map(|p| p.as_str()).filter(|p| !p.is_empty()).collect();
+        let s: Vec<&str> = parts
+            .iter()
+            .map(|p| p.as_str())
+            .filter(|p| !p.is_empty())
+            .collect();
         if s.is_empty() {
             "(empty row)".into()
         } else {
@@ -212,7 +216,10 @@ impl Import {
     }
 
     fn ready(&self) -> usize {
-        self.contacts.iter().filter(|c| c.problem().is_none()).count()
+        self.contacts
+            .iter()
+            .filter(|c| c.problem().is_none())
+            .count()
     }
 
     fn state(&self) -> Value {
@@ -271,7 +278,11 @@ impl Import {
             let id = format!("r{i}");
             let problem = c.problem();
             out.element(row(id.as_str()).parent("preview").justify("between"));
-            out.element(text(format!("{id}-text")).parent(id.as_str()).text(c.summary()));
+            out.element(
+                text(format!("{id}-text"))
+                    .parent(id.as_str())
+                    .text(c.summary()),
+            );
             out.element(
                 badge(format!("{id}-badge"))
                     .parent(id.as_str())
@@ -314,21 +325,35 @@ impl App for Import {
                 .disabled(cel("s.stage == 'importing'"))
                 .on_change(Handler::action("parse")),
         );
-        out.element(text("columns-title").parent("import").variant("h3").text("Columns"));
+        out.element(
+            text("columns-title")
+                .parent("import")
+                .variant("h3")
+                .text("Columns"),
+        );
         out.element(row("columns").parent("import").wrap(true).align("start"));
-        out.element(text("preview-title").parent("import").variant("h3").text("Preview"));
+        out.element(
+            text("preview-title")
+                .parent("import")
+                .variant("h3")
+                .text("Preview"),
+        );
         out.element(list("preview").parent("import").empty("No rows to import."));
         out.element(
             text("more")
                 .parent("import")
                 .variant("caption")
-                .text(cel(format!("'and ' + string(s.total - {PREVIEW}) + ' more'")))
+                .text(cel(format!(
+                    "'and ' + string(s.total - {PREVIEW}) + ' more'"
+                )))
                 .visible(cel(format!("s.total > {PREVIEW}"))),
         );
         out.element(
             progress("progress")
                 .parent("import")
-                .label(cel("'Importing ' + string(s.imported) + ' of ' + string(s.ready)"))
+                .label(cel(
+                    "'Importing ' + string(s.imported) + ' of ' + string(s.ready)",
+                ))
                 .value(cel("s.progress"))
                 .visible(cel("s.stage == 'importing'")),
         );
@@ -341,12 +366,19 @@ impl App for Import {
                 .visible(cel("s.stage == 'done'")),
         );
         out.element(row("footer").parent("import").justify("between"));
-        out.element(text("summary").parent("footer").variant("caption").text(cel("s.summary")));
+        out.element(
+            text("summary")
+                .parent("footer")
+                .variant("caption")
+                .text(cel("s.summary")),
+        );
         out.element(
             button("go")
                 .parent("footer")
                 .variant("primary")
-                .label(cel("s.ready == 1 ? 'Import 1 contact' : 'Import ' + string(s.ready) + ' contacts'"))
+                .label(cel(
+                    "s.ready == 1 ? 'Import 1 contact' : 'Import ' + string(s.ready) + ' contacts'",
+                ))
                 .disabled(cel("s.ready == 0 || s.stage != 'edit'"))
                 .on_press(Handler::action("import")),
         );
@@ -420,6 +452,9 @@ mod tests {
             parse_csv("a,\"b, \"\"c\"\"\"\n\n1,2"),
             vec![vec!["a", "b, \"c\""], vec!["1", "2"]]
         );
-        assert_eq!(parse_csv("a\tb,c\n1\t2"), vec![vec!["a", "b,c"], vec!["1", "2"]]);
+        assert_eq!(
+            parse_csv("a\tb,c\n1\t2"),
+            vec![vec!["a", "b,c"], vec!["1", "2"]]
+        );
     }
 }

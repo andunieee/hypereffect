@@ -104,9 +104,7 @@ impl App for Todos {
                 .parent("add-row")
                 .variant("primary")
                 .label(cel("s._adding ? 'Adding…' : 'Add'"))
-                .disabled(cel(
-                    "s._adding || s.new.trim() == '' || size(s.new) > 80",
-                ))
+                .disabled(cel("s._adding || s.new.trim() == '' || size(s.new) > 80"))
                 .on_press(Handler::action("add").indicator("_adding")),
         );
         out.element(
@@ -136,9 +134,7 @@ impl App for Todos {
                 .parent("footer")
                 .variant("failure")
                 .label("Clear completed…")
-                .disabled(cel(
-                    "!s.done.exists(k, s.done[k]) || s._clearing",
-                ))
+                .disabled(cel("!s.done.exists(k, s.done[k]) || s._clearing"))
                 .on_press(Handler::patch(json!({ "_confirm": true }))),
         );
         out.element(
