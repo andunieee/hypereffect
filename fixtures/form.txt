@@ -1,7 +1,7 @@
 # A form with an indicator; local signals are not sent.
-!start {"device":"kitchen","_theme":"dark"}
-< hello {"signals":{"device":"kitchen"}}
-=signals {"device":"kitchen","_theme":"dark"}
+!start
+< hello {}
+=signals {}
 signal {"login":{"user":"","pass":""},"error":"","_busy":false}
 element {"id":"login","type":"card","title":"Sign in"}
 element {"id":"user","type":"input","parent":"login","label":"Username","bind":"login.user"}
@@ -18,12 +18,12 @@ element {"id":"go","type":"button","parent":"login","variant":"primary","label":
 !write login.pass "hunter2"
 =attrs go {"disabled":false}
 !trigger go onPress
-< action {"name":"login","signals":{"device":"kitchen","login":{"user":"ada","pass":"hunter2"},"error":""}}
+< action {"name":"login","signals":{"login":{"user":"ada","pass":"hunter2"},"error":""}}
 =attrs go {"disabled":true,"label":"Signing in…"}
 signal {"_busy":false,"error":"Wrong username or password.","login":{"pass":""}}
 =attrs err {"visible":true,"text":"Wrong username or password."}
 =attrs go {"label":"Sign in","disabled":false}
-=signals {"device":"kitchen","_theme":"dark","login":{"user":"ada","pass":""},"error":"Wrong username or password.","_busy":false}
+=signals {"login":{"user":"ada","pass":""},"error":"Wrong username or password.","_busy":false}
 # Writing through a non-object creates the intermediate objects.
 !write error.detail 1
-=signals {"device":"kitchen","_theme":"dark","login":{"user":"ada","pass":""},"error":{"detail":1},"_busy":false}
+=signals {"login":{"user":"ada","pass":""},"error":{"detail":1},"_busy":false}

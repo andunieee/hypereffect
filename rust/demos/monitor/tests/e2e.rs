@@ -1,10 +1,10 @@
 use hypereffect::server::Loopback;
-use hypereffect::{json, Map};
+use hypereffect::json;
 use monitor::Monitor;
 
 #[test]
 fn logs_drifts_and_alarms() {
-    let mut l = Loopback::<Monitor>::new(Map::new());
+    let mut l = Loopback::<Monitor>::new();
     assert_eq!(l.client.attr("t-value", "text"), Some(json!("21.0 °C")));
     assert_eq!(l.client.attr("a-value", "text"), Some(json!("—")));
     assert_eq!(l.client.attr("c-value", "text"), Some(json!("0")));

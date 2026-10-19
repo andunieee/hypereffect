@@ -243,7 +243,7 @@ macro_rules! wasm_app {
 ///     }
 /// }
 ///
-/// let mut l = Loopback::<Hi>::new(Map::new());
+/// let mut l = Loopback::<Hi>::new();
 /// assert!(l.trigger("b", "onPress"));
 /// assert_eq!(l.client.attr("t", "text"), Some(json!("hello")));
 /// assert!(l.client.take_diagnostics().is_empty());
@@ -256,13 +256,13 @@ pub struct Loopback<A> {
 
 #[cfg(feature = "client")]
 impl<A: App + Default> Loopback<A> {
-    /// Starts a session with the given hello signals.
-    pub fn new(signals: Map<String, Value>) -> Self {
+    /// Starts a session.
+    pub fn new() -> Self {
         let mut l = Loopback {
             client: crate::client::Client::new(),
             server: Server::new(),
         };
-        let hello = l.client.hello(signals);
+        let hello = l.client.hello();
         l.server.receive(hello.as_bytes());
         l.pump();
         l

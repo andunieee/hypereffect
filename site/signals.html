@@ -100,8 +100,7 @@ element {"id":"clear","type":"button","parent":"form","variant":"plain","label":
 
         <h2 id="patches">Changing signals</h2>
         <p>
-          A session starts with the signals sent by the renderer in its <code>hello</code>, usually
-          <code>{}</code>. After that they change in three ways, all as
+          A session starts with the signals <code>{}</code>. After that they change in three ways, all as
           <a href="https://www.rfc-editor.org/rfc/rfc7386">JSON Merge Patch</a>: objects merge
           recursively, other values replace, and <code>null</code> deletes a key.
         </p>
@@ -121,7 +120,7 @@ signal {"user":{"unread":null}}       <span class="c"># unread is deleted</span>
         <h2 id="local">Local signals</h2>
         <p>
           A key that begins with <code>_</code>, at any depth, is local. Local signals are never
-          sent to the server, neither in <code>hello</code> nor with actions. They hold state that
+          sent to the server with actions. They hold state that
           only matters to the renderer, such as whether a dialog is open or which tab is selected.
           The server may still write them.
         </p>

@@ -14,7 +14,7 @@ const session = new Session({
   send: (line) => ws.send(line),
   onUpdate: (u) => redraw(u), // {reset, created, updated, removed, reordered, connection}
 });
-ws.onopen = () => session.start({ device: 'kitchen' }); // sends hello
+ws.onopen = () => session.start(); // sends hello
 ws.onmessage = (e) => session.receive(e.data + '\n');
 ws.onclose = () => session.close();
 

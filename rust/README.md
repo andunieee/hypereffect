@@ -50,7 +50,7 @@ its strings, math and lists extensions:
 
 ```rust
 let mut c = hypereffect::client::Client::new();
-let hello = c.hello(Default::default()); // send this line
+let hello = c.hello(); // send this line
 c.receive(bytes_from_server);
 let el = c.get("value").unwrap();        // attrs resolved to plain JSON
 let action = c.trigger("inc", "onPress"); // Some(line) to send

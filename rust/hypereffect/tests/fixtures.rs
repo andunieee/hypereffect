@@ -56,10 +56,7 @@ fn run(path: &Path) {
             let (cmd, args) = cmd.split_once(' ').unwrap_or((cmd, ""));
             match cmd {
                 "start" => {
-                    let Value::Object(m) = json(args) else {
-                        panic!("{at}: start needs an object")
-                    };
-                    sent.push_back(c.hello(m));
+                    sent.push_back(c.hello());
                 }
                 "write" => {
                     let (p, v) = args.split_once(' ').unwrap();

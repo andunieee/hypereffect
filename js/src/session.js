@@ -35,13 +35,12 @@ export class Session {
 
   // --- transport -----------------------------------------------------------
 
-  // Begins a session: sends hello with the given initial signals.
-  start(signals = {}) {
+  // Begins a session: sends hello, which carries no signals.
+  start() {
     this.reader = new LineReader();
     this.connected = true;
     this._resetPending = true;
-    this._initial = structuredClone(signals);
-    this.send(encodeLine('hello', { signals: stripLocal(signals) }));
+    this.send(encodeLine('hello', {}));
     if (this.nodes.size === 0) this._reset();
     this._changed.connection = true;
     this._schedule();
@@ -235,7 +234,7 @@ export class Session {
     for (const id of this.nodes.keys()) this._changed.removed.add(id);
     this.nodes.clear();
     this.root = [];
-    this.signals = structuredClone(this._initial ?? {});
+    this.signals = {};
     this._cel = null;
     this._changed.reset = true;
     this._changed.reordered.add(ROOT);

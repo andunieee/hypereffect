@@ -191,5 +191,4 @@ function action(root, b, e) {
 
 function hello(root, b) {
   root.append(h('p', { class: 'd-sentence' }, 'Opens the session. The server answers with the interface.'));
-  root.append(section('Initial signals', json(b.signals ?? {})));
 }

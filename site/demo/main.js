@@ -205,8 +205,7 @@ async function connect(name) {
   up.ms = down.ms = Number(latency.value) / 2;
   server.onData = (text) => down.push(text);
   current = { name, server, up, down };
-  // Local signals in hello are kept by the renderer and not sent.
-  session.start({ host: 'browser', _theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light' });
+  session.start();
 }
 
 function select(name) {

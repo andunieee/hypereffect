@@ -156,9 +156,8 @@ element {"id":"a","type":"text","text":"Hello"}</pre>
             other message.
           </li>
           <li>
-            A session begins with an empty element tree and with signals equal to the
-            <code>signals</code> member of the renderer's <code>hello</code>, or <code>{}</code> if
-            absent.
+            A session begins with an empty element tree and with signals equal to
+            <code>{}</code>.
           </li>
           <li>
             The server SHOULD respond to <code>hello</code> by sending the messages that build the
@@ -181,8 +180,7 @@ element {"id":"a","type":"text","text":"Hello"}</pre>
         </ol>
         <p>
           Resuming a session across transports is not part of this specification. Servers that need
-          it can identify the user in the <code>hello</code> signals, or through the transport, and
-          rebuild the interface.
+          it can identify the user through the transport, and rebuild the interface.
         </p>
 
         <h2 id="server-messages"><span class="num">5</span>Server messages</h2>
@@ -213,30 +211,11 @@ element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Inbox
         <h2 id="client-messages"><span class="num">6</span>Renderer messages</h2>
 
         <h3 id="msg-hello"><span class="num">6.1</span><code>hello</code></h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Member</th>
-              <th>Type</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><code>signals</code></td>
-              <td>object</td>
-              <td>
-                Optional. Initial signals supplied by the host. Local signals in it are retained by
-                the renderer and not sent.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <pre>hello {"signals":{"device":"kitchen"}}</pre>
         <p>
-          The <code>signals</code> sent in <code>hello</code> MUST have local signals removed, as
-          for actions.
+          Opens the session. It has no members and carries no signals; the session starts with
+          signals equal to <code>{}</code>.
         </p>
+        <pre>hello {}</pre>
 
         <h3 id="msg-action"><span class="num">6.2</span><code>action</code></h3>
         <table>

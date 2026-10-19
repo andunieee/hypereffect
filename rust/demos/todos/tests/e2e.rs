@@ -1,10 +1,10 @@
 use hypereffect::server::Loopback;
-use hypereffect::{json, Map};
+use hypereffect::json;
 use todos::Todos;
 
 #[test]
 fn add_toggle_delete_clear() {
-    let mut l = Loopback::<Todos>::new(Map::new());
+    let mut l = Loopback::<Todos>::new();
     let c = &l.client;
     assert_eq!(c.children(Some("items")), ["t1", "t2", "t3"]);
     assert_eq!(c.attr("left", "text"), Some(json!("2 of 3 left")));

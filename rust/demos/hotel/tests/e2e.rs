@@ -1,10 +1,10 @@
 use hotel::Hotel;
 use hypereffect::server::Loopback;
-use hypereffect::{json, Map};
+use hypereffect::json;
 
 #[test]
 fn quotes_confirms_and_rejects() {
-    let mut l = Loopback::<Hotel>::new(Map::new());
+    let mut l = Loopback::<Hotel>::new();
     assert_eq!(
         l.client.attr("total", "text"),
         Some(json!("Total $240")) // 2 nights, no breakfast

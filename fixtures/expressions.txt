@@ -1,6 +1,6 @@
 # Expression evaluation and attribute types (spec section 9).
-!start {}
-< hello {"signals":{}}
+!start
+< hello {}
 signal {"n":3,"name":"Ada Lovelace","items":["a","b"],"ratio":0.25,"flag":true,"opts":[{"value":"x","label":"X"}]}
 element {"id":"t1","type":"text","text":{"cel":"s.name.upperAscii()"}}
 element {"id":"t2","type":"text","text":{"cel":"s.items.join(', ')"}}

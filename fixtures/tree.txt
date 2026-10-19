@@ -1,6 +1,6 @@
 # Insertion, replacement, moves and removal (spec section 7).
-!start {}
-< hello {"signals":{}}
+!start
+< hello {}
 element {"id":"a","type":"column"}
 element {"id":"b","type":"column"}
 element {"id":"x","type":"text","parent":"a","text":"x"}

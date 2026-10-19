@@ -1,6 +1,6 @@
 # The counter from the guide.
-!start {}
-< hello {"signals":{}}
+!start
+< hello {}
 signal {"count":0}
 element {"id":"main","type":"column","gap":"medium","align":"start"}
 element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Counter"}

@@ -1,12 +1,12 @@
 use hypereffect::server::Loopback;
-use hypereffect::{json, Map};
+use hypereffect::json;
 use qr::Qr;
 
 const DATA: &str = "data:image/svg+xml;base64,";
 
 #[test]
 fn encodes_and_rejects() {
-    let mut l = Loopback::<Qr>::new(Map::new());
+    let mut l = Loopback::<Qr>::new();
     let first = l
         .client
         .attr("preview", "src")

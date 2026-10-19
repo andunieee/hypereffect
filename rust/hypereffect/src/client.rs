@@ -11,8 +11,8 @@
 //! use hypereffect::json;
 //!
 //! let mut c = Client::new();
-//! let hello = c.hello(Default::default());
-//! assert_eq!(hello, "hello {\"signals\":{}}\n");
+//! let hello = c.hello();
+//! assert_eq!(hello, "hello {}\n");
 //! c.receive(b"signal {\"count\":2}\n");
 //! c.receive(b"element {\"id\":\"v\",\"type\":\"text\",\"text\":{\"cel\":\"'Count: ' + string(s.count)\"}}\n");
 //! assert_eq!(c.get("v").unwrap().attrs["text"], json!("Count: 2"));
@@ -98,7 +98,6 @@ pub struct Client {
     root: Vec<String>,
     signals: Value,
     cel_signals: RefCell<Option<cel::Value>>,
-    initial: Map<String, Value>,
     connected: bool,
     reset_pending: bool,
     reader: LineBuffer,
@@ -127,7 +126,6 @@ impl Client {
             root: Vec::new(),
             signals: Value::Object(Map::new()),
             cel_signals: RefCell::new(None),
-            initial: Map::new(),
             connected: false,
             reset_pending: false,
             reader: LineBuffer::new(),
@@ -140,15 +138,11 @@ impl Client {
 
     /// Begins a session and returns the hello line to send. The previous
     /// tree is kept until the first server message of the new session.
-    pub fn hello(&mut self, signals: Map<String, Value>) -> String {
+    pub fn hello(&mut self) -> String {
         self.reader = LineBuffer::new();
         self.connected = true;
         self.reset_pending = true;
-        let line = encode_line(
-            "hello",
-            &serde_json::json!({ "signals": strip_local_map(&signals) }),
-        );
-        self.initial = signals;
+        let line = encode_line("hello", &serde_json::json!({}));
         if self.nodes.is_empty() {
             self.reset();
         }
@@ -408,7 +402,7 @@ impl Client {
             .removed
             .extend(self.nodes.drain().map(|(id, _)| id));
         self.root.clear();
-        self.signals = Value::Object(self.initial.clone());
+        self.signals = Value::Object(Map::new());
         *self.cel_signals.get_mut() = None;
         self.changes.reset = true;
         self.changes.signals = true;

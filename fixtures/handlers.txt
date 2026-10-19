@@ -1,6 +1,6 @@
 # Handlers (spec section 10).
-!start {}
-< hello {"signals":{}}
+!start
+< hello {}
 signal {"_open":false,"count":1}
 element {"id":"col","type":"column"}
 element {"id":"toggle","type":"button","parent":"col","onPress":{"patch":{"_open":{"cel":"!s._open"}}}}
@@ -34,9 +34,9 @@ element {"id":"both","type":"button","parent":"col","onPress":{"patch":{"_n":1},
 !trigger both onPress
 =signals {"_open":false,"count":1,"a":{"b":2,"c":[1]},"agree":true,"_saving":true,"_n":1}
 # A new session keeps the old tree until the first server message.
-!start {"fresh":true}
-< hello {"signals":{"fresh":true}}
+!start
+< hello {}
 =children - ["col","t"]
 signal {"x":1}
 =children - []
-=signals {"fresh":true,"x":1}
+=signals {"x":1}

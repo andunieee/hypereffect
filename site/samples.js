@@ -76,7 +76,7 @@ function mount(sample, lines) {
     try { return trigger(id, event); } finally { triggering = null; }
   };
 
-  session.start({});
+  session.start();
   started = true;
   for (const l of lines) {
     add('down', l);

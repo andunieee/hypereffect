@@ -7,7 +7,7 @@ the JavaScript `Session` both run them). Lines are:
 - `< tag {json}` — the next line the renderer is expected to send. Every line
   the renderer sends must be matched before the next `!` command and by the
   end of the file.
-- `!start {signals}` — begin a session (the renderer sends hello).
+- `!start` — begin a session (the renderer sends hello).
 - `!write path json` — the user changes a control bound to `path`.
 - `!trigger id event` — the user triggers the handler `event` of element `id`.
 - `!close` — the transport closes.

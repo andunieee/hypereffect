@@ -312,6 +312,9 @@ impl Action {
 impl RendererMessage {
     pub fn to_line(&self) -> String {
         match self {
+            RendererMessage::Hello { signals } if signals.is_empty() => {
+                encode_line("hello", &serde_json::json!({}))
+            }
             RendererMessage::Hello { signals } => {
                 encode_line("hello", &serde_json::json!({ "signals": signals }))
             }

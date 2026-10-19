@@ -39,7 +39,7 @@ function run(file) {
       drained(i);
       const [cmd, a, ...rest] = line.slice(1).split(' ');
       switch (cmd) {
-        case 'start': s.start(JSON.parse([a, ...rest].join(' '))); break;
+        case 'start': s.start(); break;
         case 'write': s.write(a, JSON.parse(rest.join(' '))); break;
         case 'trigger': s.trigger(a, rest[0]); break;
         case 'close': s.close(); break;
