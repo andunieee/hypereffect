@@ -255,6 +255,13 @@ pub struct Loopback<A> {
 }
 
 #[cfg(feature = "client")]
+impl<A: App + Default> Default for Loopback<A> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(feature = "client")]
 impl<A: App + Default> Loopback<A> {
     /// Starts a session.
     pub fn new() -> Self {
