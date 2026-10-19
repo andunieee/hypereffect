@@ -1,16 +1,18 @@
 [package]
-name = "demo-psu"
+name = "demo-qr"
 version = "0.1.0"
 publish = false
 edition.workspace = true
 license.workspace = true
 
 [lib]
-name = "psu"
+name = "qr"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 hypereffect = { path = "../../hypereffect" }
+qrcode = { version = "0.14.1", default-features = false }
+base64 = "0.22"
 
 [dev-dependencies]
 hypereffect = { path = "../../hypereffect", features = ["client"] }

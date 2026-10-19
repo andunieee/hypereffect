@@ -19,7 +19,7 @@ build-demo:
     #!/usr/bin/env bash
     # Builds the demo servers to WebAssembly and copies them, with the JavaScript
     # library, into site/demo so the site can be served as static files.
-    demos="psu import todos"
+    demos="todos qr monitor hotel"
     pkgs=""
     for d in $demos; do pkgs="$pkgs -p demo-$d"; done
     

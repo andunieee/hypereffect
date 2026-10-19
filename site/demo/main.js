@@ -7,8 +7,9 @@ import { wireRow, Pairing } from './wire.js';
 const SRC = 'https://github.com/andunieee/hypereffect/blob/master/rust/demos';
 const DEMOS = {
   todos: 'Tasks',
-  import: 'CSV import',
-  psu: 'Power supply',
+  qr: 'QR code',
+  monitor: 'Temperature monitor',
+  hotel: 'Hotel booking',
 };
 const MAX_LOG = 400;
 

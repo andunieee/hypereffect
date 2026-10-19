@@ -1,9 +1,9 @@
 # hypereffect (Rust)
 
 `hypereffect/` is a library crate with types and helpers for both ends of the
-protocol. `demos/` holds three servers that the site's `/demo` page runs as
-WebAssembly: a bench power supply's control panel, a CSV import plugin and a
-task list.
+protocol. `demos/` holds four servers that the site's `/demo` page runs as
+WebAssembly: a task list, a QR code generator, a temperature monitor and a
+hotel's booking desk.
 
 ## Servers
 
