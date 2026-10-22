@@ -45,5 +45,7 @@ fmt:
     npx --yes prettier@3 --write "site/**/*.{html,css}"
 
 build-og:
-    chromium --headless --hide-scrollbars --force-device-scale-factor=1 --window-size=1200,630 \
-      --screenshot=site/og.png "file://$PWD/site/og/card.html"
+    for n in plant expense todos; do \
+      chromium --headless --hide-scrollbars --force-device-scale-factor=1 --window-size=1200,630 \
+        --screenshot=site/og-$n.png "file://$PWD/site/og/$n.html"; \
+    done

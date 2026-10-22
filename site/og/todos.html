@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>hypereffect social card</title>
+    <title>hypereffect social card (todos)</title>
     <style>
-      /* Source of ../og.png (1200x630). Rebuild with `just build-og`. */
+      /* Source of ../og-todos.png (1200x630). Rebuild with `just build-og`. */
       :root {
         --accent: #6a46e0;
         --teal: #0b8f86;
@@ -209,8 +209,8 @@
 
       /* terminal */
       .term {
-        left: 70px;
-        top: 398px;
+        left: 44px;
+        top: 374px;
         width: 336px;
         border-radius: 12px;
         overflow: hidden;
@@ -375,6 +375,70 @@
         color: #e4e1f5;
         backdrop-filter: blur(6px);
       }
+
+      /* --- extra components for the other cards --------------------------- */
+      .notice {
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .notice.success {
+        background: #dff5ef;
+        color: #0a6b64;
+      }
+      .notice.warning {
+        background: #fff0dc;
+        color: #9a4b00;
+      }
+      .btn.off {
+        background: #e7e4f2;
+        color: #8a86a3;
+        box-shadow: none;
+      }
+      .cap2 {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 2px;
+        border-bottom: 1px solid var(--rule);
+        font-size: 16px;
+      }
+      .row .box {
+        flex: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #b9b3d6;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 13px;
+        line-height: 16px;
+        color: #fff;
+      }
+      .row.done {
+        color: #9b97b3;
+        text-decoration: line-through;
+      }
+      .row.done .box {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .phone .notice {
+        font-size: 13.5px;
+        padding: 9px 12px;
+      }
+      .phone .row.done .box {
+        background: var(--teal);
+        border-color: var(--teal);
+      }
+      .phone .row {
+        font-size: 14px;
+        padding: 7px 0;
+      }
     </style>
   </head>
   <body>
@@ -390,44 +454,40 @@
 
     <div class="stage">
       <div class="dev win">
-        <div class="chrome"><i></i><i></i><i></i><span>reservations</span></div>
+        <div class="chrome"><i></i><i></i><i></i><span>todos</span></div>
         <div class="body">
-          <h2>Table for two</h2>
-          <p class="when">Friday 23 October · Osteria Verde</p>
+          <h2>Today</h2>
+          <p class="when">2 tasks left</p>
           <div>
-            <div class="label">Time</div>
-            <div class="seg"><span>19:00</span><span>20:00</span><span class="on">21:30</span></div>
+            <div class="row done"><span class="box">✓</span>Book the table</div>
+            <div class="row"><span class="box"></span>Water the basil</div>
+            <div class="row"><span class="box"></span>Submit the expense report</div>
           </div>
-          <div>
-            <div class="label">Notes</div>
-            <div class="field">Window seat, please</div>
-          </div>
-          <div class="btns">
-            <span class="btn primary">Book for 21:30</span><span class="btn plain">Add a note</span>
-          </div>
+          <div class="btns"><span class="btn primary">Add a task</span><span class="btn plain">Clear done</span></div>
         </div>
       </div>
-
       <div class="dev term">
-        <div class="bar"><i></i><i></i><i></i><span>reservations</span></div>
-        <pre><b>TABLE FOR TWO</b>
+        <div class="bar"><i></i><i></i><i></i><span>todos</span></div>
+        <pre><b>TODAY</b> <span class="dim">· 2 left</span>
 <span class="dim">────────────────────────────</span>
-Time <span class="dim">( ) 19:00 ( ) 20:00</span> <span class="sel">(•) 21:30</span>
+<span class="dim">[x] Book the table</span>
+<span class="focus">[ ] Water the basil</span>
+[ ] Submit the expense report
 
-<span class="focus">[ Book for 21:30 ]</span>
-[ Add a note ]
-<span class="dim">Window seat, please▏</span>
-<span class="dim">tab next · enter press · q quit</span></pre>
+<span class="dim">Add a task…</span>
+<span class="dim">tab next · space toggle · q quit</span></pre>
       </div>
-
       <div class="dev phone">
         <div class="status"><span>9:41</span><span>●●●</span></div>
-        <h2>Table<br />for two</h2>
-        <p class="when">Fri 23 Oct</p>
-        <div class="seg2"><span>19:00</span><span>20:00</span><span class="on">21:30</span></div>
-        <div class="pf"><small>Notes</small>Window seat, please</div>
-        <div class="go">Book for 21:30</div>
-        <div class="link">Add a note</div>
+        <h2>Today</h2>
+        <p class="when">2 tasks left</p>
+        <div>
+          <div class="row done"><span class="box">✓</span>Book the table</div>
+          <div class="row"><span class="box"></span>Water the basil</div>
+          <div class="row"><span class="box"></span>Submit expense</div>
+        </div>
+        <div class="pf"><small>New task</small>Add a task…</div>
+        <div class="go">Add</div>
       </div>
     </div>
   </body>

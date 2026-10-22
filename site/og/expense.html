@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>hypereffect social card (expense)</title>
+    <style>
+      /* Source of ../og-expense.png (1200x630). Rebuild with `just build-og`. */
+      :root {
+        --accent: #6a46e0;
+        --teal: #0b8f86;
+        --orange: #ff8a3d;
+        --ink: #1c1a2e;
+        --muted: #5e5b78;
+        --rule: #e2dff0;
+        --code-bg: #f1eefb;
+        --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+        --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        position: relative;
+        font-family: var(--sans);
+        color: #fff;
+        background:
+          radial-gradient(640px 460px at 88% 8%, rgb(11 143 134 / 0.5), transparent 70%),
+          radial-gradient(760px 560px at 62% 108%, rgb(106 70 224 / 0.62), transparent 70%),
+          radial-gradient(420px 320px at 2% 100%, rgb(255 138 61 / 0.22), transparent 70%),
+          linear-gradient(135deg, #15112b, #0d0b1a 70%);
+      }
+      /* A faint dot grid, fading out towards the text. */
+      body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgb(255 255 255 / 0.13) 1px, transparent 1.2px);
+        background-size: 26px 26px;
+        mask-image: radial-gradient(700px 520px at 70% 50%, #000, transparent 85%);
+      }
+
+      /* --- copy ---------------------------------------------------------- */
+      .copy {
+        position: absolute;
+        left: 64px;
+        top: 64px;
+        width: 360px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 30px;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+      }
+      .brand img {
+        width: 46px;
+        height: 46px;
+        filter: drop-shadow(0 8px 18px rgb(106 70 224 / 0.6));
+      }
+      h1 {
+        margin-top: 56px;
+        font-size: 32px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+      }
+      .tags {
+        position: absolute;
+        left: 64px;
+        bottom: 56px;
+        display: flex;
+        gap: 8px;
+        font: 600 14px var(--mono);
+        color: #cfcbea;
+      }
+      .tags span {
+        padding: 6px 11px;
+        border: 1px solid rgb(255 255 255 / 0.18);
+        border-radius: 999px;
+        background: rgb(255 255 255 / 0.05);
+      }
+
+      /* --- devices ------------------------------------------------------- */
+      .stage {
+        position: absolute;
+        left: 470px;
+        top: 0;
+        width: 730px;
+        height: 630px;
+      }
+      .dev {
+        position: absolute;
+      }
+
+      /* desktop */
+      .win {
+        left: 0;
+        top: 52px;
+        width: 500px;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #fff;
+        color: var(--ink);
+        box-shadow:
+          0 0 0 1px rgb(255 255 255 / 0.14),
+          0 50px 80px -20px rgb(0 0 0 / 0.7),
+          0 20px 40px -20px rgb(106 70 224 / 0.6);
+      }
+      .chrome {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+        background: #ece8f8;
+        border-bottom: 1px solid var(--rule);
+      }
+      .chrome i {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+      .chrome i:nth-child(1) {
+        background: #ff5f57;
+      }
+      .chrome i:nth-child(2) {
+        background: #febc2e;
+      }
+      .chrome i:nth-child(3) {
+        background: #28c840;
+      }
+      .chrome span {
+        margin-left: 12px;
+        padding: 3px 14px;
+        border-radius: 7px;
+        background: #fff;
+        font: 13px var(--mono);
+        color: var(--muted);
+      }
+      .win .body {
+        display: grid;
+        gap: 12px;
+        padding: 22px 28px 24px;
+      }
+      .win h2 {
+        font-size: 28px;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+      }
+      .win .when {
+        margin-top: -8px;
+        color: var(--muted);
+        font-size: 15px;
+      }
+      .label {
+        font-size: 12.5px;
+        color: var(--muted);
+        margin-bottom: 5px;
+      }
+      .seg {
+        display: flex;
+        width: fit-content;
+        border: 1px solid var(--rule);
+        border-radius: 10px;
+        overflow: hidden;
+        font-size: 15px;
+      }
+      .seg span {
+        padding: 7px 18px;
+      }
+      .seg span + span {
+        border-left: 1px solid var(--rule);
+      }
+      .seg .on {
+        background: #ebe5ff;
+        color: var(--accent);
+        font-weight: 650;
+      }
+      .field {
+        padding: 9px 12px 22px;
+        border: 1px solid var(--rule);
+        border-radius: 10px;
+        font-size: 15px;
+      }
+      .btns {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .btn {
+        padding: 9px 20px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 650;
+      }
+      .btn.primary {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 8px 18px -8px rgb(106 70 224 / 0.8);
+      }
+      .btn.plain {
+        color: var(--accent);
+      }
+
+      /* terminal */
+      .term {
+        left: 44px;
+        top: 374px;
+        width: 336px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #16141f;
+        box-shadow:
+          0 0 0 1px rgb(255 255 255 / 0.16),
+          0 40px 60px -16px rgb(0 0 0 / 0.8);
+      }
+      .term .bar {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        padding: 9px 12px;
+        background: #25222f;
+        font: 12px var(--mono);
+        color: #8a86a3;
+      }
+      .term .bar i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #4a465c;
+      }
+      .term .bar span {
+        margin-left: 6px;
+      }
+      .term pre {
+        padding: 12px 16px 14px;
+        font: 14px/1.45 var(--mono);
+        color: #d8d4ea;
+        white-space: pre;
+      }
+      .term b {
+        color: #fff;
+      }
+      .dim {
+        color: #8a86a3;
+      }
+      .sel {
+        color: #4fd1c5;
+      }
+      .focus {
+        background: #d8d4ea;
+        color: #16141f;
+      }
+
+      /* phone */
+      .phone {
+        left: 450px;
+        top: 62px;
+        width: 228px;
+        height: 486px;
+        padding: 12px 14px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        border: 8px solid #0b0a12;
+        border-radius: 42px;
+        background: #fff;
+        color: var(--ink);
+        transform: perspective(1400px) rotateY(-14deg) rotateX(4deg) rotateZ(2.5deg);
+        box-shadow:
+          0 0 0 2px #3a3650,
+          2px 2px 0 8px #2a2740,
+          4px 4px 0 8px #1f1c30,
+          50px 60px 60px -10px rgb(0 0 0 / 0.65);
+      }
+      .phone::before {
+        content: "";
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        width: 70px;
+        height: 20px;
+        margin-left: -35px;
+        border-radius: 999px;
+        background: #0b0a12;
+      }
+      .phone::after {
+        content: "";
+        align-self: center;
+        width: 90px;
+        height: 5px;
+        margin-top: auto;
+        border-radius: 999px;
+        background: #0b0a12;
+      }
+      .phone .status {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 10px 0;
+        font-size: 12px;
+        font-weight: 650;
+      }
+      .phone h2 {
+        margin-top: 14px;
+        font-size: 30px;
+        line-height: 1.05;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+      .phone .when {
+        margin-top: -6px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .phone .seg2 {
+        display: flex;
+        padding: 3px;
+        border-radius: 11px;
+        background: var(--code-bg);
+        font-size: 13.5px;
+      }
+      .phone .seg2 span {
+        flex: 1;
+        padding: 6px 0;
+        text-align: center;
+        border-radius: 8px;
+      }
+      .phone .seg2 .on {
+        background: #fff;
+        font-weight: 700;
+        box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
+      }
+      .phone .pf {
+        display: grid;
+        gap: 2px;
+        padding: 9px 12px;
+        border-radius: 12px;
+        background: var(--code-bg);
+        font-size: 14px;
+      }
+      .phone .pf small {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .phone .go {
+        padding: 12px;
+        border-radius: 14px;
+        background: var(--teal);
+        color: #fff;
+        text-align: center;
+        font-weight: 650;
+        font-size: 16px;
+        box-shadow: 0 10px 20px -10px rgb(11 143 134 / 0.9);
+      }
+      .phone .link {
+        text-align: center;
+        color: var(--teal);
+        font-weight: 550;
+        font-size: 15px;
+      }
+
+      /* labels under each device */
+      .cap {
+        position: absolute;
+        padding: 5px 14px;
+        border-radius: 999px;
+        border: 1px solid rgb(255 255 255 / 0.2);
+        background: rgb(20 16 40 / 0.7);
+        font: 600 14px var(--mono);
+        color: #e4e1f5;
+        backdrop-filter: blur(6px);
+      }
+
+      /* --- extra components for the other cards --------------------------- */
+      .notice {
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .notice.success {
+        background: #dff5ef;
+        color: #0a6b64;
+      }
+      .notice.warning {
+        background: #fff0dc;
+        color: #9a4b00;
+      }
+      .btn.off {
+        background: #e7e4f2;
+        color: #8a86a3;
+        box-shadow: none;
+      }
+      .cap2 {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 9px 2px;
+        border-bottom: 1px solid var(--rule);
+        font-size: 16px;
+      }
+      .row .box {
+        flex: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #b9b3d6;
+        border-radius: 6px;
+        text-align: center;
+        font-size: 13px;
+        line-height: 16px;
+        color: #fff;
+      }
+      .row.done {
+        color: #9b97b3;
+        text-decoration: line-through;
+      }
+      .row.done .box {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .phone .notice {
+        font-size: 13.5px;
+        padding: 9px 12px;
+      }
+      .phone .row {
+        font-size: 14px;
+        padding: 7px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="copy">
+      <div class="brand"><img src="../logo.svg" alt="" />hypereffect</div>
+      <h1>
+        A small hypermedia protocol for server&#8209;driven reactive interfaces that render anywhere
+      </h1>
+    </div>
+    <div class="tags">
+      <span>desktop</span><span>terminal</span><span>mobile</span><span>web</span>
+    </div>
+
+    <div class="stage">
+      <div class="dev win">
+        <div class="chrome"><i></i><i></i><i></i><span>expenses</span></div>
+        <div class="body" style="gap:8px;padding:14px 28px 16px">
+          <h2>New expense</h2>
+          <div class="field" style="padding:8px 12px">€ 64.50</div>
+          <div>
+            <div class="label">Category</div>
+            <div class="seg"><span>Travel</span><span class="on">Meals</span><span>Office supplies</span></div>
+          </div>
+          <div class="notice warning">Meals over €50 need a manager's approval.</div>
+          <div class="btns">
+            <span class="btn primary">Submit</span><span class="btn plain">Reset</span>
+          </div>
+        </div>
+      </div>
+      <div class="dev term">
+        <div class="bar"><i></i><i></i><i></i><span>expenses</span></div>
+        <pre><b>NEW EXPENSE</b>
+<span class="dim">────────────────────────────</span>
+Amount <span class="focus"> 64.50▏</span>
+<span class="dim">( ) Travel</span> <span class="sel">(•) Meals</span> <span class="dim">( ) Office</span>
+<span style="color:#ffb066">! Meals over €50 need approval</span>
+<span class="dim">[ Submit ]  [ Reset ]</span>
+<span class="dim">tab next · enter press · q quit</span></pre>
+      </div>
+      <div class="dev phone">
+        <div class="status"><span>9:41</span><span>●●●</span></div>
+        <h2>New<br />expense</h2>
+        <div class="pf"><small>Amount (€)</small>64.50</div>
+        <div class="seg2"><span>Travel</span><span class="on">Meals</span><span>Office</span></div>
+        <div class="notice warning">Meals over €50 need a manager's approval.</div>
+        <div class="go">Submit</div>
+        <div class="link">Reset</div>
+      </div>
+    </div>
+  </body>
+</html>
