@@ -25,6 +25,7 @@ export class Session {
     this.nodes = new Map();
     this.root = [];
     this.signals = {};
+    this.metadata = {};
     this.connected = false;
     this._cel = null;
     this._stale = false;
@@ -69,6 +70,7 @@ export class Session {
       case 'element': this._element(body); break;
       case 'remove': this._remove(body); break;
       case 'signal': this._patch(body); break;
+      case 'metadata': this._metadata(body); break;
       default: this.diag(`ignored message with unknown tag '${tag}'`);
     }
     this._schedule();
@@ -189,6 +191,7 @@ export class Session {
   //   removed     ids no longer in the tree
   //   reordered   ids whose list of children changed ('' for the root)
   //   connection  the connected state changed
+  //   metadata    the application metadata changed
   flush() {
     this._scheduled = false;
     const c = this._changed;
@@ -208,7 +211,7 @@ export class Session {
     }
     for (const id of c.removed) { c.updated.delete(id); c.created.delete(id); }
     this._clear();
-    const empty = !c.reset && !c.connection && !c.created.size && !c.updated.size && !c.removed.size && !c.reordered.size;
+    const empty = !c.reset && !c.connection && !c.metadata && !c.created.size && !c.updated.size && !c.removed.size && !c.reordered.size;
     if (!empty) {
       delete c.paths;
       this.onUpdate(c);
@@ -219,7 +222,7 @@ export class Session {
 
   _clear() {
     this._changed = {
-      reset: false, connection: false, created: new Set(), updated: new Set(),
+      reset: false, connection: false, metadata: false, created: new Set(), updated: new Set(),
       removed: new Set(), reordered: new Set(), paths: [],
     };
   }
@@ -236,6 +239,7 @@ export class Session {
     this.nodes.clear();
     this.root = [];
     this.signals = {};
+    this._setMetadata({});
     this._cel = null;
     this._changed.reset = true;
     this._changed.reordered.add(ROOT);
@@ -245,6 +249,19 @@ export class Session {
   _celSignals() {
     if (!this._cel) this._cel = fromJson(this.signals);
     return this._cel;
+  }
+
+  // Keeps the members that are strings. A renderer may ignore all of them.
+  _metadata(body) {
+    const m = {};
+    for (const k of ['name', 'description', 'icon']) if (typeof body[k] === 'string') m[k] = body[k];
+    this._setMetadata(m);
+  }
+
+  _setMetadata(m) {
+    if (JSON.stringify(m) === JSON.stringify(this.metadata)) return;
+    this.metadata = m;
+    this._changed.metadata = true;
   }
 
   _patch(patch) {

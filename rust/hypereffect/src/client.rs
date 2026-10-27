@@ -19,7 +19,9 @@
 //! ```
 
 use crate::component::{accepts, AttrType, Component};
-use crate::message::{encode_line, is_cel, parse_line, LineBuffer, RendererMessage, ServerMessage};
+use crate::message::{
+    encode_line, is_cel, parse_line, LineBuffer, Metadata, RendererMessage, ServerMessage,
+};
 use crate::signals::{get_path, merge_patch_tracked, parse_path, path_patch, strip_local_map};
 use cel::objects::{Key, Map as CelMap};
 use cel::{Context, Env, Program};
@@ -68,6 +70,8 @@ pub struct Changes {
     pub removed: BTreeSet<String>,
     /// Elements whose list of children changed (`""` for the root).
     pub reordered: BTreeSet<String>,
+    /// The application metadata changed.
+    pub metadata: bool,
     signals: bool,
 }
 
@@ -79,6 +83,7 @@ impl Changes {
             && self.updated.is_empty()
             && self.removed.is_empty()
             && self.reordered.is_empty()
+            && !self.metadata
     }
 }
 
@@ -97,6 +102,7 @@ pub struct Client {
     nodes: HashMap<String, Node>,
     root: Vec<String>,
     signals: Value,
+    metadata: Metadata,
     cel_signals: RefCell<Option<cel::Value>>,
     connected: bool,
     reset_pending: bool,
@@ -125,6 +131,7 @@ impl Client {
             nodes: HashMap::new(),
             root: Vec::new(),
             signals: Value::Object(Map::new()),
+            metadata: Metadata::default(),
             cel_signals: RefCell::new(None),
             connected: false,
             reset_pending: false,
@@ -186,6 +193,7 @@ impl Client {
                 }
             }
             "signal" => self.patch(&Value::Object(body)),
+            "metadata" => self.set_metadata(Metadata::from_map(&body)),
             t => self.diag(format!("ignored message with unknown tag '{t}'")),
         }
     }
@@ -297,6 +305,11 @@ impl Client {
             .collect()
     }
 
+    /// The details the server sent about the application, if any.
+    pub fn metadata(&self) -> &Metadata {
+        &self.metadata
+    }
+
     pub fn signals(&self) -> &Value {
         &self.signals
     }
@@ -405,8 +418,16 @@ impl Client {
         self.diagnostics.borrow_mut().push(msg);
     }
 
+    fn set_metadata(&mut self, m: Metadata) {
+        if self.metadata != m {
+            self.metadata = m;
+            self.changes.metadata = true;
+        }
+    }
+
     fn reset(&mut self) {
         self.reset_pending = false;
+        self.set_metadata(Metadata::default());
         self.changes
             .removed
             .extend(self.nodes.drain().map(|(id, _)| id));

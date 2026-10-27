@@ -140,8 +140,8 @@ element {"id":"a","type":"text","text":"Hello"}</pre>
             other message.
           </li>
           <li>
-            A session begins with an empty element tree and with signals equal to
-            <code>{}</code>.
+            A session begins with an empty element tree, with signals equal to
+            <code>{}</code>, and with no metadata.
           </li>
           <li>
             The server SHOULD respond to <code>hello</code> by sending the messages that build the
@@ -191,6 +191,31 @@ element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Inbox
           <a href="#signals">section 8</a>.
         </p>
         <pre>signal {"unread":4,"draft":null}</pre>
+
+        <h3 id="msg-metadata"><span class="num">5.4</span><code>metadata</code></h3>
+        <p>
+          <strong>Optional.</strong> A server MAY send it at any time, and MAY never send it. A
+          session needs no metadata to work, and a renderer MAY ignore it entirely. It carries
+          details about the application, for a renderer that has somewhere to show them (a window
+          or tab title, a launcher entry, a connection list):
+        </p>
+        <dl>
+          <dt><code>name</code></dt>
+          <dd>A string: the name of the application.</dd>
+          <dt><code>description</code></dt>
+          <dd>A string: a short description of the application.</dd>
+          <dt><code>icon</code></dt>
+          <dd>A string: the URL of an image that represents the application.</dd>
+        </dl>
+        <p>
+          All members are optional. Each message replaces the previous one, so a member that is
+          absent is unset. A member that is not a string, and any other member, is ignored. The
+          metadata is empty at the start of a session and is discarded with the rest of the state
+          when a new session begins. Metadata never affects the element tree or the signals, and
+          renderers MUST NOT require it. Fetching <code>icon</code> has the same privacy
+          implications as an <code>image</code> (<a href="#security">section 13</a>).
+        </p>
+        <pre>metadata {"name":"Plants","description":"Keeps the garden watered","icon":"https://example.com/icon.png"}</pre>
 
         <h2 id="client-messages"><span class="num">6</span>Renderer messages</h2>
 
@@ -564,9 +589,7 @@ element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Inbox
             has its <code>event</code> field set to the tag and a single <code>data</code> field
             containing the JSON. Renderer to server: each message is sent as the body of an HTTP
             POST, as a single line. The URLs, and how the POST is associated with the stream, are
-            application-defined. Because the <code>hello</code> is sent by POST, servers SHOULD
-            accept <code>hello</code> data in the request that opens the stream (for example as a
-            query parameter or header) and treat that as the <code>hello</code>.
+            application-defined.
           </dd>
           <dt>In-process</dt>
           <dd>
@@ -625,7 +648,7 @@ element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Inbox
             could have written them.
           </li>
           <li>
-            <strong>Images.</strong> Fetching an <code>image</code> URL discloses the user's network
+            <strong>Images.</strong> Fetching an <code>image</code> or metadata <code>icon</code> URL discloses the user's network
             address and timing to that URL's host. Renderers SHOULD let the host restrict which
             schemes and hosts may be fetched.
           </li>
@@ -672,6 +695,11 @@ json    = &lt;a JSON object per RFC 8259, containing no LF&gt;</pre>
               <td><code>signal</code></td>
               <td>server → renderer</td>
               <td><a href="#msg-signal">5.3</a></td>
+            </tr>
+            <tr>
+              <td><code>metadata</code></td>
+              <td>server → renderer</td>
+              <td><a href="#msg-metadata">5.4</a></td>
             </tr>
             <tr>
               <td><code>hello</code></td>

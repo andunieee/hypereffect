@@ -66,6 +66,9 @@ function run(file) {
         case 'signals':
           assert.ok(same(s.signals, JSON.parse([a, ...rest].join(' '))), `${where(i)}: signals are ${JSON.stringify(s.signals)}`);
           break;
+        case 'metadata':
+          assert.ok(same(s.metadata, JSON.parse([a, ...rest].join(' '))), `${where(i)}: metadata is ${JSON.stringify(s.metadata)}`);
+          break;
         case 'absent':
           assert.ok(!s.has(a), `${where(i)}: ${a} exists`);
           break;

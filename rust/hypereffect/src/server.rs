@@ -3,7 +3,7 @@
 //! [`wasm_app!`](crate::wasm_app), which exports a server from a WebAssembly
 //! module.
 
-use crate::message::{Action, Element, LineBuffer, RendererMessage, ServerMessage};
+use crate::message::{Action, Element, LineBuffer, Metadata, RendererMessage, ServerMessage};
 use serde_json::Value;
 use std::collections::BTreeMap;
 
@@ -33,6 +33,11 @@ impl Outbox {
     /// Sends a signal message. `patch` must be a JSON object.
     pub fn signal(&mut self, patch: Value) {
         self.send(ServerMessage::signal(patch));
+    }
+
+    /// Sends optional details about the application, replacing any sent before.
+    pub fn metadata(&mut self, m: Metadata) {
+        self.send(m);
     }
 
     pub fn is_empty(&self) -> bool {

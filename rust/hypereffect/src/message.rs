@@ -131,6 +131,12 @@ impl From<Element> for ServerMessage {
     }
 }
 
+impl From<Metadata> for ServerMessage {
+    fn from(m: Metadata) -> Self {
+        ServerMessage::Metadata(m)
+    }
+}
+
 /// Constructors for each component: `ui::text("title")` is
 /// `Element::new("title", Component::Text)`.
 pub mod ui {
@@ -220,6 +226,54 @@ pub enum ServerMessage {
     },
     /// A merge patch for the signals.
     Signal(Map<String, Value>),
+    /// Optional details about the application.
+    Metadata(Metadata),
+}
+
+/// Optional details about the application, sent by the server. A renderer is
+/// free to ignore all of them.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+pub struct Metadata {
+    /// The name of the application.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// A short description of the application.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// The URL of an icon for the application.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
+}
+
+impl Metadata {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn name(mut self, name: impl Into<String>) -> Self {
+        self.name = Some(name.into());
+        self
+    }
+
+    pub fn description(mut self, description: impl Into<String>) -> Self {
+        self.description = Some(description.into());
+        self
+    }
+
+    pub fn icon(mut self, icon: impl Into<String>) -> Self {
+        self.icon = Some(icon.into());
+        self
+    }
+
+    /// Reads the members that are strings and drops everything else.
+    pub fn from_map(body: &Map<String, Value>) -> Self {
+        let get = |k: &str| body.get(k).and_then(Value::as_str).map(str::to_string);
+        Metadata {
+            name: get("name"),
+            description: get("description"),
+            icon: get("icon"),
+        }
+    }
 }
 
 impl ServerMessage {
@@ -240,6 +294,7 @@ impl ServerMessage {
             ServerMessage::Element(_) => "element",
             ServerMessage::Remove { .. } => "remove",
             ServerMessage::Signal(_) => "signal",
+            ServerMessage::Metadata(_) => "metadata",
         }
     }
 
@@ -248,6 +303,7 @@ impl ServerMessage {
             ServerMessage::Element(e) => serde_json::to_value(e).expect("element serializes"),
             ServerMessage::Remove { id } => serde_json::json!({ "id": id }),
             ServerMessage::Signal(m) => Value::Object(m.clone()),
+            ServerMessage::Metadata(m) => serde_json::to_value(m).expect("metadata serializes"),
         }
     }
 
@@ -269,6 +325,8 @@ impl ServerMessage {
             serde_json::from_str(json).map(ServerMessage::Element).ok()
         } else if let Some(json) = fast.strip_prefix("signal ") {
             serde_json::from_str(json).map(ServerMessage::Signal).ok()
+        } else if let Some(json) = fast.strip_prefix("metadata ") {
+            serde_json::from_str(json).map(ServerMessage::Metadata).ok()
         } else if let Some(json) = fast.strip_prefix("remove ") {
             #[derive(Deserialize)]
             struct Remove {
@@ -297,6 +355,7 @@ impl ServerMessage {
                 _ => Err(ParseError::Invalid("remove needs a string id".into())),
             },
             "signal" => Ok(ServerMessage::Signal(body)),
+            "metadata" => Ok(ServerMessage::Metadata(Metadata::from_map(&body))),
             t => Err(ParseError::UnknownTag(t.to_string())),
         }
     }

@@ -22,7 +22,7 @@ pub mod client;
 
 pub use component::Component;
 pub use message::{
-    cel, is_cel, ui, Action, Element, Handler, LineBuffer, ParseError, RendererMessage,
+    cel, is_cel, ui, Action, Element, Handler, LineBuffer, Metadata, ParseError, RendererMessage,
     ServerMessage,
 };
 pub use serde_json::{self, json, Map, Value};

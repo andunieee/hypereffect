@@ -103,6 +103,12 @@ fn run(path: &Path) {
                         failures.push(format!("{at}: signals are {}", c.signals()));
                     }
                 }
+                "metadata" => {
+                    let got = serde_json::to_value(c.metadata()).unwrap();
+                    if !same(&got, &json(args)) {
+                        failures.push(format!("{at}: metadata is {got}"));
+                    }
+                }
                 "absent" => {
                     if c.contains(args) {
                         failures.push(format!("{at}: {args} exists"));

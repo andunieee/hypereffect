@@ -14,6 +14,7 @@ the JavaScript `Session` both run them). Lines are:
 - `=attrs id {json}` — the resolved attributes of `id` include these values.
 - `=children id [ids]` — the children of `id` (`-` for the root).
 - `=signals {json}` — the signals are exactly this.
+- `=metadata {json}` — the application metadata is exactly this.
 - `=absent id` — no element has this id.
 - `#` starts a comment. Empty lines are ignored.
 
