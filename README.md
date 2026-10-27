@@ -53,6 +53,9 @@ are expressions over the state.
 - **One server, every screen.** The same messages can be drawn as a web page, a terminal UI or a
   mobile app, each with its own native widgets, accessibility and conventions. The server never
   ships HTML, CSS or a framework.
+- **Native look and feel.** Because the protocol describes meaning rather than appearance, every
+  renderer uses its platform's own widgets, fonts, spacing, accessibility and conventions. Apps
+  feel like they belong, with no theming work.
 - **Small enough to implement.** A fixed vocabulary and a handful of message types mean a renderer
   or a server is a weekend project, in any language.
 - **Instant without being a client app.** Local patches and expressions keep the interface
