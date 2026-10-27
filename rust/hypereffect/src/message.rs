@@ -261,6 +261,28 @@ impl ServerMessage {
     }
 
     pub fn parse(line: &str) -> Result<Self, ParseError> {
+        // Fast path: the tag is one of ours, so decode the body straight into
+        // its type. Anything that fails goes through the general path, which
+        // reports the precise error.
+        let fast = line.strip_suffix('\r').unwrap_or(line);
+        let parsed = if let Some(json) = fast.strip_prefix("element ") {
+            serde_json::from_str(json).map(ServerMessage::Element).ok()
+        } else if let Some(json) = fast.strip_prefix("signal ") {
+            serde_json::from_str(json).map(ServerMessage::Signal).ok()
+        } else if let Some(json) = fast.strip_prefix("remove ") {
+            #[derive(Deserialize)]
+            struct Remove {
+                id: String,
+            }
+            serde_json::from_str(json)
+                .map(|Remove { id }| ServerMessage::Remove { id })
+                .ok()
+        } else {
+            None
+        };
+        if let Some(m) = parsed {
+            return Ok(m);
+        }
         let (tag, body) = parse_line(line)?;
         Self::from_parts(tag, body)
     }
@@ -328,6 +350,22 @@ impl RendererMessage {
     }
 
     pub fn parse(line: &str) -> Result<Self, ParseError> {
+        // Fast path, as in `ServerMessage::parse`.
+        let fast = line.strip_suffix('\r').unwrap_or(line);
+        if let Some(json) = fast.strip_prefix("action ") {
+            if let Ok(a) = serde_json::from_str(json) {
+                return Ok(RendererMessage::Action(a));
+            }
+        } else if let Some(json) = fast.strip_prefix("hello ") {
+            #[derive(Deserialize)]
+            struct Hello {
+                #[serde(default)]
+                params: BTreeMap<String, String>,
+            }
+            if let Ok(Hello { params }) = serde_json::from_str(json) {
+                return Ok(RendererMessage::Hello { params });
+            }
+        }
         let (tag, body) = parse_line(line)?;
         match tag {
             "hello" => {
