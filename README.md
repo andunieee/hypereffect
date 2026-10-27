@@ -71,3 +71,12 @@ are expressions over the state.
 - `rust/`: types and helpers for servers and renderers
 - `js/`: a dependency-free JavaScript renderer core
 - `fixtures/`: renderer test scripts shared by both libraries
+
+## Who is using it
+
+- The [hyperb](https://github.com/andunieee/hyperb) standalone browser for hypereffect apps
+  - [Cathode](https://github.com/andunieee/cathode) desktop video player remote control
+  - [Grassline](https://github.com/andunieee/grassline) agent control system admin panel
+- [flipflop](https://github.com/andunieee/flipflop) offline collaborative apps
+- [Ribolita](https://github.com/andunieee/ribolita) embedded programs interface
+- [Cassis Order Protocol](https://github.com/cassiscash/cassis_order_protocol)
