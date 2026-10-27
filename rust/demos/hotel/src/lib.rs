@@ -4,7 +4,8 @@
 //! dialog and answered with a code.
 
 use hypereffect::ui::*;
-use hypereffect::{cel, json, Action, App, Handler, Map, Outbox, Value};
+use hypereffect::{cel, json, Action, App, Handler, Outbox, Value};
+use std::collections::BTreeMap;
 
 /// Rooms, as offered: code, label, rate per night, rooms left, capacity.
 const ROOMS: [(&str, &str, f64, u32, u32); 3] = [
@@ -101,7 +102,7 @@ impl Hotel {
 }
 
 impl App for Hotel {
-    fn hello(&mut self, out: &mut Outbox, _signals: &Map<String, Value>) {
+    fn hello(&mut self, out: &mut Outbox, _: &BTreeMap<String, String>) {
         out.signal(self.state());
         // The dialog's open switch, kept locally by the renderer.
         out.signal(json!({ "_confirm": false }));

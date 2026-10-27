@@ -4,7 +4,8 @@
 //! pattern fits a 3D printer's heater, a freezer or a server room.
 
 use hypereffect::ui::*;
-use hypereffect::{cel, json, Action, App, Handler, Map, Outbox, Value};
+use hypereffect::{cel, json, Action, App, Handler, Outbox, Value};
+use std::collections::BTreeMap;
 
 /// Simulated devices: name, label, steady temperature in °C, volatility.
 const DEVICES: [(&str, &str, f64, f64); 3] = [
@@ -127,7 +128,7 @@ impl Monitor {
 }
 
 impl App for Monitor {
-    fn hello(&mut self, out: &mut Outbox, _signals: &Map<String, Value>) {
+    fn hello(&mut self, out: &mut Outbox, _: &BTreeMap<String, String>) {
         out.signal(json!({
             "online": self.online,
             "alarm": self.alarm,

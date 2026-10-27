@@ -1,5 +1,5 @@
-use hypereffect::server::Loopback;
 use hypereffect::json;
+use hypereffect::server::Loopback;
 use todos::Todos;
 
 #[test]

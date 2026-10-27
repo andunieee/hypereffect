@@ -5,9 +5,10 @@
 
 use base64::Engine as _;
 use hypereffect::ui::*;
-use hypereffect::{cel, json, Action, App, Handler, Map, Outbox, Value};
+use hypereffect::{cel, json, Action, App, Handler, Outbox, Value};
 use qrcode::types::EcLevel;
 use qrcode::QrCode;
+use std::collections::BTreeMap;
 
 const SAMPLE: &str = "https://hypereffect.dev";
 
@@ -103,7 +104,7 @@ impl Qr {
 }
 
 impl App for Qr {
-    fn hello(&mut self, out: &mut Outbox, _signals: &Map<String, Value>) {
+    fn hello(&mut self, out: &mut Outbox, _: &BTreeMap<String, String>) {
         out.signal(json!({
             "text": self.text,
             "ecc": LEVELS[self.ecc].0,

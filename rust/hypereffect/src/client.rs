@@ -19,14 +19,14 @@
 //! ```
 
 use crate::component::{accepts, AttrType, Component};
-use crate::message::{encode_line, is_cel, parse_line, LineBuffer, ServerMessage};
+use crate::message::{encode_line, is_cel, parse_line, LineBuffer, RendererMessage, ServerMessage};
 use crate::signals::{get_path, merge_patch_tracked, parse_path, path_patch, strip_local_map};
 use cel::objects::{Key, Map as CelMap};
 use cel::{Context, Env, Program};
 use serde::Serialize;
 use serde_json::{Map, Number, Value};
 use std::cell::RefCell;
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::sync::Arc;
 
 const ROOT: &str = "";
@@ -139,10 +139,19 @@ impl Client {
     /// Begins a session and returns the hello line to send. The previous
     /// tree is kept until the first server message of the new session.
     pub fn hello(&mut self) -> String {
+        self.hello_with(&BTreeMap::new())
+    }
+
+    /// Like [`hello`](Self::hello), with params for the app: strings chosen
+    /// by whoever opened the session, such as the ones in its address.
+    pub fn hello_with(&mut self, params: &BTreeMap<String, String>) -> String {
         self.reader = LineBuffer::new();
         self.connected = true;
         self.reset_pending = true;
-        let line = encode_line("hello", &serde_json::json!({}));
+        let line = RendererMessage::Hello {
+            params: params.clone(),
+        }
+        .to_line();
         if self.nodes.is_empty() {
             self.reset();
         }

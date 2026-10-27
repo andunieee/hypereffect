@@ -1,6 +1,6 @@
 use hotel::Hotel;
-use hypereffect::server::Loopback;
 use hypereffect::json;
+use hypereffect::server::Loopback;
 
 #[test]
 fn quotes_confirms_and_rejects() {

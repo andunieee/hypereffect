@@ -3,6 +3,7 @@
 
 use hypereffect::ui::*;
 use hypereffect::{cel, json, Action, App, Element, Handler, Map, Outbox, Value};
+use std::collections::BTreeMap;
 
 struct Task {
     id: String,
@@ -78,7 +79,7 @@ impl Todos {
 }
 
 impl App for Todos {
-    fn hello(&mut self, out: &mut Outbox, _signals: &Map<String, Value>) {
+    fn hello(&mut self, out: &mut Outbox, _: &BTreeMap<String, String>) {
         out.signal(json!({
             "new": "",
             "done": self.done_signals(),

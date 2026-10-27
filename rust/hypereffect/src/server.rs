@@ -4,7 +4,8 @@
 //! module.
 
 use crate::message::{Action, Element, LineBuffer, RendererMessage, ServerMessage};
-use serde_json::{Map, Value};
+use serde_json::Value;
+use std::collections::BTreeMap;
 
 /// Collects messages to send to the renderer, as lines.
 #[derive(Debug, Default)]
@@ -53,7 +54,7 @@ impl Outbox {
 /// every hello, and dropped when the session ends.
 pub trait App {
     /// Called on hello. The app should build the initial interface.
-    fn hello(&mut self, out: &mut Outbox, signals: &Map<String, Value>);
+    fn hello(&mut self, out: &mut Outbox, params: &BTreeMap<String, String>);
 
     /// Called for each action. The action's contents are user input.
     fn action(&mut self, out: &mut Outbox, action: &Action);
@@ -95,9 +96,9 @@ impl<A: App + Default> Server<A> {
     pub fn receive(&mut self, bytes: &[u8]) {
         for line in self.input.push(bytes) {
             match RendererMessage::parse(&line) {
-                Ok(RendererMessage::Hello { signals }) => {
+                Ok(RendererMessage::Hello { params }) => {
                     let mut app = A::default();
-                    app.hello(&mut self.out, &signals);
+                    app.hello(&mut self.out, &params);
                     self.app = Some(app);
                 }
                 Ok(RendererMessage::Action(a)) => {
@@ -230,12 +231,13 @@ macro_rules! wasm_app {
 ///
 /// ```
 /// use hypereffect::server::{App, Loopback, Outbox};
-/// use hypereffect::{json, ui, Action, Handler, Map, Value};
+/// use hypereffect::{json, ui, Action, Handler};
+/// use std::collections::BTreeMap;
 ///
 /// #[derive(Default)]
 /// struct Hi;
 /// impl App for Hi {
-///     fn hello(&mut self, out: &mut Outbox, _: &Map<String, Value>) {
+///     fn hello(&mut self, out: &mut Outbox, _: &BTreeMap<String, String>) {
 ///         out.element(ui::button("b").on_press(Handler::action("hi")));
 ///     }
 ///     fn action(&mut self, out: &mut Outbox, _: &Action) {
@@ -265,11 +267,16 @@ impl<A: App + Default> Default for Loopback<A> {
 impl<A: App + Default> Loopback<A> {
     /// Starts a session.
     pub fn new() -> Self {
+        Self::with_params(&BTreeMap::new())
+    }
+
+    /// Starts a session whose hello carries these params.
+    pub fn with_params(params: &BTreeMap<String, String>) -> Self {
         let mut l = Loopback {
             client: crate::client::Client::new(),
             server: Server::new(),
         };
-        let hello = l.client.hello();
+        let hello = l.client.hello_with(params);
         l.server.receive(hello.as_bytes());
         l.pump();
         l

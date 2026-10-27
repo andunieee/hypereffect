@@ -3,6 +3,7 @@
 use crate::Component;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use std::collections::BTreeMap;
 
 /// An expression attribute value: `{"cel": "..."}`.
 pub fn cel(expr: impl Into<String>) -> Value {
@@ -282,7 +283,11 @@ impl ServerMessage {
 /// A message from the renderer to the server.
 #[derive(Debug, Clone, PartialEq)]
 pub enum RendererMessage {
-    Hello { signals: Map<String, Value> },
+    /// Opens a session. The params are chosen by whoever opened it (for
+    /// example, taken from the address) and are strings only.
+    Hello {
+        params: BTreeMap<String, String>,
+    },
     Action(Action),
 }
 
@@ -312,11 +317,11 @@ impl Action {
 impl RendererMessage {
     pub fn to_line(&self) -> String {
         match self {
-            RendererMessage::Hello { signals } if signals.is_empty() => {
+            RendererMessage::Hello { params } if params.is_empty() => {
                 encode_line("hello", &serde_json::json!({}))
             }
-            RendererMessage::Hello { signals } => {
-                encode_line("hello", &serde_json::json!({ "signals": signals }))
+            RendererMessage::Hello { params } => {
+                encode_line("hello", &serde_json::json!({ "params": params }))
             }
             RendererMessage::Action(a) => encode_line("action", a),
         }
@@ -325,12 +330,14 @@ impl RendererMessage {
     pub fn parse(line: &str) -> Result<Self, ParseError> {
         let (tag, body) = parse_line(line)?;
         match tag {
-            "hello" => Ok(RendererMessage::Hello {
-                signals: match body.get("signals") {
-                    Some(Value::Object(m)) => m.clone(),
-                    _ => Map::new(),
-                },
-            }),
+            "hello" => {
+                let params = match body.get("params") {
+                    None => BTreeMap::new(),
+                    Some(v) => serde_json::from_value(v.clone())
+                        .map_err(|e| ParseError::Invalid(format!("params: {e}")))?,
+                };
+                Ok(RendererMessage::Hello { params })
+            }
             "action" => serde_json::from_value(Value::Object(body))
                 .map(RendererMessage::Action)
                 .map_err(|e| ParseError::Invalid(e.to_string())),
@@ -467,9 +474,12 @@ mod tests {
         assert_eq!(
             RendererMessage::parse("hello {}").unwrap(),
             RendererMessage::Hello {
-                signals: Map::new()
+                params: BTreeMap::new()
             }
         );
+        let m = RendererMessage::parse(r#"hello {"params":{"room":"abc"}}"#).unwrap();
+        assert_eq!(m.to_line(), "hello {\"params\":{\"room\":\"abc\"}}\n");
+        assert!(RendererMessage::parse(r#"hello {"params":{"n":1}}"#).is_err());
     }
 
     #[test]

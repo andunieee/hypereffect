@@ -35,12 +35,13 @@ export class Session {
 
   // --- transport -----------------------------------------------------------
 
-  // Begins a session: sends hello, which carries no signals.
-  start() {
+  // Begins a session: sends hello. params is an object of strings chosen by
+  // whoever opened the session; hello carries it only when it has keys.
+  start(params = {}) {
     this.reader = new LineReader();
     this.connected = true;
     this._resetPending = true;
-    this.send(encodeLine('hello', {}));
+    this.send(encodeLine('hello', Object.keys(params).length ? { params } : {}));
     if (this.nodes.size === 0) this._reset();
     this._changed.connection = true;
     this._schedule();

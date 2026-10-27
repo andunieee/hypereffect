@@ -1,5 +1,5 @@
-use hypereffect::server::Loopback;
 use hypereffect::json;
+use hypereffect::server::Loopback;
 use qr::Qr;
 
 const DATA: &str = "data:image/svg+xml;base64,";
