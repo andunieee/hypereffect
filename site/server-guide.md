@@ -217,20 +217,24 @@ action. Add `on_change(Handler::action(...))` if the server must react to
 each change. If the server writes a bound path, the control shows the new
 value even while focused.
 
-`bind` is for **drafts and inputs** (form fields, a search box, a setting the
-server reads on the next submit). It is the wrong tool for state that only
-the server may confirm: see the next section.
+`bind` suits drafts and inputs (form fields, a search box, a setting the
+server reads on the next submit) as they are. A bound control whose change
+the server must confirm needs the extra care described in the next section.
 
-## Server-confirmed state: never update it on the client
+## Server-confirmed state
 
 When an action needs the server to say whether it happened (persisting a
 change, switching a device, anything that can fail or be refused), the
-renderer must **not** change the signal that shows the result. That signal is
-governed by the server, always. The client only shows that a request is in
-flight.
+server's reply is the only truth. The client may show that a request is in
+flight, but **never present an unconfirmed value as settled**. There are two
+ways to do it, depending on the control.
 
-Use two signals: the value (server-owned) and a local loading flag (an
-indicator, so it must start with `_`). Starting from off:
+### Pattern A: request without touching the value
+
+For buttons, badges and text, whose look is computed from the value, the
+client never writes the value at all. Use two signals: the value
+(server-owned) and a local loading flag (an indicator, so it must start with
+`_`). Starting from off:
 
 ```
 signals        {"value":false,"_loading":false}
@@ -245,21 +249,9 @@ If the server refuses, it replies `{"_loading":false,"value":false}` (plus an
 error to show): nothing has to be rolled back, and nothing ever showed a
 state that was not true.
 
-What goes wrong otherwise:
-
-```rust
-// ANTI-PATTERN: the renderer writes `value` the instant the user clicks,
-// before the server has agreed. A refusal or failure makes it flicker back,
-// and in the meantime the UI (and every action's signals) claim a state
-// that never happened.
-checkbox("lamp").bind("value").on_change(Handler::action("toggled"));
-// Same mistake with a patch:
-button("lamp").on_press(Handler::action("toggled").with_patch(json!({ "value": cel("!s.value") })));
-```
-
 Rules:
 
-- No `bind` and no handler `patch` writes a server-governed signal.
+- No handler `patch` writes the value.
 - Request with `Handler::action(...).indicator("_loading")`; disable the
   control and show progress with expressions over `s._loading`.
 - Let the payload name the **wanted** state (`true`/`false`), not "flip",
@@ -267,12 +259,8 @@ Rules:
   control per possible request and pick the visible one with an expression
   over the value. (Re-sending the element with a new payload after each
   change also works.)
-- Reply with the confirmed value **and** the indicator reset in one patch, on
+- Reply with the confirmed value **and** the loading reset in one patch, on
   every path, including refusals.
-- `checkbox`, `select`, `slider` and `tabs` show their value only through
-  `bind`, so they cannot display server-governed state without writing it.
-  Show such state with `button`/`badge`/`text` attributes computed from the
-  value.
 
 A complete switch:
 
@@ -326,6 +314,98 @@ impl App for Lamp {
         out.signal(json!({ "_loading": false, "value": self.on }));
     }
 }
+```
+
+### Pattern B: bound controls (optimistic, pending, corrected)
+
+`checkbox`, `select`, `slider` and `tabs` show their value only through
+`bind`, and a user change writes the bound path before any handler runs. So
+the click necessarily shows the requested value early. That is fine as long
+as it is visibly a request: marked pending and disabled until the server
+answers with the real value, which the control then shows (a control always
+shows a value the server writes to its bound path, even while focused).
+
+Keep the value and a local flag together, `{"auto":{"value":false,"_loading":false}}`.
+Starting from off:
+
+```
+user clicks →  bind writes auto.value = true; onChange's patch sets auto._loading = true
+renderer →     action {"name":"auto","signals":{"auto":{"value":true},"error":""}}
+server →       signal {"auto":{"value":true,"_loading":false},"error":""}                                (success)
+server →       signal {"auto":{"value":false,"_loading":false},"error":"Could not change auto-update."}  (failure: the box flips back)
+```
+
+```rust
+#[derive(Default)]
+struct Settings {
+    auto: bool,
+}
+
+/// The real side effect: a database write, a device call. It may fail.
+fn apply_auto_update(on: bool) -> Result<(), String> {
+    let _ = on;
+    Ok(())
+}
+
+impl App for Settings {
+    fn hello(&mut self, out: &mut Outbox, _: &BTreeMap<String, String>) {
+        out.signal(json!({ "auto": { "value": self.auto, "_loading": false }, "error": "" }));
+        out.element(
+            checkbox("auto")
+                .label(cel("s.auto._loading ? 'Auto-update (saving…)' : 'Auto-update'"))
+                .bind("auto.value")
+                .disabled(cel("s.auto._loading"))
+                // `auto._loading` is local (a `_` key at any depth) but cannot be
+                // an indicator, whose first segment must start with `_`: set it
+                // with a patch, which runs before the action is sent.
+                .on_change(Handler::action("auto").with_patch(json!({ "auto": { "_loading": true } }))),
+        );
+        out.element(notice("error").variant("failure").text(cel("s.error")).visible(cel("s.error != ''")));
+    }
+
+    fn action(&mut self, out: &mut Outbox, action: &Action) {
+        if action.name != "auto" {
+            return;
+        }
+        // The bound value in this action is the request, not the truth.
+        let err = match action.signal("auto.value").and_then(Value::as_bool) {
+            Some(want) if apply_auto_update(want).is_ok() => {
+                self.auto = want;
+                ""
+            }
+            _ => "Could not change auto-update.",
+        };
+        // Always answer with the server's own value: this confirms or rolls back.
+        out.signal(json!({ "auto": { "value": self.auto, "_loading": false }, "error": err }));
+    }
+}
+```
+
+Rules:
+
+- Disable the control while pending (handlers of disabled controls do not
+  run, so no second request can start) and say so in its label or nearby.
+- Read the bound value in the action as the requested state; validate it.
+- Reply on every path with the server's own value and the pending flag
+  reset. Without that echo a refused change would stay on screen.
+- Keep the server's state as the source of truth. While a request is
+  pending, *other* actions also carry the unconfirmed value in their signals:
+  never take it from there.
+- If the connection drops before the reply, the box stays flipped and
+  pending; the renderer disables everything, and the next `hello` rebuilds
+  from the server's state.
+
+Prefer pattern A when even a brief wrong value is unacceptable (a payment,
+a door lock), and pattern B when the native control matters more.
+
+**The mistake** both patterns avoid is a bound control or a patch that writes
+the value with no pending state and no authoritative reply:
+
+```rust
+// ANTI-PATTERN: looks done the moment it is clicked, stays enabled, and
+// nothing corrects it if the server refuses.
+checkbox("lamp").bind("value").on_change(Handler::action("toggled"));
+button("lamp").on_press(Handler::action("toggled").with_patch(json!({ "value": cel("!s.value") })));
 ```
 
 ## Components
@@ -857,9 +937,11 @@ CEL type errors and failing expressions.
 - Update with `signal` when possible, re-send one element when a literal or
   position changes, `remove` only to delete. Never rebuild.
 - UI-only state in `_` local signals, changed by handler patches.
-- Server-confirmed state is never written by the client (no `bind`, no
-  patch): request it with an action plus an indicator, and let the reply set
-  the value.
+- Server-confirmed state is never presented as settled before the reply:
+  either the client does not write it (pattern A: action plus indicator), or
+  a bound control shows it as pending and disabled until the server answers
+  with the real value (pattern B). Every reply resets the pending flag and
+  carries the server's value.
 - Every action reply resets the indicators it may have set, on all paths.
 - Validate every action name, payload and signal read.
 - No user text inside CEL strings; no `cel(...)` in structural attributes.

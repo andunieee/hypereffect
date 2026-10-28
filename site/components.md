@@ -354,6 +354,7 @@ An element with an invalid handler is rejected.
 - A confirmation: a root `dialog` whose `open` reads a local signal.
 - Switching views locally: `tabs` with `bind` to a local signal, or
   `visible` expressions on sibling containers.
-- Showing state that only the server may confirm: `button`/`badge`/`text`
-  attributes computed from a server-owned signal, never a bound control (see
-  [server-guide.md](https://hypereffect.dev/server-guide.md#server-confirmed-state-never-update-it-on-the-client)).
+- State that only the server may confirm: `button`/`badge`/`text`
+  attributes computed from a server-owned signal, or a bound control kept
+  disabled and pending until the server replies with the real value (see
+  [server-guide.md](https://hypereffect.dev/server-guide.md#server-confirmed-state)).
