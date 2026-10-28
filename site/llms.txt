@@ -1,0 +1,10 @@
+# hypereffect
+
+> A small protocol for server-guided, reactive interfaces rendered natively anywhere. The server sends elements (18 fixed components), signals (JSON state, merge-patched) and CEL expressions; the renderer sends actions back.
+
+## Docs
+
+- [Writing a server in Rust](https://hypereffect.dev/server-guide.md): messages, how they map to the `hypereffect` crate, update rules, and complete tested examples.
+- [Components](https://hypereffect.dev/components.md): all eighteen components, their attributes, defaults, nesting rules and handlers.
+- [Specification](https://hypereffect.dev/spec.html)
+- [Expressions](https://hypereffect.dev/expressions.html)
