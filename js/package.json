@@ -8,8 +8,8 @@
   "files": ["src"],
   "scripts": { "test": "node --test" },
   "dependencies": { "@marcbachmann/cel-js": "8.0.0" },
-  "repository": { "type": "git", "url": "git+https://github.com/andunieee/hypereffect.git" },
-  "bugs": "https://github.com/andunieee/hypereffect/issues",
+  "repository": { "type": "git", "url": "git+https://github.com/hypereffect/hypereffect.git" },
+  "bugs": "https://github.com/hypereffect/hypereffect/issues",
   "homepage": "https://hypereffect.dev",
   "keywords": ["hypermedia", "gui", "ui", "cel", "renderer"],
   "license": "MIT"

@@ -1,4 +1,4 @@
-//! Types and helpers for [hypereffect](https://github.com/andunieee/hypereffect),
+//! Types and helpers for [hypereffect](https://github.com/hypereffect/hypereffect),
 //! a small hypermedia protocol for server-driven UI.
 //!
 //! - [`message`]: elements, handlers, server and renderer messages, and the

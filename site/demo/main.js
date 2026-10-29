@@ -4,7 +4,7 @@ import { WasmServer, Delay } from './transport.js';
 import { inspect } from './inspect.js';
 import { wireRow, Pairing } from './wire.js';
 
-const SRC = 'https://github.com/andunieee/hypereffect/blob/master/rust/demos';
+const SRC = 'https://github.com/hypereffect/hypereffect/blob/master/rust/demos';
 const DEMOS = {
   todos: 'Tasks',
   qr: 'QR code',

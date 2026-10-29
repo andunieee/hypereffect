@@ -74,7 +74,7 @@ are expressions over the state.
 
 ## Who is using it
 
-- The [hyperb](https://github.com/andunieee/hyperb) standalone browser for hypereffect apps
+- The [hyperb](https://github.com/hypereffect/hyperb) standalone browser for hypereffect apps
   - [Cathode](https://github.com/andunieee/cathode) desktop video player remote control
   - [Grassline](https://github.com/andunieee/grassline) agent control system admin panel
 - [flipflop](https://github.com/andunieee/flipflop) offline collaborative apps
