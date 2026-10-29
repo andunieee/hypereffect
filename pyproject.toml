@@ -1,0 +1,35 @@
+[project]
+name = "hypereffect-server"
+version = "0.1.0"
+description = "Types and helpers for writing hypereffect servers: messages, line framing, signals and components, an App/Server session driver, and a renderer client with a loopback for tests."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = ["cel-python>=0.5,<0.6"]
+keywords = ["hypermedia", "gui", "ui", "server-driven-ui", "cel"]
+
+[project.urls]
+Homepage = "https://hypereffect.dev"
+Repository = "https://github.com/hypereffect/hypereffect-py"
+
+[dependency-groups]
+dev = ["pytest>=8", "mypy>=1.10"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.mypy]
+strict = true
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = ["celpy", "celpy.*", "lark", "lark.*"]
+ignore_missing_imports = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hypereffect"]
