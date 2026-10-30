@@ -1,0 +1,38 @@
+# A handler's open (spec section 10): buttons only.
+!start
+< hello {}
+signal {"id":"ada","_n":0}
+element {"id":"site","type":"button","label":"Website","onPress":{"open":"https://example.com/"}}
+!trigger site onPress
+=opened ["https://example.com/"]
+# An expression is evaluated after the patch, and the URL is opened before the
+# action is sent.
+element {"id":"profile","type":"button","onPress":{"patch":{"_n":{"cel":"s._n + 1"}},"open":{"cel":"'https://example.com/' + s.id + '?n=' + string(s._n)"},"action":"visited"}}
+!trigger profile onPress
+=opened ["https://example.com/ada?n=1"]
+< action {"name":"visited","signals":{"id":"ada"}}
+# An expression that fails or does not give a string opens nothing.
+element {"id":"bad","type":"button","onPress":{"open":{"cel":"s.nope"}}}
+!trigger bad onPress
+element {"id":"num","type":"button","onPress":{"open":{"cel":"1"}}}
+!trigger num onPress
+=opened []
+# Disabled buttons open nothing.
+element {"id":"off","type":"button","disabled":true,"onPress":{"open":"https://example.com/"}}
+!trigger off onPress
+=opened []
+# open does not need the transport.
+!close
+!trigger site onPress
+=opened ["https://example.com/"]
+!start
+< hello {}
+# open must be a non-empty string or an expression, and only buttons have it.
+element {"id":"empty","type":"button","onPress":{"open":""}}
+=absent empty
+element {"id":"obj","type":"button","onPress":{"open":{"url":"https://example.com/"}}}
+=absent obj
+element {"id":"cb","type":"checkbox","bind":"x","onChange":{"open":"https://example.com/"}}
+=absent cb
+element {"id":"in","type":"input","bind":"q","onSubmit":{"action":"go","open":"https://example.com/"}}
+=absent in
