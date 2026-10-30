@@ -7,10 +7,10 @@ components and their nesting rules, an `App`/`Server` session driver, and a
 renderer client with a loopback for testing apps without a renderer.
 
 ```
-pip install hypereffect-server
+pip install hypereffect-ui
 ```
 
-The distribution is `hypereffect-server`; the package is imported as
+The distribution is `hypereffect-ui`; the package is imported as
 `hypereffect`. It needs Python 3.11 or later.
 
 ## Servers
@@ -100,6 +100,5 @@ uv run pytest
 uv run mypy
 ```
 
-The tests include the shared renderer fixtures in `fixtures/`, copied from the
-[hypereffect repository](https://github.com/hypereffect/hypereffect/tree/master/fixtures).
-Copy them again when they change there.
+The tests include the shared renderer fixtures in the repository's
+[`fixtures/`](https://github.com/hypereffect/hypereffect/tree/master/fixtures).

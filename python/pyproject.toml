@@ -1,5 +1,5 @@
 [project]
-name = "hypereffect-server"
+name = "hypereffect-ui"
 version = "0.1.0"
 description = "Types and helpers for writing hypereffect servers: messages, line framing, signals and components, an App/Server session driver, and a renderer client with a loopback for tests."
 readme = "README.md"
@@ -10,7 +10,8 @@ keywords = ["hypermedia", "gui", "ui", "server-driven-ui", "cel"]
 
 [project.urls]
 Homepage = "https://hypereffect.dev"
-Repository = "https://github.com/hypereffect/hypereffect-py"
+Repository = "https://github.com/hypereffect/hypereffect"
+Issues = "https://github.com/hypereffect/hypereffect/issues"
 
 [dependency-groups]
 dev = ["pytest>=8", "mypy>=1.10"]

@@ -1,4 +1,3 @@
-// Ported from the hypereffect repository's js/src/cel.js; keep the two in step.
 // CEL for hypereffect, on top of @marcbachmann/cel-js: the environment of
 // spec section 9.1 (the variable `s`, the standard definitions and the
 // strings, math and lists extensions), JSON conversion (9.2), and the signal

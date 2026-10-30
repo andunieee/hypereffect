@@ -3,7 +3,7 @@ name: Deploy site to GitHub Pages
 on:
   push:
     branches: [master]
-    paths: [site/**, js/**, rust/**, justfile, .github/workflows/deploy-pages.yml]
+    paths: [site/**, ts/**, rust/**, justfile, .github/workflows/deploy-pages.yml]
   workflow_dispatch:
 
 permissions:
@@ -29,6 +29,11 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
 
       - name: Install just
         uses: extractions/setup-just@v2

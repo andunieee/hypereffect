@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hypereffect/hypereffect-go/client"
+	"github.com/hypereffect/hypereffect/go/client"
 )
 
 func TestAddToggleDeleteClear(t *testing.T) {

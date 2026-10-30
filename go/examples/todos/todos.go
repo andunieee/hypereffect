@@ -8,8 +8,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	he "github.com/hypereffect/hypereffect-go"
-	"github.com/hypereffect/hypereffect-go/ui"
+	he "github.com/hypereffect/hypereffect/go"
+	"github.com/hypereffect/hypereffect/go/ui"
 )
 
 type task struct {

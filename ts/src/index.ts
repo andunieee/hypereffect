@@ -9,7 +9,7 @@
 // - An App interface for per-session logic, and a Server that drives one
 //   from any transport.
 //
-// The renderer side, for tests, is in '@hypereffect/server/client'.
+// The renderer side is in 'hypereffect/client'.
 
 export * from './components.ts';
 export * from './message.ts';

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hypereffect/hypereffect-go/internal/jsonx"
+	"github.com/hypereffect/hypereffect/go/internal/jsonx"
 )
 
 // Outbox collects messages to send to the renderer, as lines.

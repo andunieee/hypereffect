@@ -2,7 +2,7 @@
 // hypereffect.NewElement("title", hypereffect.Text).
 package ui
 
-import he "github.com/hypereffect/hypereffect-go"
+import he "github.com/hypereffect/hypereffect/go"
 
 func Column(id string) *he.Element   { return he.NewElement(id, he.Column) }
 func Row(id string) *he.Element      { return he.NewElement(id, he.Row) }

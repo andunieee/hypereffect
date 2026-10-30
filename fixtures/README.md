@@ -1,7 +1,7 @@
 # Renderer fixtures
 
-Each `.txt` file is a script run against a renderer core (the Rust `Client` and
-the JavaScript `Session` both run them). Lines are:
+Each `.txt` file is a script run against a renderer core (the Rust, TypeScript,
+Go and Python clients all run them). Lines are:
 
 - `tag {json}` — a server message, fed to the renderer.
 - `< tag {json}` — the next line the renderer is expected to send. Every line

@@ -1,7 +1,7 @@
 {
-  "name": "@hypereffect/server",
-  "version": "0.1.0",
-  "description": "Types and helpers for writing hypereffect servers: messages, line framing, signals and components, an App/Server session driver, and a renderer client with a loopback for tests.",
+  "name": "hypereffect",
+  "version": "0.1.1",
+  "description": "Types and helpers for the hypereffect protocol: messages, line framing, signals and components, an App/Server session driver, and the renderer core (element tree, signals and CEL evaluation, without any drawing).",
   "type": "module",
   "exports": {
     ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
@@ -17,9 +17,9 @@
   "dependencies": { "@marcbachmann/cel-js": "8.0.0" },
   "devDependencies": { "@types/node": "^24.0.0", "typescript": "^7.0.0" },
   "engines": { "node": ">=20" },
-  "repository": { "type": "git", "url": "git+https://github.com/hypereffect/hypereffect-ts.git" },
-  "bugs": "https://github.com/hypereffect/hypereffect-ts/issues",
+  "repository": { "type": "git", "url": "git+https://github.com/hypereffect/hypereffect.git", "directory": "ts" },
+  "bugs": "https://github.com/hypereffect/hypereffect/issues",
   "homepage": "https://hypereffect.dev",
-  "keywords": ["hypermedia", "gui", "ui", "server-driven-ui", "cel"],
+  "keywords": ["hypermedia", "gui", "ui", "server-driven-ui", "cel", "renderer"],
   "license": "MIT"
 }

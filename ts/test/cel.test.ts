@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cel } from '../src/index.js';
+import * as cel from '../src/cel.ts';
 
 const signals = cel.fromJson({ n: 3, d: 1.5, s: 'Hello', l: [1, 2, 3], m: { a: 1, b: 2 }, t: true, z: null });
-const run = (src) => cel.toJson(cel.compile(src).eval(signals));
-const fails = (src) => assert.throws(() => cel.compile(src).eval(signals), cel.CelError, src);
+const run = (src: string) => cel.toJson(cel.compile(src).eval(signals));
+const fails = (src: string) => assert.throws(() => cel.compile(src).eval(signals), cel.CelError, src);
 
 test('literals', () => {
   assert.equal(run('1'), 1);
@@ -152,7 +152,7 @@ test('strings extension', () => {
 });
 
 test('signal paths', () => {
-  const paths = (s) => cel.compile(s).paths;
+  const paths = (s: string) => cel.compile(s).paths;
   assert.deepEqual(paths('s.a.b + s.c'), [['a', 'b'], ['c']]);
   assert.deepEqual(paths("has(s.a.b) && s['x'].y"), [['a', 'b'], ['x', 'y']]);
   assert.deepEqual(paths('s.l.map(x, x.y)'), [['l']]);

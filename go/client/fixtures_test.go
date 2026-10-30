@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hypereffect/hypereffect-go/internal/jsonx"
+	"github.com/hypereffect/hypereffect/go/internal/jsonx"
 )
 
-// The shared fixtures, copied from the hypereffect repository.
-const fixtures = "../fixtures"
+// The shared fixtures at the root of the repository.
+const fixtures = "../../fixtures"
 
 // same is deep equality with numbers compared by value.
 func same(a, b any) bool {
