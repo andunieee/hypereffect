@@ -21,7 +21,8 @@ function same(a, b) {
 
 function run(file) {
   const sent = [];
-  const s = new Session({ send: (l) => sent.push(l), onDiagnostic: () => {} });
+  let opened = [];
+  const s = new Session({ send: (l) => sent.push(l), onDiagnostic: () => {}, onOpen: (u) => opened.push(u) });
   const lines = fs.readFileSync(path.join(dir, file), 'utf8').split('\n');
   const where = (i) => `${file}:${i + 1}`;
   const drained = (i) => assert.equal(sent.length, 0, `${where(i)}: unexpected output ${sent[0]}`);
@@ -69,6 +70,10 @@ function run(file) {
         case 'metadata':
           assert.ok(same(s.metadata, JSON.parse([a, ...rest].join(' '))), `${where(i)}: metadata is ${JSON.stringify(s.metadata)}`);
           break;
+        case 'opened':
+          assert.deepEqual(opened, JSON.parse([a, ...rest].join(' ')), where(i));
+          opened = [];
+          break;
         case 'absent':
           assert.ok(!s.has(a), `${where(i)}: ${a} exists`);
           break;
@@ -80,6 +85,7 @@ function run(file) {
     s.flush();
   });
   drained(lines.length - 1);
+  assert.deepEqual(opened, [], `${file}: URLs opened but not checked`);
 }
 
 for (const f of fs.readdirSync(dir).filter((f) => f.endsWith('.txt')).sort()) {

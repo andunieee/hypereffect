@@ -109,6 +109,13 @@ fn run(path: &Path) {
                         failures.push(format!("{at}: metadata is {got}"));
                     }
                 }
+                "opened" => {
+                    let want: Vec<String> = serde_json::from_value(json(args)).unwrap();
+                    let got = c.take_opens();
+                    if got != want {
+                        failures.push(format!("{at}: opened {got:?}"));
+                    }
+                }
                 "absent" => {
                     if c.contains(args) {
                         failures.push(format!("{at}: {args} exists"));
@@ -125,6 +132,10 @@ fn run(path: &Path) {
             "{name}: unexpected output at the end: {}",
             l.trim_end()
         ));
+    }
+    let opens = c.take_opens();
+    if !opens.is_empty() {
+        failures.push(format!("{name}: URLs opened but not checked: {opens:?}"));
     }
     c.take_diagnostics();
     assert!(failures.is_empty(), "{}", failures.join("\n"));

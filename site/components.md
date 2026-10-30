@@ -333,11 +333,12 @@ element {"id":"volume","type":"slider","label":"Volume","bind":"volume","max":11
 ## Handlers
 
 Every handler attribute takes the same object. It needs at least one of
-`patch` and `action`.
+`patch`, `open` and `action`.
 
 | Member | Type | Notes |
 | --- | --- | --- |
 | `patch` | object | A merge patch applied to the signals locally, first. Leaf values may be expressions. |
+| `open` | string | `button` only. A URL the renderer asks its host to open (a web page, `mailto:`…), after the patch. Non-empty string or expression; the host decides which URLs it opens. |
 | `action` | string | Non-empty. Sends `action {"name":...,"payload":...,"signals":...}` to the server. |
 | `payload` | any | Only with `action`. Copied verbatim into the action. Literal. |
 | `indicator` | path | Only with `action`. A signal path whose first segment starts with `_`; set to `true` when the action is sent. The server must reset it. |
@@ -352,6 +353,7 @@ An element with an invalid handler is rejected.
 - Feedback after an action: a `notice` whose `visible` and `variant` are
   expressions, not one added and removed.
 - A confirmation: a root `dialog` whose `open` reads a local signal.
+- A link: a `plain` `button` whose handler has `open`.
 - Switching views locally: `tabs` with `bind` to a local signal, or
   `visible` expressions on sibling containers.
 - State that only the server may confirm: `button`/`badge`/`text`

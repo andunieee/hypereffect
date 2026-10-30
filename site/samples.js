@@ -5,7 +5,7 @@
 // current signals, updated as they change.
 
 import { Session } from './demo/lib/index.js';
-import { DomRenderer } from './demo/renderer.js';
+import { DomRenderer, openUrl } from './demo/renderer.js';
 import { wireRow, Pairing } from './demo/wire.js';
 
 // Dialogs in samples are shown in place, not as page-wide modals.
@@ -47,6 +47,9 @@ function mount(sample, lines) {
     },
     onUpdate: (u) => renderer.update(u),
     onDiagnostic: (msg) => add('diag', msg),
+    onOpen: (url) => {
+      if (!openUrl(url)) add('diag', `refused to open ${url}`);
+    },
   });
   const renderer = new DomRenderer(session, surface);
   if (sample.hasAttribute('data-signals')) {

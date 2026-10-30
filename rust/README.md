@@ -55,7 +55,11 @@ c.receive(bytes_from_server);
 let el = c.get("value").unwrap();        // attrs resolved to plain JSON
 let action = c.trigger("inc", "onPress"); // Some(line) to send
 let changes = c.take_changes();          // what to redraw
+let urls = c.take_opens();               // URLs buttons asked to open
 ```
+
+The host decides which of those URLs to open, and how (see the security
+considerations in the spec).
 
 `server::Loopback` connects a `Client` to a `Server` in one process, which is
 how the demos are tested (`demos/*/tests`).

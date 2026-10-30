@@ -4,6 +4,17 @@
 // user input into writes and handler triggers.
 
 const CHANGE_IDLE_MS = 700;
+const OPEN_SCHEMES = new Set(['https:', 'http:', 'mailto:']);
+
+// Opens a URL a handler asked for, as a Session's onOpen, in a new tab with no
+// reference back to this page. Returns false for URLs with other schemes.
+export function openUrl(url) {
+  let u;
+  try { u = new URL(url); } catch { return false; }
+  if (!OPEN_SCHEMES.has(u.protocol)) return false;
+  window.open(u.href, '_blank', 'noopener,noreferrer');
+  return true;
+}
 
 let uid = 0;
 const h = (tag, props = {}, ...kids) => {

@@ -1,5 +1,5 @@
 import { Session, LineReader } from './lib/index.js';
-import { DomRenderer } from './renderer.js';
+import { DomRenderer, openUrl } from './renderer.js';
 import { WasmServer, Delay } from './transport.js';
 import { inspect } from './inspect.js';
 import { wireRow, Pairing } from './wire.js';
@@ -44,6 +44,9 @@ const session = new Session({
     receiving?.diags.push(msg);
     receiving?.row.classList.add('has-diag');
     append('diag', msg);
+  },
+  onOpen: (url) => {
+    if (!openUrl(url)) append('diag', `refused to open ${url}`);
   },
 });
 const renderer = new DomRenderer(session, surface);

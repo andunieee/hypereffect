@@ -199,10 +199,12 @@ Handler::action("login").indicator("_busy")      // sets s._busy = true when sen
 Handler::patch(json!({ "_open": true }))         // local only, no round trip
 Handler::patch(json!({ "_open": cel("!s._open") }))   // patch leaves may be CEL
 Handler::action("clear").with_patch(json!({ "_confirm": false }))  // patch, then send
+Handler::open("https://example.com/help")        // buttons only: opens a URL
+Handler::open(cel("'mailto:' + s.email"))        // the URL may be CEL
 ```
 
 When triggered, the renderer: stops if the element or an ancestor is
-disabled or hidden; applies `patch`; sets `indicator` to `true`; sends the
+disabled or hidden; applies `patch`; opens `open` (the host may refuse); sets `indicator` to `true`; sends the
 action. **The renderer never clears an indicator: the server must reset it
 in every reply, including early-return and error paths**
 (`out.signal(json!({ "_busy": false }))`).

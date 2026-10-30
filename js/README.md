@@ -28,6 +28,10 @@ session.write('form.email', 'ada@example.com'); // a bound control changed
 session.trigger('save', 'onPress');             // runs the handler; may send an action
 ```
 
+A button's handler can ask to open a URL. The session passes it to the
+`onOpen(url)` option and does nothing else: the host decides which URLs it
+opens, and how (see the security considerations in the spec).
+
 Attributes in `get()` are resolved: expressions are evaluated, values are
 checked against the attribute's type, and missing or failing values take their
 defaults, so a UI layer never sees a `{"cel": …}` object.

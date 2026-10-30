@@ -17,9 +17,14 @@ export class Session {
   //   send(line)        writes a line (with its line feed) to the transport
   //   onUpdate(update)  called after each batch of changes, see flush()
   //   onDiagnostic(msg) receives problems with messages and expressions
-  constructor({ send, onUpdate = () => {}, onDiagnostic = (m) => console.warn('hypereffect:', m) } = {}) {
+  //   onOpen(url)       asked to open a URL by a handler's `open`; the host
+  //                     decides whether and how
+  constructor({
+    send, onUpdate = () => {}, onDiagnostic = (m) => console.warn('hypereffect:', m), onOpen = () => {},
+  } = {}) {
     this.send = send;
     this.onUpdate = onUpdate;
+    this.onOpen = onOpen;
     this.diag = onDiagnostic;
     this.reader = new LineReader();
     this.nodes = new Map();
@@ -170,6 +175,10 @@ export class Session {
     if (h.patch) {
       this._patch(this._evalPatch(h.patch, `${id}.${event}`));
     }
+    if (Object.hasOwn(h, 'open')) {
+      const url = this._evalOpen(h.open, `${id}.${event}`);
+      if (url) this.onOpen(url);
+    }
     if (h.action && this.connected) {
       if (h.indicator) this._patch(pathPatch(parsePath(h.indicator), true));
       const msg = { name: h.action };
@@ -291,6 +300,21 @@ export class Session {
     return out;
   }
 
+  // The URL of a handler's `open`, or null if its expression fails or does not
+  // give a string.
+  _evalOpen(open, where) {
+    if (!isCel(open)) return open;
+    try {
+      const v = compile(open.cel).eval(this._celSignals());
+      if (typeof v === 'string') return v;
+      this.diag(`${where}.open: expected a string, got ${typeName(v)}`);
+    } catch (e) {
+      if (!(e instanceof CelError)) throw e;
+      this.diag(`${where}.open: ${e.message}`);
+    }
+    return null;
+  }
+
   _reject(el, why) {
     this.diag(`rejected element ${JSON.stringify(el.id ?? null)}: ${why}`);
   }
@@ -311,7 +335,7 @@ export class Session {
     for (const [k, spec] of Object.entries(schema)) {
       if (!Object.hasOwn(el, k)) continue;
       if (spec.type === 'path' && !parsePath(el[k])) return this._reject(el, `${k} is not a signal path`);
-      if (spec.type === 'handler' && !validHandler(el[k])) return this._reject(el, `${k} is not a valid handler`);
+      if (spec.type === 'handler' && !validHandler(el[k], type === 'button')) return this._reject(el, `${k} is not a valid handler`);
     }
     const parent = el.parent ?? null;
     if (parent !== null && !this.nodes.has(parent)) return this._reject(el, `parent ${JSON.stringify(parent)} does not exist`);
@@ -399,13 +423,16 @@ export class Session {
   }
 }
 
-function validHandler(h) {
+// `open` is allowed only when canOpen (on a button).
+function validHandler(h, canOpen) {
   if (!isObject(h)) return false;
   const hasPatch = Object.hasOwn(h, 'patch');
   const hasAction = Object.hasOwn(h, 'action');
-  if (!hasPatch && !hasAction) return false;
+  const hasOpen = Object.hasOwn(h, 'open');
+  if (!hasPatch && !hasAction && !hasOpen) return false;
   if (hasPatch && !isObject(h.patch)) return false;
   if (hasAction && (typeof h.action !== 'string' || h.action === '')) return false;
+  if (hasOpen && (!canOpen || !(isCel(h.open) || (typeof h.open === 'string' && h.open !== '')))) return false;
   if (Object.hasOwn(h, 'indicator')) {
     const p = parsePath(h.indicator);
     if (!hasAction || !p || !p[0].startsWith('_')) return false;

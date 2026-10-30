@@ -162,7 +162,8 @@ pub mod ui {
     }
 }
 
-/// A handler: a local patch, an action sent to the server, or both.
+/// A handler: a local patch, a URL to open (buttons only), an action sent to
+/// the server, or any combination.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Handler {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -173,6 +174,8 @@ pub struct Handler {
     pub payload: Option<Value>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub indicator: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub open: Option<Value>,
 }
 
 impl Handler {
@@ -196,6 +199,18 @@ impl Handler {
             panic!("a handler's patch must be an object")
         };
         self.patch = Some(m);
+        self
+    }
+
+    /// A handler that asks the renderer to open a URL: a string, or an
+    /// expression giving one. Only valid on a button.
+    pub fn open(url: impl Into<Value>) -> Self {
+        Handler::default().with_open(url)
+    }
+
+    /// Adds a URL to open, after the patch and before the action is sent.
+    pub fn with_open(mut self, url: impl Into<Value>) -> Self {
+        self.open = Some(url.into());
         self
     }
 
@@ -554,6 +569,15 @@ mod tests {
         assert_eq!(
             Value::from(h),
             json!({"patch":{"_open":false},"action":"login","indicator":"_busy"})
+        );
+        assert_eq!(
+            Value::from(Handler::open("https://example.com")),
+            json!({"open":"https://example.com"})
+        );
+        let h = Handler::action("visited").with_open(cel("'https://example.com/' + s.id"));
+        assert_eq!(
+            Value::from(h),
+            json!({"action":"visited","open":{"cel":"'https://example.com/' + s.id"}})
         );
     }
 

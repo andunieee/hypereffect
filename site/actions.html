@@ -51,6 +51,7 @@
               <li><a href="#ex-patch">A local patch</a></li>
               <li><a href="#ex-both">Patch and action</a></li>
               <li><a href="#ex-indicator">An indicator</a></li>
+              <li><a href="#ex-open">A link</a></li>
             </ol>
           </li>
         </ol>
@@ -65,6 +66,12 @@
             <a href="expressions.html#where">expressions</a>, evaluated before the patch is applied.
           </li>
           <li>
+            <code>open</code> — a URL for the renderer to open, such as a web page or a
+            <code>mailto:</code> address. A string or an
+            <a href="expressions.html#where">expression</a>. Only on a
+            <a href="components.html#button">button</a>.
+          </li>
+          <li>
             <code>action</code> — the name of an action to send to the server. May be accompanied by
             <code>payload</code> (any JSON, literal) and <code>indicator</code> (a local signal path
             set to <code>true</code> when the action is sent).
@@ -74,6 +81,7 @@
         <ol>
           <li>stops if the element, or one of its ancestors, is disabled or hidden;</li>
           <li>applies the <code>patch</code>, if any;</li>
+          <li>opens the <code>open</code> URL, if any, evaluated after the patch;</li>
           <li>stops if there is no <code>action</code>, or the connection is closed;</li>
           <li>sets the <code>indicator</code> to <code>true</code>, if any;</li>
           <li>
@@ -83,7 +91,9 @@
         </ol>
         <p>
           So when both are present, the patch is applied first and the action carries the patched
-          signals. Handlers are structural: they cannot be expressions. The exact rules are in the
+          signals. Opening a URL does not need the connection, and the renderer decides which URLs
+          it is willing to open. Handlers are structural: they cannot be expressions. The exact
+          rules are in the
           <a href="spec.html#handlers">specification</a>.
         </p>
 
@@ -236,6 +246,21 @@ action {"name":"delete","payload":{"project":3},"signals":{}}</pre>
         <pre>
 signal {"_deleting":false}
 remove {"id":"project-3"}</pre>
+
+        <h3 id="ex-open">A link</h3>
+        <p>
+          A <code>plain</code> button with <code>open</code> works as a link. The URL may be an
+          expression, here built from a signal:
+        </p>
+        <pre>
+signal {"user":"ada"}
+element {"id":"profile","type":"button","variant":"plain","label":"View profile",
+         "onPress":{"open":{"cel":"'https://example.com/people/' + s.user"}}}</pre>
+        <p>
+          Pressing it asks the renderer's host to open
+          <code>https://example.com/people/ada</code>, and sends nothing to the server. Add an
+          <code>action</code> if the server needs to know.
+        </p>
       </article>
     </main>
 

@@ -68,6 +68,7 @@ function describeHandler(hd) {
   if (hd.action) parts.push(h('div', {}, 'Sends action ', h('code', { class: 'chip action' }, hd.action)));
   if (Object.hasOwn(hd, 'payload')) parts.push(h('div', { class: 'd-payload-inline' }, 'with payload ', json(hd.payload)));
   if (hd.patch) parts.push(h('div', {}, 'Applies a local patch first ', json(hd.patch)));
+  if (Object.hasOwn(hd, 'open')) parts.push(h('div', {}, 'Opens the URL ', json(hd.open)));
   if (hd.indicator) parts.push(h('div', {}, 'Sets indicator ', h('code', {}, hd.indicator), ' to true until the server clears it'));
   return parts;
 }

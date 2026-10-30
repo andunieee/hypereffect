@@ -109,6 +109,7 @@ pub struct Client {
     reader: LineBuffer,
     changes: Changes,
     diagnostics: RefCell<Vec<String>>,
+    opens: Vec<String>,
 }
 
 impl Default for Client {
@@ -138,6 +139,7 @@ impl Client {
             reader: LineBuffer::new(),
             changes: Changes::default(),
             diagnostics: RefCell::new(Vec::new()),
+            opens: Vec::new(),
         }
     }
 
@@ -330,7 +332,8 @@ impl Client {
     }
 
     /// Runs the handler in attribute `event` of element `id`, following
-    /// section 10 of the spec. Returns the action line to send, if any.
+    /// section 10 of the spec. Returns the action line to send, if any. A URL
+    /// to open is queued for [`Client::take_opens`].
     pub fn trigger(&mut self, id: &str, event: &str) -> Option<String> {
         let n = self.nodes.get(id)?;
         if n.component.attr(event)?.ty != AttrType::Handler {
@@ -350,6 +353,11 @@ impl Client {
         if let Some(Value::Object(patch)) = h.get("patch") {
             let p = self.eval_patch(patch, &format!("{id}.{event}"));
             self.patch(&Value::Object(p));
+        }
+        if let Some(open) = h.get("open") {
+            if let Some(url) = self.eval_open(open, &format!("{id}.{event}")) {
+                self.opens.push(url);
+            }
         }
         let action = h.get("action")?.as_str()?.to_string();
         if !self.connected {
@@ -410,6 +418,12 @@ impl Client {
     /// Takes the diagnostics reported since the last call.
     pub fn take_diagnostics(&mut self) -> Vec<String> {
         std::mem::take(self.diagnostics.get_mut())
+    }
+
+    /// Returns and clears the URLs that handlers asked to open (a button's
+    /// `open`), oldest first. The host decides whether and how to open them.
+    pub fn take_opens(&mut self) -> Vec<String> {
+        std::mem::take(&mut self.opens)
     }
 
     // --- internals ---------------------------------------------------------
@@ -487,6 +501,30 @@ impl Client {
         out
     }
 
+    /// The URL of a handler's `open`, or None if its expression fails or does
+    /// not give a string.
+    fn eval_open(&self, open: &Value, at: &str) -> Option<String> {
+        let Some(src) = is_cel(open) else {
+            return open.as_str().map(str::to_string);
+        };
+        let r = self
+            .env
+            .compile(src)
+            .map_err(|e| e.to_string())
+            .and_then(|p| self.eval(&p));
+        match r {
+            Ok(cel::Value::String(s)) => Some(s.to_string()),
+            Ok(v) => {
+                self.diag(format!("{at}.open: expected a string, got {}", v.type_of()));
+                None
+            }
+            Err(e) => {
+                self.diag(format!("{at}.open: {e}"));
+                None
+            }
+        }
+    }
+
     fn reject(&self, el: &Map<String, Value>, why: &str) {
         let id = el.get("id").cloned().unwrap_or(Value::Null);
         self.diag(format!("rejected element {id}: {why}"));
@@ -524,7 +562,7 @@ impl Client {
             if a.ty == AttrType::Path && v.as_str().and_then(parse_path).is_none() {
                 return self.reject(&el, &format!("{} is not a signal path", a.name));
             }
-            if a.ty == AttrType::Handler && !valid_handler(v) {
+            if a.ty == AttrType::Handler && !valid_handler(v, component == Component::Button) {
                 return self.reject(&el, &format!("{} is not a valid handler", a.name));
             }
         }
@@ -655,12 +693,20 @@ impl Client {
     }
 }
 
-fn valid_handler(h: &Value) -> bool {
+/// `open` is allowed only when `can_open` (on a button).
+fn valid_handler(h: &Value, can_open: bool) -> bool {
     let Some(h) = h.as_object() else { return false };
     let patch = h.get("patch");
     let action = h.get("action");
-    if patch.is_none() && action.is_none() {
+    let open = h.get("open");
+    if patch.is_none() && action.is_none() && open.is_none() {
         return false;
+    }
+    if let Some(o) = open {
+        let ok = can_open && (is_cel(o).is_some() || o.as_str().is_some_and(|s| !s.is_empty()));
+        if !ok {
+            return false;
+        }
     }
     if patch.is_some_and(|p| !p.is_object()) {
         return false;

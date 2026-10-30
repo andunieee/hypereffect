@@ -537,12 +537,20 @@ element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Inbox
 
         <h2 id="handlers"><span class="num">10</span>Handlers</h2>
         <p>
-          A handler is a JSON object with at least one of <code>patch</code> (an object) and
-          <code>action</code> (a non-empty string). With <code>action</code> it MAY also have
-          <code>payload</code> (any JSON value) and <code>indicator</code> (a signal path whose
-          first segment begins with <code>_</code>). Handlers with none of <code>patch</code> or
-          <code>action</code>, or with an invalid <code>indicator</code>, are invalid; an element
-          with an invalid handler is rejected.
+          A handler is a JSON object with at least one of <code>patch</code> (an object),
+          <code>open</code> (a non-empty string or an expression) and <code>action</code> (a
+          non-empty string). With <code>action</code> it MAY also have <code>payload</code> (any
+          JSON value) and <code>indicator</code> (a signal path whose first segment begins with
+          <code>_</code>). Only the handlers of a <code>button</code> may have <code>open</code>.
+          Handlers with none of <code>patch</code>, <code>open</code> or <code>action</code>, with
+          <code>open</code> on another component, or with an invalid <code>open</code> or
+          <code>indicator</code>, are invalid; an element with an invalid handler is rejected.
+        </p>
+        <p>
+          <code>open</code> is a URL that the renderer asks its host to open, for example in a web
+          browser or the application registered for its scheme. It SHOULD be an absolute URL. The
+          host decides whether and how to open it (see <a href="#security">security
+          considerations</a>); the renderer does not report the outcome to the server.
         </p>
         <p>When the user triggers a handler, the renderer MUST perform these steps in order:</p>
         <ol>
@@ -550,6 +558,11 @@ element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Inbox
           <li>
             If the handler has <code>patch</code>, evaluate its expressions against the current
             signals and apply the resulting merge patch.
+          </li>
+          <li>
+            If the handler has <code>open</code>, evaluate it against the signals (after the patch).
+            If it gives a non-empty string, ask the host to open that URL; otherwise report a
+            diagnostic and open nothing.
           </li>
           <li>If the handler has <code>action</code> and the transport is not open, stop.</li>
           <li>If the handler has <code>indicator</code>, write <code>true</code> at that path.</li>
@@ -651,6 +664,15 @@ element {"id":"title","type":"text","parent":"main","variant":"h1","text":"Inbox
             <strong>Images.</strong> Fetching an <code>image</code> or metadata <code>icon</code> URL discloses the user's network
             address and timing to that URL's host. Renderers SHOULD let the host restrict which
             schemes and hosts may be fetched.
+          </li>
+          <li>
+            <strong>Opening URLs.</strong> A server can ask to open any URL, including schemes that
+            launch other applications or run code (<code>javascript:</code>, <code>file:</code>,
+            custom schemes). Hosts SHOULD open only schemes they allow (typically
+            <code>https</code>, <code>http</code> and <code>mailto</code>), SHOULD open web pages
+            outside the renderer's own context (a new browser tab or window, with no reference back
+            to the renderer), and SHOULD let the user see the destination before or while it opens.
+            Renderers MUST NOT open a URL except in response to the user triggering the handler.
           </li>
           <li>
             <strong>Resource use.</strong> A server can send many elements or large signals.
