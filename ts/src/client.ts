@@ -5,6 +5,9 @@
 // resolved to plain JSON values. A UI layer reads the resolved elements and
 // draws them; takeChanges() says which ones to redraw.
 //
+// A Session wraps a Client with callbacks, for renderers driven by events
+// such as a browser's.
+//
 // A Loopback connects a Client to a Server in the same process, for testing
 // an app without a renderer.
 
@@ -17,7 +20,7 @@ import {
   LineBuffer, metadataFromObject, parseLine, rendererMessageLine, serverMessageLine,
 } from './message.ts';
 import { type App, Server } from './server.ts';
-import { getPath, isObject, mergePatchTracked, parsePath, pathPatch, stripLocal } from './signals.ts';
+import { getPath, isObject, mergePatchTracked, overlaps, parsePath, pathPatch, stripLocal } from './signals.ts';
 
 const ROOT = '';
 const STRUCTURAL = new Set(['id', 'type', 'parent', 'before']);
@@ -58,9 +61,10 @@ export interface Changes {
   metadata: boolean;
 }
 
-const noChanges = (): Changes & { signals: boolean } => ({
+// paths are the signal paths whose values may have changed.
+const noChanges = (): Changes & { paths: string[][] } => ({
   reset: false, connection: false, created: new Set(), updated: new Set(), removed: new Set(),
-  reordered: new Set(), metadata: false, signals: false,
+  reordered: new Set(), metadata: false, paths: [],
 });
 
 interface Node {
@@ -69,8 +73,8 @@ interface Node {
   children: string[];
   el: JsonObject;
   progs: Map<string, Compiled>;
-  // Whether any attribute reads signals.
-  readsSignals: boolean;
+  // The signal paths its expressions and bindings read; [] means anything.
+  deps: string[][];
 }
 
 class CheckError extends Error {}
@@ -82,7 +86,7 @@ export class Client {
   private _metadata: Metadata = {};
   private celSignals: unknown = undefined;
   private _connected = false;
-  private resetPending = false;
+  private _resetPending = false;
   private reader = new LineBuffer();
   private changes = noChanges();
   private diagnostics: string[] = [];
@@ -97,7 +101,7 @@ export class Client {
   hello(params: Record<string, string> = {}): string {
     this.reader = new LineBuffer();
     this._connected = true;
-    this.resetPending = true;
+    this._resetPending = true;
     const line = rendererMessageLine({ tag: 'hello', params });
     if (this.nodes.size === 0) this.reset();
     this.changes.connection = true;
@@ -122,7 +126,7 @@ export class Client {
 
   // Processes a message given as a tag and its JSON object.
   receiveMessage(tag: string, body: JsonObject): void {
-    if (this.resetPending) this.reset();
+    if (this._resetPending) this.reset();
     switch (tag) {
       case 'element': this.element(body); break;
       case 'remove': if (typeof body.id === 'string') this.remove(body.id); break;
@@ -145,6 +149,12 @@ export class Client {
 
   get connected(): boolean {
     return this._connected;
+  }
+
+  // Whether a new session began and the tree is still the previous one,
+  // kept for display until the first server message discards it.
+  get resetPending(): boolean {
+    return this._resetPending;
   }
 
   // --- reading -----------------------------------------------------------
@@ -262,10 +272,12 @@ export class Client {
 
   // Takes what changed since the last call.
   takeChanges(): Changes {
-    const { signals, ...c } = this.changes;
+    const { paths, ...c } = this.changes;
     this.changes = noChanges();
-    if (signals) {
-      for (const [id, n] of this.nodes) if (n.readsSignals) c.updated.add(id);
+    if (paths.length) {
+      for (const [id, n] of this.nodes) {
+        if (n.deps.some((d) => paths.some((p) => overlaps(d, p)))) c.updated.add(id);
+      }
     }
     // Tabs and lists present facts about their children.
     const listLike = (t: Component) => t === 'tabs' || t === 'list';
@@ -307,7 +319,7 @@ export class Client {
   }
 
   private reset(): void {
-    this.resetPending = false;
+    this._resetPending = false;
     this.setMetadata({});
     for (const id of this.nodes.keys()) this.changes.removed.add(id);
     this.nodes.clear();
@@ -315,7 +327,7 @@ export class Client {
     this._signals = {};
     this.celSignals = undefined;
     this.changes.reset = true;
-    this.changes.signals = true;
+    this.changes.paths.push([]);
     this.changes.reordered.add(ROOT);
   }
 
@@ -325,9 +337,8 @@ export class Client {
   }
 
   private patch(patch: Json): void {
-    this._signals = mergePatchTracked(this._signals, patch, [], []) as JsonObject;
+    this._signals = mergePatchTracked(this._signals, patch, [], this.changes.paths) as JsonObject;
     this.celSignals = undefined;
-    this.changes.signals = true;
   }
 
   private evalPatch(patch: JsonObject, at: string): JsonObject {
@@ -407,16 +418,17 @@ export class Client {
       }
     }
 
-    const node: Node = { type, parent, children: [], el, progs: new Map(), readsSignals: false };
+    const node: Node = { type, parent, children: [], el, progs: new Map(), deps: [] };
     for (const a of attrs(type)) {
       const v = el[a.name];
       if (v === undefined) continue;
-      if (a.type.kind === 'path') node.readsSignals = true;
+      if (a.type.kind === 'path') node.deps.push(parsePath(v as string)!);
       const src = isCel(v);
       if (src === undefined) continue;
-      node.readsSignals = true;
       try {
-        node.progs.set(a.name, compile(src));
+        const prog = compile(src);
+        node.progs.set(a.name, prog);
+        node.deps.push(...prog.paths);
       } catch (e) {
         this.diag(`${id}.${a.name}: ${(e as Error).message}`);
       }
@@ -587,3 +599,4 @@ export class Loopback<A extends App> {
 }
 
 export { fromJson, toJson } from './cel.ts';
+export { Session, type SessionOptions } from './session.ts';

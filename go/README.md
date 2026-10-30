@@ -7,15 +7,15 @@ components and their nesting rules, an `App`/`Server` session driver, and a
 renderer client with a loopback for testing apps without a renderer.
 
 ```
-go get github.com/hypereffect/hypereffect-go
+go get github.com/hypereffect/hypereffect/go
 ```
 
 ## Servers
 
 ```go
 import (
-	he "github.com/hypereffect/hypereffect-go"
-	"github.com/hypereffect/hypereffect-go/ui"
+	he "github.com/hypereffect/hypereffect/go"
+	"github.com/hypereffect/hypereffect/go/ui"
 )
 
 type Counter struct{ count int }
@@ -105,6 +105,4 @@ go test ./...
 ```
 
 This runs unit tests, the todos example, and the shared renderer fixtures in
-`fixtures/`, copied from the
-[hypereffect repository](https://github.com/hypereffect/hypereffect/tree/master/fixtures).
-Copy them again when they change there.
+the repository's [`fixtures/`](https://github.com/hypereffect/hypereffect/tree/master/fixtures).

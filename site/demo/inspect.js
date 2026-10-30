@@ -3,7 +3,7 @@
 // Anything carrying `data-ref` is an element id the page pairs with the
 // rendered component on hover.
 
-import { COMPONENTS, isCel } from './lib/index.js';
+import { attrOf, isCel, isComponent } from './lib/index.js';
 
 const h = (tag, props = {}, ...kids) => {
   const el = document.createElement(tag);
@@ -115,11 +115,11 @@ function element(root, b, e, s) {
   ));
 
   const attrs = Object.keys(b).filter((k) => !STRUCTURAL.has(k));
-  const spec = COMPONENTS[b.type] ?? {};
+  const kind = (k) => (isComponent(b.type) ? attrOf(b.type, k)?.type.kind : undefined);
   if (attrs.length) {
     root.append(section('Attributes', ...attrs.map((k) => {
       const v = b[k];
-      const t = spec[k]?.type;
+      const t = kind(k);
       if (t === 'handler' && isObj(v)) return row(k, ...describeHandler(v));
       if (t === 'path') {
         return row(k, 'Two-way bound to ', h('code', { class: 'chip signal' }, `s.${v}`),
@@ -136,7 +136,7 @@ function element(root, b, e, s) {
   root.append(section('Message', json(b, (p, v) => {
     if (p.length === 1 && p[0] === 'id') return { cls: 'mk-id', ref: b.id };
     if (p.length === 1 && (p[0] === 'parent' || p[0] === 'before')) return { cls: 'mk-ref', ref: v };
-    if (p.length === 1 && spec[p[0]]?.type === 'handler') return { cls: 'mk-handler' };
+    if (p.length === 1 && kind(p[0]) === 'handler') return { cls: 'mk-handler' };
     if (isCel(v)) return { cls: 'mk-cel' };
     return null;
   })));

@@ -1,5 +1,4 @@
-// Runs the shared fixtures in ../fixtures, copied from the hypereffect
-// repository, against Client.
+// Runs the shared fixtures in ../../fixtures against Client.
 
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -7,7 +6,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { Client } from '../src/client.ts';
 
-const dir = path.join(import.meta.dirname, '..', 'fixtures');
+const dir = path.join(import.meta.dirname, '..', '..', 'fixtures');
 
 // Deep equality with numbers compared by value.
 function same(a: unknown, b: unknown): boolean {

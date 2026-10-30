@@ -2,3 +2,10 @@
 /site/demo/wasm/
 /site/demo/lib/
 node_modules/
+/ts/dist/
+/python/dist/
+__pycache__/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

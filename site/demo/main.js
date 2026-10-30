@@ -1,4 +1,5 @@
-import { Session, LineReader } from './lib/index.js';
+import { Session } from './lib/client.js';
+import { LineBuffer } from './lib/index.js';
 import { DomRenderer, openUrl } from './renderer.js';
 import { WasmServer, Delay } from './transport.js';
 import { inspect } from './inspect.js';
@@ -191,7 +192,7 @@ async function connect(name) {
     return;
   }
   renderer.banner.textContent = 'Disconnected';
-  const reader = new LineReader();
+  const reader = new LineBuffer();
   const up = new Delay(({ line, source: src }) => {
     for (const l of line.split('\n')) if (l) append('up', l, { source: src });
     server.write(line);
@@ -200,7 +201,7 @@ async function connect(name) {
     for (const l of reader.push(text)) {
       const e = append('down', l);
       // After a reconnect the session drops the old tree on the first message.
-      if (e.body && (e.tag === 'element' || e.tag === 'remove')) e.existed = !session._resetPending && session.has(e.body.id);
+      if (e.body && (e.tag === 'element' || e.tag === 'remove')) e.existed = !session.resetPending && session.has(e.body.id);
       receiving = e;
       try { session.receiveLine(l); } finally { receiving = null; }
     }

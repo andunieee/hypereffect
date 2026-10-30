@@ -1,0 +1,97 @@
+name: Release
+
+# Each package is released by pushing a tag named after its directory:
+# rust/v0.5.0, ts/v0.1.0, python/v0.1.0 or go/v0.1.0. `just release`
+# creates and pushes it. The version in the tag must match the package's
+# manifest (Go has none: the tag is the version).
+#
+# Publishing uses trusted publishing (OIDC), so no registry tokens are stored
+# here: each registry must list this repository, this workflow and the
+# `release` environment as a trusted publisher.
+
+on:
+  push:
+    tags: ["rust/v*", "ts/v*", "python/v*", "go/v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    if: startsWith(github.ref_name, 'rust/v')
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: extractions/setup-just@v2
+      - name: Check version
+        run: |
+          version=$(cargo metadata --manifest-path rust/Cargo.toml --format-version 1 --no-deps \
+            | jq -r '.packages[] | select(.name == "hypereffect") | .version')
+          test "rust/v$version" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME, Cargo.toml $version"; exit 1; }
+      - run: just test-rust
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+      - run: cargo publish --manifest-path rust/hypereffect/Cargo.toml
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+
+  ts:
+    if: startsWith(github.ref_name, 'ts/v')
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5.1 or later.
+      - run: npm install -g npm@latest
+      - uses: extractions/setup-just@v2
+      - name: Check version
+        run: |
+          version=$(node -p "require('./ts/package.json').version")
+          test "ts/v$version" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME, package.json $version"; exit 1; }
+      - run: just test-ts
+      - run: npm --prefix ts publish
+
+  python:
+    if: startsWith(github.ref_name, 'python/v')
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+      - uses: extractions/setup-just@v2
+      - name: Check version
+        run: |
+          version=$(uv version --project python --short)
+          test "python/v$version" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME, pyproject.toml $version"; exit 1; }
+      - run: just test-python
+      - run: uv build --project python --out-dir python/dist
+      - run: uv publish --trusted-publishing always python/dist/*
+
+  go:
+    if: startsWith(github.ref_name, 'go/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+      - uses: extractions/setup-just@v2
+      - run: just test-go
+      # The tag is the release; asking the module proxy for it makes it
+      # available, and listed on pkg.go.dev, right away.
+      - name: Announce to the module proxy
+        run: curl -fsS "https://proxy.golang.org/github.com/hypereffect/hypereffect/go/@v/${GITHUB_REF_NAME#go/}.info"

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/hypereffect/hypereffect-go/internal/jsonx"
-	"github.com/hypereffect/hypereffect-go/signals"
+	"github.com/hypereffect/hypereffect/go/internal/jsonx"
+	"github.com/hypereffect/hypereffect/go/signals"
 )
 
 // Expr is an expression attribute value: {"cel": "..."}.

@@ -3,7 +3,7 @@ package client
 import (
 	"time"
 
-	he "github.com/hypereffect/hypereffect-go"
+	he "github.com/hypereffect/hypereffect/go"
 )
 
 // Loopback connects a [Client] to a [hypereffect.Server] in the same

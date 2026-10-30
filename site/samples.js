@@ -4,7 +4,7 @@
 // server, so nothing answers them. A sample with data-signals also shows the
 // current signals, updated as they change.
 
-import { Session } from './demo/lib/index.js';
+import { Session } from './demo/lib/client.js';
 import { DomRenderer, openUrl } from './demo/renderer.js';
 import { wireRow, Pairing } from './demo/wire.js';
 

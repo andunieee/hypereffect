@@ -1,4 +1,4 @@
-module github.com/hypereffect/hypereffect-go
+module github.com/hypereffect/hypereffect/go
 
 go 1.23.0
 

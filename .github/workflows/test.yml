@@ -22,13 +22,38 @@ jobs:
       - name: Build demos to wasm
         run: just build-demo
 
-  js:
+  ts:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
       - uses: extractions/setup-just@v2
       - name: Test
-        run: just test-js
+        run: just test-ts
+
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+      - uses: extractions/setup-just@v2
+      - name: Test
+        run: just test-go
+
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: extractions/setup-just@v2
+      - name: Test
+        run: just test-python

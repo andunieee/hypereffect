@@ -23,9 +23,9 @@ import (
 	"cel.dev/cel-go/common/types/traits"
 	"cel.dev/cel-go/ext"
 
-	he "github.com/hypereffect/hypereffect-go"
-	"github.com/hypereffect/hypereffect-go/internal/jsonx"
-	"github.com/hypereffect/hypereffect-go/signals"
+	he "github.com/hypereffect/hypereffect/go"
+	"github.com/hypereffect/hypereffect/go/internal/jsonx"
+	"github.com/hypereffect/hypereffect/go/signals"
 )
 
 // Resolved is an element with its attributes resolved: expressions

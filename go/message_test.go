@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	he "github.com/hypereffect/hypereffect-go"
-	"github.com/hypereffect/hypereffect-go/ui"
+	he "github.com/hypereffect/hypereffect/go"
+	"github.com/hypereffect/hypereffect/go/ui"
 )
 
 func TestElementRoundTrip(t *testing.T) {

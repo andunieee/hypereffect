@@ -1,5 +1,4 @@
-"""Runs the shared fixtures in ../fixtures, copied from the hypereffect
-repository, against Client."""
+"""Runs the shared fixtures in ../../fixtures against Client."""
 
 import json
 from pathlib import Path
@@ -8,7 +7,7 @@ import pytest
 
 from hypereffect.client import Client
 
-FIXTURES = Path(__file__).parent.parent / "fixtures"
+FIXTURES = Path(__file__).parent.parent.parent / "fixtures"
 
 
 def same(a: object, b: object) -> bool:

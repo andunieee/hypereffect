@@ -1,5 +1,5 @@
 // An ad-hoc DOM renderer for the hypereffect components, on top of the
-// Session from the JavaScript library. The Session owns the tree, signals and
+// Session from the TypeScript library. The Session owns the tree, signals and
 // expressions; this file only turns resolved elements into HTML widgets and
 // user input into writes and handler triggers.
 

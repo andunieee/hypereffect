@@ -68,9 +68,17 @@ are expressions over the state.
 ## In this repository
 
 - `site/`: the website at [hypereffect.dev](https://hypereffect.dev)
-- `rust/`: types and helpers for servers and renderers
-- `js/`: a dependency-free JavaScript renderer core
-- `fixtures/`: renderer test scripts shared by both libraries
+- `fixtures/`: renderer test scripts shared by all the libraries
+
+| Directory | Language   | Package                                       | Contents                         |
+| --------- | ---------- | --------------------------------------------- | -------------------------------- |
+| `rust/`   | Rust       | `hypereffect` on crates.io                    | servers and renderers            |
+| `ts/`     | TypeScript | `hypereffect` on npm                          | servers and renderers            |
+| `go/`     | Go         | `github.com/hypereffect/hypereffect/go`       | servers, renderer client         |
+| `python/` | Python     | `hypereffect-ui` on PyPI                      | servers, renderer client         |
+
+`just test` runs every test suite, and `just release <directory>` tags a package for the release
+workflow to publish.
 
 ## Who is using it
 
